@@ -31,7 +31,7 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
 
   const getCourse = async () => {
     if (!user?.primaryEmailAddress?.emailAddress) return;
-    
+
     const res = await getCourseByIdAction(
       params.courseId,
       user.primaryEmailAddress.emailAddress
@@ -48,16 +48,16 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
     try {
       setLoading(true);
       console.log("Starting course content generation...");
-      
+
       const result = await generateCourseContent(course, setLoading);
-      
+
       if (result.success) {
         console.log("✅ Course content generated successfully!");
         await updateCoursePublishStatusAction(params.courseId);
         router.replace(`/create-course/${params.courseId}/finish`);
       } else {
         console.error("❌ Failed to generate course content:", result.error);
-        
+
         if (result.error?.includes("429") || result.error?.includes("Too Many Requests")) {
           alert(
             "⚠️ Rate Limit Exceeded!\n\n" +
@@ -75,7 +75,7 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
       }
     } catch (error: any) {
       console.error("Error:", error);
-      
+
       if (error.message?.includes("429")) {
         alert("⚠️ Rate Limit Error: Please wait 1-2 minutes and try again.");
       } else {
