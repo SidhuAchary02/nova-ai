@@ -1,5 +1,3 @@
-"use server";
-
 import { db } from "@/configs/db";
 import { CourseList } from "@/schema/schema";
 import { eq } from "drizzle-orm";
