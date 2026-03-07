@@ -49,7 +49,13 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
           <FaVideo className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-gray-500">Video Included</h2>
-            <h2 className="font-medium text-lg">{typeof courseDetail.isVideo === 'string' ? courseDetail.isVideo : courseDetail.isVideo?.value || ''}</h2>
+            <h2 className="font-medium text-lg">
+              {typeof courseDetail.isVideo === 'string' 
+                ? courseDetail.isVideo 
+                : typeof courseDetail.isVideo === 'object' && courseDetail.isVideo?.value 
+                ? String(courseDetail.isVideo.value) 
+                : ''}
+            </h2>
           </div>
         </div>
 

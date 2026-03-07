@@ -30,7 +30,7 @@ export type CourseType = {
   category: string;
   level: string;
   courseOutput: courseOutputType;
-  isVideo: string;
+  isVideo: string | { value: string } | { value: boolean };
   username: string | null;
   userprofileimage: string | null;
   createdBy: string | null;
