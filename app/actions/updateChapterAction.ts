@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { CourseType } from "@/types/types";
 
 export async function updateChapterAction(
-  courseId: string,
+  courseId: number,
   chapterIndex: number,
   chapterName: string,
   chapterDescription: string,
@@ -17,7 +17,7 @@ export async function updateChapterAction(
     const updatedCourse = { ...course };
     updatedCourse.courseOutput.chapters[chapterIndex] = {
       ...updatedCourse.courseOutput.chapters[chapterIndex],
-      chapter_name: chapterName,
+      chapterName: chapterName,
       description: chapterDescription,
     };
 
@@ -27,7 +27,7 @@ export async function updateChapterAction(
       .set({
         courseOutput: updatedCourse.courseOutput,
       })
-      .where(eq(CourseList.id, courseId));
+      .where(eq(CourseList.id, course.id));
 
     return {
       success: true,

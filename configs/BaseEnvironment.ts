@@ -6,7 +6,7 @@ export type Environment = "development" | "production" | "test";
 
 export class BaseEnvironment {
   defaultEnvironmentValues = {
-    HOST_URL: "http://localhost:3001",
+    HOST_URL: "http://localhost:3000",
     GOOGLE_GEMINI_API_KEY: "my-api-key",
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     DRIZZLE_DATABASE_URL:

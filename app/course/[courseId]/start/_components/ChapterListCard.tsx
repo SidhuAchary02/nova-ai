@@ -14,7 +14,7 @@ const ChapterListCard = ({ chapter, index }: ChapterListCardProps) => {
         <h2 className="p-1 bg-primary text-white rounded-full w-8 h-8 text-center">{index +1}</h2>
       </div>
       <div className="col-span-4">
-        <h2 className="font-medium">{chapter.chapter_name}</h2>
+        <h2 className="font-medium">{chapter.chapterName}</h2>
         <h2 className="text-sm text-primary flex items-center gap-2"> <LuTimer /> {chapter.duration}</h2>
       </div>
     </div>

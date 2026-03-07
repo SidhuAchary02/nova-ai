@@ -31,13 +31,13 @@ export const generateCourseContent = async (
         const index = i + idx;
 
         console.log(
-          `📝 Generating chapter ${index + 1}/${chapters.length}: ${chapter.chapter_name}`
+          `📝 Generating chapter ${index + 1}/${chapters.length}: ${chapter.chapterName}`
         );
 
         return generateChapterContentAction(
           course.courseId,
           course.courseName,
-          chapter.chapter_name,
+          chapter.chapterName,
           index
         )
           .then((res) => {

@@ -9,18 +9,18 @@ export type UserInputType = {
 };
 
 export type ChapterType = {
-  chapter_name: string;
+  chapterName: string;
   description: string;
   duration: string;
 };
 
 export type courseOutputType = {
-  category: string;
-  chapters: ChapterType[];
-  duration: string;
-  level: string;
   topic: string;
-  description: string;
+  description?: string;
+  duration?: string;
+  chapters: ChapterType[];
+  category?: string;
+  level?: string;
 };
 
 export type CourseType = {
@@ -56,4 +56,18 @@ export type ChapterContentType = {
   courseId: string;
   content: ChapterSectionType[];
   videoId: string;
+};
+
+export type QuizQuestionType = {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+};
+
+export type ChapterQuizType = {
+  id: number;
+  chapterId: number;
+  courseId: string;
+  questions: QuizQuestionType[];
 };

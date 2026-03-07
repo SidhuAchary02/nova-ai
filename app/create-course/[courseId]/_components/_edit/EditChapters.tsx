@@ -32,7 +32,7 @@ const EditChapters = ({ course, index, onRefresh }: EditChapterProps) => {
   const [chapterDescription, setChapterDescription] = useState<string>("");
 
   useEffect(() => {
-    setChapterName(chapters[index]?.chapter_name || "");
+    setChapterName(chapters[index]?.chapterName || "");
     setChapterDescription(chapters[index]?.description || "");
   }, [chapters, index]);
 
