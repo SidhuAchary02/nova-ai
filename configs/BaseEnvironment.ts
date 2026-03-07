@@ -6,8 +6,9 @@ export type Environment = "development" | "production" | "test";
 
 export class BaseEnvironment {
   defaultEnvironmentValues = {
-    HOST_URL: "http://localhost:3000",
+    HOST_URL: "http://localhost:3001",
     GOOGLE_GEMINI_API_KEY: "my-api-key",
+    GROQ_API_KEY: process.env.GROQ_API_KEY,
     DRIZZLE_DATABASE_URL:
       "postgresql://myuser:mypassword@mydbhost.com/mydatabase",
     FIREBASE_API_KEY: "my-firebase-api-key",
@@ -37,6 +38,10 @@ export class BaseEnvironment {
       this.defaultEnvironmentValues.GOOGLE_GEMINI_API_KEY
     );
   }
+
+  GROQ_API_KEY =
+    process.env.GROQ_API_KEY ??
+    this.defaultEnvironmentValues.GROQ_API_KEY;
 
   get DRIZZLE_DATABASE_URL(): string {
     const url =

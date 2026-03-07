@@ -1,3 +1,5 @@
+"use client";
+
 import { ChapterContentType, ChapterType } from "@/types/types";
 import React from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
@@ -12,7 +14,6 @@ const videoOpts = {
   height: "390",
   width: "640",
   playerVars: {
-    // https://developers.google.com/youtube/player_parameters
     autoplay: 0,
   },
 };
@@ -21,7 +22,6 @@ const ChapterContent = ({ chapter, content }: ChapterContentProps) => {
   console.log("Chapter Content Data:", content);
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
-    // access to player in all event handlers via event.target
     event.target.pauseVideo();
   };
 
@@ -29,12 +29,26 @@ const ChapterContent = ({ chapter, content }: ChapterContentProps) => {
     console.error("YouTube Player Error:", event.data);
   };
 
+  /**
+   * FIX: Normalize AI content
+   * AI sometimes returns object instead of array
+   */
+  let parsedContent: any[] = [];
+
+  if (content?.content) {
+    if (Array.isArray(content.content)) {
+      parsedContent = content.content;
+    } else if (typeof content.content === "object") {
+      parsedContent = [content.content];
+    }
+  }
+
   return (
     <div className="p-10">
       <h2 className="font-medium text-2xl">{chapter?.chapter_name}</h2>
       <p className="text-gray-500">{chapter?.description}</p>
 
-      {/* video */}
+      {/* YouTube Video */}
       {content?.videoId ? (
         <div className="flex justify-center my-6">
           <YouTube
@@ -50,29 +64,37 @@ const ChapterContent = ({ chapter, content }: ChapterContentProps) => {
         </div>
       )}
 
+      {/* Chapter Content */}
       <div>
-        {!content?.content || content.content.length === 0 ? (
+        {parsedContent.length === 0 ? (
           <div className="p-10 bg-yellow-50 rounded-lg text-center">
-            <p className="text-gray-600">No content available for this chapter yet. Please generate the course content first.</p>
+            <p className="text-gray-600">
+              No content available for this chapter yet. Please generate the
+              course content first.
+            </p>
           </div>
         ) : (
-          content.content.map((item, index) => (
+          parsedContent.map((item: any, index: number) => (
             <div key={index} className="my-5 bg-sky-50 rounded-lg p-5">
               <h2 className="font-medium text-lg">{item.title}</h2>
-              <ReactMarkdown className={"mt-3 prose max-w-none"}>
+
+              <ReactMarkdown className="mt-3 prose max-w-none">
                 {item.explanation}
               </ReactMarkdown>
+
               {item.code_examples && item.code_examples.length > 0 && (
                 <div className="bg-black text-white p-10 mt-3 rounded-md overflow-x-auto">
-                  {item.code_examples.map((example, idx) => (
+                  {item.code_examples.map((example: any, idx: number) => (
                     <pre key={idx} className="text-sm">
                       <code>
                         {Array.isArray(example.code)
                           ? example.code
                               .join("\n")
                               .replace(/<\/?precode>/g, "")
-                          : (example.code as string)
-                              .replace(/<\/?precode>/g, "")}
+                          : (example.code as string)?.replace(
+                              /<\/?precode>/g,
+                              ""
+                            )}
                       </code>
                     </pre>
                   ))}

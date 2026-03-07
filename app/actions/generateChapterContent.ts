@@ -15,26 +15,26 @@ async function retryWithBackoff<T>(
   initialDelay: number = 2000
 ): Promise<T> {
   let lastError: any;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
     } catch (error: any) {
       lastError = error;
-      
+
       // Check if it's a rate limit error (429)
       if (error.status === 429 || error.message?.includes("429")) {
         const delay = initialDelay * Math.pow(2, i); // Exponential backoff
-        console.log(`⏳ Rate limited. Retrying in ${delay/1000} seconds... (Attempt ${i + 1}/${maxRetries})`);
+        console.log(`⏳ Rate limited. Retrying in ${delay / 1000} seconds... (Attempt ${i + 1}/${maxRetries})`);
         await sleep(delay);
         continue;
       }
-      
+
       // If it's not a rate limit error, throw immediately
       throw error;
     }
   }
-  
+
   throw lastError;
 }
 
@@ -45,42 +45,123 @@ export async function generateChapterContentAction(
   chapterIndex: number
 ) {
   try {
-    const PROMPT = `Explain the concepts in detail on Topic: ${courseName}, Chapter: ${chapterName}, in JSON Format with list of array with fields as Title, explanation of given chapter in detail, code examples (code field <precode> format) if applicable.`;
 
-    const query = courseName + ":" + chapterName;
+    const PROMPT = `
+Explain the chapter "${chapterName}" for the course "${courseName}".
 
-    // Fetch video ID
+Return ONLY valid JSON in this format:
+
+[
+ {
+   "title": "Section title",
+   "explanation": "Detailed explanation of the concept",
+   "code_examples": [
+     {
+       "code": "<precode>example code if applicable</precode>"
+     }
+   ]
+ }
+]
+
+Do not include markdown or text outside JSON.
+`;
+
+    const query = `${courseName}:${chapterName}`;
+
+    // Get YouTube video
     const resp = await getYoutubeVideos(query);
-    console.log("Videos for", chapterName, ":", resp);
-    
+
     let videoId = "";
-    if (resp && resp.length > 0 && resp[0]?.id?.videoId) {
+
+    if (resp?.length > 0 && resp[0]?.id?.videoId) {
       videoId = resp[0].id.videoId;
-    } else {
-      console.warn(`No video found for chapter: ${chapterName}`);
     }
 
-    // Generate course content with retry logic
+    console.log("📺 Video for chapter:", chapterName, videoId);
+
+    // Generate AI content
     const result = await retryWithBackoff(async () => {
-      return await generateCourseChapters.sendMessage(PROMPT);
+      return await generateCourseChapters(PROMPT);
     });
-    
-    const content = JSON.parse(result?.response?.text()!);
 
-    console.log(`Chapter ${chapterIndex} content generated successfully`);
+    let normalizedContent: any[] = [];
 
-    // Insert into the database
+    try {
+
+      const cleaned =
+        result
+          ?.replace(/```json/g, "")
+          ?.replace(/```/g, "")
+          ?.trim() ?? "";
+
+      const parsed = JSON.parse(cleaned);
+
+      if (Array.isArray(parsed)) {
+
+        normalizedContent = parsed.map((item: any) => ({
+          title: item.title || item.Title || "",
+          explanation: item.explanation || item.Explanation || "",
+          code_examples:
+            item.code_examples ||
+            item["Code Examples"] ||
+            [],
+        }));
+
+      } else {
+
+        normalizedContent = [
+          {
+            title: parsed.title || parsed.Title || "",
+            explanation:
+              parsed.explanation || parsed.Explanation || "",
+            code_examples:
+              parsed.code_examples ||
+              parsed["Code Examples"] ||
+              [],
+          },
+        ];
+
+      }
+
+    } catch (error) {
+
+      console.error("❌ AI JSON parse failed:", result);
+
+      normalizedContent = [];
+
+    }
+
+    console.log(
+      `✅ Chapter ${chapterIndex + 1} generated with ${normalizedContent.length} sections`
+    );
+
+    // Save to DB in ONE consistent structure
     await db.insert(CourseChapters).values({
       chapterId: chapterIndex,
       courseId: courseId,
-      content: content,
+      content: {
+        content: normalizedContent
+      },
       videoId: videoId,
     });
-    
-    console.log(`✅ Successfully saved chapter ${chapterIndex}: ${chapterName}`);
-    return { success: true, videoId, hasContent: content.length > 0 };
+
+    return {
+      success: true,
+      videoId,
+      hasContent: normalizedContent.length > 0,
+    };
+
   } catch (error: any) {
-    console.error(`❌ Error in processing chapter ${chapterIndex}:`, error.message || error);
-    return { success: false, error: String(error.message || error) };
+
+    console.error(
+      `❌ Error generating chapter ${chapterIndex}:`,
+      error.message || error
+    );
+
+    return {
+      success: false,
+      error: String(error.message || error),
+    };
+
   }
 }

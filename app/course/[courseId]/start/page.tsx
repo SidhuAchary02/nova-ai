@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { FaCheckCircle, FaRegCircle, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type CourseStartProps = {
   params: { courseId: string };
@@ -118,43 +119,56 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   const handlePrevChapter = () => {
     if (selectedChapterIndex > 0 && course) {
-      const prevIndex = selectedChapterIndex - 1;
-      setSelectedChapterIndex(prevIndex);
-      setSelectedChapter(course.courseOutput.chapters[prevIndex]);
-      getChapterContent(prevIndex);
+      const courseOutput = parseCourseOutput(course.courseOutput);
+      if (courseOutput?.chapters) {
+        const prevIndex = selectedChapterIndex - 1;
+        setSelectedChapterIndex(prevIndex);
+        setSelectedChapter(courseOutput.chapters[prevIndex]);
+        getChapterContent(prevIndex);
+      }
     }
   };
 
   const handleNextChapter = () => {
-    if (course && selectedChapterIndex < course.courseOutput.chapters.length - 1) {
-      const nextIndex = selectedChapterIndex + 1;
-      setSelectedChapterIndex(nextIndex);
-      setSelectedChapter(course.courseOutput.chapters[nextIndex]);
-      getChapterContent(nextIndex);
+    if (course) {
+      const courseOutput = parseCourseOutput(course.courseOutput);
+      if (courseOutput?.chapters && selectedChapterIndex < courseOutput.chapters.length - 1) {
+        const nextIndex = selectedChapterIndex + 1;
+        setSelectedChapterIndex(nextIndex);
+        setSelectedChapter(courseOutput.chapters[nextIndex]);
+        getChapterContent(nextIndex);
+      }
     }
   };
 
   const calculateProgress = () => {
     if (!course) return 0;
-    const total = course.courseOutput.chapters.length;
+    const courseOutput = parseCourseOutput(course.courseOutput);
+    const total = courseOutput?.chapters?.length || 0;
     const completed = completedChapters.length;
-    return Math.round((completed / total) * 100);
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
   };
 
   const isChapterCompleted = (index: number) => {
     return completedChapters.includes(index);
   };
 
-  const isLastChapter = selectedChapter && course?.courseOutput.chapters && 
-    course.courseOutput.chapters[course.courseOutput.chapters.length - 1].chapter_name === selectedChapter.chapter_name;
+  const isLastChapter = (() => {
+    if (!selectedChapter || !course) return false;
+    const courseOutput = parseCourseOutput(course.courseOutput);
+    if (!courseOutput?.chapters || courseOutput.chapters.length === 0) return false;
+    const lastChapter = courseOutput.chapters[courseOutput.chapters.length - 1];
+    return lastChapter.chapter_name === selectedChapter.chapter_name;
+  })();
 
   //   console.log("chapterContent", chapterContent);
+  const courseOutput = parseCourseOutput(course?.courseOutput);
 
   return (
     <div>
       <div className="fixed md:w-64 hidden md:block h-screen border-r shadow-sm overflow-y-auto">
         <h2 className="font-medium text-lg bg-primary p-4 text-white">
-          {course?.courseOutput.topic}
+          {courseOutput?.topic || "Course"}
         </h2>
         
         {/* Progress Bar */}
@@ -165,12 +179,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
           </div>
           <Progress value={calculateProgress()} className="h-2" />
           <p className="text-xs text-gray-500 mt-1">
-            {completedChapters.length} of {course?.courseOutput.chapters.length} chapters
+            {completedChapters.length} of {courseOutput?.chapters?.length || 0} chapters
           </p>
         </div>
         
         <div>
-          {course?.courseOutput.chapters.map((chapter, index) => (
+          {courseOutput?.chapters?.map((chapter, index) => (
             <div
               key={index}
               className={`cursor-pointer hover:bg-purple-100 relative ${
@@ -245,12 +259,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
                 </Button>
                 
                 <span className="text-sm text-gray-500">
-                  Chapter {selectedChapterIndex + 1} of {course?.courseOutput.chapters.length}
+                  Chapter {selectedChapterIndex + 1} of {courseOutput?.chapters?.length || 0}
                 </span>
                 
                 <Button
                   onClick={handleNextChapter}
-                  disabled={selectedChapterIndex === (course?.courseOutput.chapters.length || 0) - 1}
+                  disabled={selectedChapterIndex === (courseOutput?.chapters?.length || 0) - 1}
                   variant="outline"
                   className="flex items-center gap-2"
                 >
@@ -296,7 +310,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
               }}
             />
             <p className="felx justify-center gap-3 mt-10">
-              lets get started with the course {course.courseOutput.topic}.
+              lets get started with the course {courseOutput?.topic || "this course"}.
               Click on the chapters to get started. Enjoy learning!
             </p>
             <p className="mt-10">

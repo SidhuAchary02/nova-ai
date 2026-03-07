@@ -15,10 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { FaEdit } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { db } from "@/configs/db";
-import { CourseList } from "@/schema/schema";
-import { eq } from "drizzle-orm";
+import { updateCourseBasicInfo } from "@/app/actions/updateCourseAction";
 import { CourseType } from "@/types/types";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type EditCourseBasicInfoProps = {
   courseInfo: CourseType | null;
@@ -30,24 +29,32 @@ const EditCourseBasicInfo = ({ courseInfo, onRefresh }: EditCourseBasicInfoProps
   const [courseDescription, setCourseDescription] = useState<string>("");
 
   useEffect(() => {
-    setCourseTitle(courseInfo?.courseOutput.topic!);
-    setCourseDescription(courseInfo?.courseOutput.description!);
+    const courseOutput = parseCourseOutput(courseInfo?.courseOutput);
+    if (courseOutput) {
+      setCourseTitle(courseOutput.topic || "");
+      setCourseDescription(courseOutput.description || "");
+    }
   }, [courseInfo]);
 
   if (!courseInfo) return null;
 
   const updateCourseInfo = async () => {
-    courseInfo.courseOutput.topic = courseTitle;
-    courseInfo.courseOutput.description = courseDescription;
-    // console.log(courseInfo);
-    await db
-      .update(CourseList)
-      .set({
-        courseOutput: courseInfo.courseOutput,
-      })
-      .where(eq(CourseList.id, courseInfo.id));
+    if (!courseInfo) return;
 
-      onRefresh(true);
+    const courseOutput = parseCourseOutput(courseInfo.courseOutput);
+    if (!courseOutput) {
+      console.error("Failed to parse courseOutput");
+      return;
+    }
+
+    const updatedOutput = {
+      ...courseOutput,
+      topic: courseTitle,
+      description: courseDescription,
+    };
+
+    await updateCourseBasicInfo(courseInfo.id, updatedOutput);
+    onRefresh(true);
   };
 
   return (
@@ -63,7 +70,7 @@ const EditCourseBasicInfo = ({ courseInfo, onRefresh }: EditCourseBasicInfoProps
               <label htmlFor="">Course Title</label>
               <Input
                 placeholder="Enter course title"
-                defaultValue={courseInfo?.courseOutput.topic}
+                value={courseTitle}
                 onChange={(e) => setCourseTitle(e.target.value)}
               />
             </div>
@@ -72,7 +79,7 @@ const EditCourseBasicInfo = ({ courseInfo, onRefresh }: EditCourseBasicInfoProps
               <Textarea
                 className="h-40"
                 placeholder="Enter course description"
-                defaultValue={courseInfo?.courseOutput.description}
+                value={courseDescription}
                 onChange={(e) => setCourseDescription(e.target.value)}
               />
             </div>

@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { uploadFilesToFirebase } from "../_utils/uploadFilesToFirebase";
 import { CourseType } from "@/types/types";
 import Link from "next/link";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type CourseBasicInfoProps = {
   courseInfo: CourseType | null;
@@ -24,6 +25,7 @@ const CourseBasicInfo = ({
   const [selectedImage, setSelectedImage] = useState<string | null | undefined>(
     null
   );
+  const courseOutput = parseCourseOutput(courseInfo?.courseOutput);
 
   useEffect(() => {
     setSelectedImage(courseInfo?.courseBanner);
@@ -42,7 +44,7 @@ const CourseBasicInfo = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="">
           <h2 className="font-bold text-3xl">
-            {courseInfo?.courseOutput.topic}
+            {courseOutput?.topic || "Untitled Course"}
             {edit && (
               <EditCourseBasicInfo
                 courseInfo={courseInfo}
@@ -51,7 +53,7 @@ const CourseBasicInfo = ({
             )}
           </h2>
           <p className="text-sm text-gray-400 mt-3">
-            {courseInfo?.courseOutput.description}
+            {courseOutput?.description || "No description available"}
           </p>
           <h2 className="font-medium mt-2 flex gap-2 items-center text-primary">
             <LuPuzzle /> {courseInfo?.category}

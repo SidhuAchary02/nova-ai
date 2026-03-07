@@ -1,38 +1,46 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import CourseBasicInfo from "../_components/CourseBasicInfo";
 import { BaseEnvironment } from "@/configs/BaseEnvironment";
 import { IoCopyOutline } from "react-icons/io5";
+import Link from "next/link";
+
+import { supabase } from "@/configs/supabase";
 import { CourseType } from "@/types/types";
 import { ParamsType } from "../page";
-import Link from "next/link";
+import CourseBasicInfo from "../_components/CourseBasicInfo";
 import { getCourseByIdAction } from "@/app/actions/getCourseById";
 
 const FinsihScreen = ({ params }: { params: ParamsType }) => {
-  const { user } = useUser();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [course, setCourse] = useState<CourseType | null>(null);
 
   const router = useRouter();
   const { HOST_URL } = new BaseEnvironment();
+
   const COURSE_LINK = `${HOST_URL}/course/${course?.courseId}/start`;
 
   useEffect(() => {
-    params && getCourse();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params, user]);
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      setUserEmail(data.user?.email ?? null);
+    };
+
+    getUser();
+  }, []);
+
+  useEffect(() => {
+    if (params?.courseId && userEmail) {
+      getCourse();
+    }
+  }, [params, userEmail]);
 
   const getCourse = async () => {
-    if (!user?.primaryEmailAddress?.emailAddress) return;
-    
-    const res = await getCourseByIdAction(
-      params.courseId,
-      user.primaryEmailAddress.emailAddress
-    );
+    if (!userEmail) return;
+
+    const res = await getCourseByIdAction(params.courseId, userEmail);
     setCourse(res);
-    // console.log(res);
   };
 
   return (
@@ -43,16 +51,24 @@ const FinsihScreen = ({ params }: { params: ParamsType }) => {
 
       <CourseBasicInfo
         courseInfo={course}
-        onRefresh={() => console.log("Refershing")}
+        onRefresh={() => console.log("Refreshing")}
       />
 
-      {/* Add aslo the share button here */}
       <h2 className="mt-3">Course URL</h2>
+
       <h2 className="text-center font-bold text-gray-400 border p-2 rounded flex gap-5 items-center">
-        <Link href={COURSE_LINK} className="cursor-pointer hover:text-primary transition-all delay-75">{COURSE_LINK}</Link>
+        <Link
+          href={COURSE_LINK}
+          className="cursor-pointer hover:text-primary transition-all"
+        >
+          {COURSE_LINK}
+        </Link>
+
         <IoCopyOutline
-          className="h-5 w-5 cursor-pointer hover:text-primary transition-all delay-75 hover:scale-110"
-          onClick={async () => await navigator.clipboard.writeText(COURSE_LINK)}
+          className="h-5 w-5 cursor-pointer hover:text-primary hover:scale-110"
+          onClick={async () =>
+            await navigator.clipboard.writeText(COURSE_LINK)
+          }
         />
       </h2>
     </div>

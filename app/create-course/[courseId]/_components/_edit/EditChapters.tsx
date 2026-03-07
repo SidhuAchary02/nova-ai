@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,10 +15,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { FaEdit } from "react-icons/fa";
 import { useEffect, useState } from "react";
-import { db } from "@/configs/db";
-import { CourseList } from "@/schema/schema";
-import { eq } from "drizzle-orm";
 import { CourseType } from "@/types/types";
+import { updateChapterAction } from "@/app/actions/updateChapterAction";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type EditChapterProps = {
   course: CourseType;
@@ -25,31 +26,34 @@ type EditChapterProps = {
 };
 
 const EditChapters = ({ course, index, onRefresh }: EditChapterProps) => {
-  const chapter = course.courseOutput.chapters;
+  const courseOutput = parseCourseOutput(course.courseOutput);
+  const chapters = courseOutput?.chapters || [];
   const [chapterName, setChapterName] = useState<string>("");
   const [chapterDescription, setChapterDescription] = useState<string>("");
 
   useEffect(() => {
-    setChapterName(chapter[index]?.chapter_name);
-    setChapterDescription(chapter[index]?.description);
-  }, [chapter, index]);
+    setChapterName(chapters[index]?.chapter_name || "");
+    setChapterDescription(chapters[index]?.description || "");
+  }, [chapters, index]);
 
-  if (!chapter || chapter.length === 0) {
-    return <p>No chapters available to edit.</p>;
+  if (!chapters || chapters.length === 0) {
+    return <p>No chapters available to edit.</p>
   }
 
   const updateChapter = async () => {
-    chapter[index].chapter_name = chapterName;
-    chapter[index].description = chapterDescription;
+    const result = await updateChapterAction(
+      course.id,
+      index,
+      chapterName,
+      chapterDescription,
+      course
+    );
 
-    await db
-      .update(CourseList)
-      .set({
-        courseOutput: course.courseOutput,
-      })
-      .where(eq(CourseList.id, course.id));
-
-    onRefresh(true);
+    if (result.success) {
+      onRefresh(true);
+    } else {
+      console.error("Failed to update chapter:", result.error);
+    }
   };
 
   return (
@@ -65,7 +69,7 @@ const EditChapters = ({ course, index, onRefresh }: EditChapterProps) => {
               <label htmlFor="">Chapter Name</label>
               <Input
                 placeholder="Enter course title"
-                defaultValue={chapter[index]?.chapter_name}
+                value={chapterName}
                 onChange={(e) => setChapterName(e.target.value)}
               />
             </div>
@@ -74,7 +78,7 @@ const EditChapters = ({ course, index, onRefresh }: EditChapterProps) => {
               <Textarea
                 className="h-40"
                 placeholder="Enter course description"
-                defaultValue={chapter[index]?.description}
+                value={chapterDescription}
                 onChange={(e) => setChapterDescription(e.target.value)}
               />
             </div>

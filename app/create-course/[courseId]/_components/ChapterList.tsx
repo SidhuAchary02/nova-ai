@@ -2,6 +2,7 @@ import { LuTimer } from "react-icons/lu";
 import { FaCheckCircle } from "react-icons/fa";
 import EditChapters from "./_edit/EditChapters";
 import { CourseType } from "@/types/types";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type ChapterListProps = {
   course: CourseType | null;
@@ -10,15 +11,20 @@ type ChapterListProps = {
 };
 
 const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
-  if (!course || course.courseOutput.chapters.length === 0) {
+  if (!course) return <p>No course available.</p>;
+
+  const courseOutput = parseCourseOutput(course.courseOutput);
+
+  if (!courseOutput?.chapters?.length) {
     return <p>No chapters available.</p>;
   }
 
   return (
     <div className="mt-3">
       <h2 className="font-medium text-2xl">Chapters</h2>
+
       <div className="mt-2">
-        {course?.courseOutput.chapters.map((chapter, index) => (
+        {courseOutput.chapters.map((chapter, index) => (
           <div
             key={index}
             className="border p-5 rounded-lg mb-2 flex items-center justify-between"
@@ -27,9 +33,11 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
               <h2 className="bg-primary h-10 w-10 flex-none text-white rounded-full text-center p-2">
                 {index + 1}
               </h2>
+
               <div>
                 <h2 className="font-medium text-lg">
-                  {chapter?.chapter_name}
+                  {chapter.chapterName}
+
                   {edit && (
                     <EditChapters
                       course={course}
@@ -38,12 +46,17 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                     />
                   )}
                 </h2>
-                <p className="text-sm text-gray-500">{chapter.description}</p>
+
+                <p className="text-sm text-gray-500">
+                  {chapter.description}
+                </p>
+
                 <p className="flex gap-2 text-primary items-center">
                   <LuTimer /> {chapter.duration}
                 </p>
               </div>
             </div>
+
             <FaCheckCircle className="text-4xl text-gray-300 flex-none" />
           </div>
         ))}
