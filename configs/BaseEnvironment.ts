@@ -6,7 +6,7 @@ export type Environment = "development" | "production" | "test";
 
 export class BaseEnvironment {
   defaultEnvironmentValues = {
-    HOST_URL: "http://localhost:3000",
+    HOST_URL: "https://nova-ai-pied.vercel.app",
     GOOGLE_GEMINI_API_KEY: "my-api-key",
     GROQ_API_KEY: process.env.GROQ_API_KEY,
     DRIZZLE_DATABASE_URL:
