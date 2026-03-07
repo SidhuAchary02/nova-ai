@@ -51,9 +51,11 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                   {chapter.description}
                 </p>
 
-                <p className="flex gap-2 text-primary items-center">
-                  <LuTimer /> {chapter.duration}
-                </p>
+                {chapter.duration && (
+                  <p className="flex gap-2 text-primary items-center">
+                    <LuTimer /> {typeof chapter.duration === 'string' ? chapter.duration : chapter.duration?.value ? `${chapter.duration.value} ${chapter.duration.unit || ''}` : ''}
+                  </p>
+                )}
               </div>
             </div>
 

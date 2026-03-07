@@ -29,7 +29,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
           <div>
             <h2 className="text-xs text-gray-500">Duration</h2>
             <h2 className="font-medium text-lg">
-              {courseOutput?.duration}
+              {typeof courseOutput?.duration === 'string' ? courseOutput.duration : courseOutput?.duration?.value ? `${courseOutput.duration.value} ${courseOutput.duration.unit || ''}` : ''}
             </h2>
           </div>
         </div>
@@ -48,7 +48,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
           <FaVideo className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-gray-500">Video Included</h2>
-            <h2 className="font-medium text-lg">{courseDetail.isVideo}</h2>
+            <h2 className="font-medium text-lg">{typeof courseDetail.isVideo === 'string' ? courseDetail.isVideo : courseDetail.isVideo?.value || ''}</h2>
           </div>
         </div>
 

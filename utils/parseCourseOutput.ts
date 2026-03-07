@@ -129,22 +129,46 @@ function extractDuration(data: any): string {
 
   const normalized = convertKeysToCamelCase(data);
 
+  let rawDuration;
+
   // Try course.details.duration
   if (normalized.course?.details?.duration) {
-    return normalized.course.details.duration;
+    rawDuration = normalized.course.details.duration;
   }
-
   // Try course.duration
-  if (normalized.course?.duration) {
-    return normalized.course.duration;
+  else if (normalized.course?.duration) {
+    rawDuration = normalized.course.duration;
   }
-
   // Try root level duration
-  if (normalized.duration) {
-    return normalized.duration;
+  else if (normalized.duration) {
+    rawDuration = normalized.duration;
+  }
+  else {
+    return "";
   }
 
-  return "";
+  // Normalize the duration (handle objects)
+  return normalizeDuration(rawDuration);
+}
+
+/**
+ * Converts a duration value (string or object) to a string format
+ */
+function normalizeDuration(duration: any): string {
+  if (!duration) return "";
+  
+  // If it's already a string, return as-is
+  if (typeof duration === "string") return duration;
+  
+  // If it's an object with value and unit, combine them
+  if (typeof duration === "object" && duration.value !== undefined) {
+    const value = duration.value;
+    const unit = duration.unit || "";
+    return unit ? `${value} ${unit}` : String(value);
+  }
+  
+  // Fallback to string conversion
+  return String(duration);
 }
 
 /**
@@ -159,6 +183,12 @@ function normalizeChapter(chapter: any): any {
     };
   }
 
+  const rawDuration = 
+    chapter.duration || 
+    chapter.chapterDuration || 
+    chapter.chapter_duration || 
+    "";
+
   return {
     chapterName: 
       chapter.chapterName || 
@@ -170,11 +200,7 @@ function normalizeChapter(chapter: any): any {
       chapter.chapterDescription || 
       chapter.chapter_description || 
       "",
-    duration: 
-      chapter.duration || 
-      chapter.chapterDuration || 
-      chapter.chapter_duration || 
-      "",
+    duration: normalizeDuration(rawDuration),
   };
 }
 

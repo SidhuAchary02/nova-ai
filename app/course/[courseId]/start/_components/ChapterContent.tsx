@@ -109,7 +109,9 @@ const ChapterContent = ({ chapter, content, courseCategory }: ChapterContentProp
         <h1 className="text-4xl font-bold text-gray-900 mb-3">{chapter?.chapterName}</h1>
         <p className="text-lg text-gray-600 leading-relaxed">{chapter?.description}</p>
         {chapter?.duration && (
-          <p className="text-sm text-gray-500 mt-2">⏱️ Duration: {chapter.duration}</p>
+          <p className="text-sm text-gray-500 mt-2">
+            ⏱️ Duration: {typeof chapter.duration === 'string' ? chapter.duration : chapter.duration?.value ? `${chapter.duration.value} ${chapter.duration.unit || ''}` : ''}
+          </p>
         )}
       </div>
 

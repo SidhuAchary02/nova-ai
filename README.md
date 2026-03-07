@@ -1,25 +1,33 @@
 # AI Course Generator
 
-AI Course Generator is a platform that allows users to easily create
-and generate educational courses using artificial intelligence. By simply entering course details like name, duration, number of chapters, and specifying if videos are included, Gemeni AI generates the entire course structure along with relevant YouTube videos for each chapter.
+A modern, AI-powered platform for creating educational courses. Users can generate complete course structures with AI-generated content, chapters, quizzes, and integrated YouTube videos. Built with Next.js, Supabase, and Google Gemini AI.
 
 ## Features
 
-- **User Registration**: Users can register and create their own accounts.
-
-- **Course Creation**: Users can create a course by providing a course name, duration, number of chapters, and the option to include videos.
-- **AI-Generated Courses**: The platform uses AI to generate a complete course structure based on user input.
-- **YouTube Video Integration**: The AI automatically attaches relevant YouTube videos to each chapter of the course.
-
-- **Frontend Design**: The frontend is built using the Shadcn UI library to provide a modern and responsive interface.
+- **User Authentication**: Email/password and Google OAuth login via Supabase
+- **AI-Generated Courses**: Uses Google Gemini AI to generate complete course structures based on user input
+- **Dynamic Course Creation**: Input course name, duration, number of chapters, and AI generates the full curriculum
+- **Chapter Content Generation**: Automatic AI-generated content for each chapter
+- **Quiz Generation**: AI creates quizzes for each chapter with automatic scoring
+- **YouTube Integration**: Automatic YouTube video recommendations for each chapter
+- **Course Management**: Create, edit, publish, and delete courses
+- **Chapter Tracking**: Mark chapters as complete and track progress
+- **Course Publishing**: Publish courses to make them public or keep them private
+- **Course Dashboard**: View all your courses and manage them from one place
+- **Modern UI**: Built with Shadcn UI components and Tailwind CSS for a polished, responsive interface
+- **Real-time Updates**: PostgreSQL database with Drizzle ORM for reliable data management
 
 ## Tech Stack
 
-- **Next.js**
-- **PostgreSQL**
-- **Firebase**
-- **Drizzle ORM**
-- **Shadcn UI Library**
+- **Frontend**: Next.js 14, React, TypeScript
+- **UI Library**: Shadcn UI, Tailwind CSS
+- **Authentication**: Supabase (Email + Google OAuth)
+- **Database**: PostgreSQL with Drizzle ORM
+- **AI**: Google Gemini API
+- **Video API**: YouTube API
+- **File Storage**: Firebase Storage
+- **Animations**: Framer Motion
+- **Deployment**: Vercel
 
 ## Installation
 
@@ -27,62 +35,134 @@ and generate educational courses using artificial intelligence. By simply enteri
 
    ```bash
    git clone https://github.com/SidhuAchary02/nova-ai.git
+   cd nova-ai
    ```
 
-2. Navigate to the project directory:
-
-   ```bash
-   cd ai-course-generator
-   ```
-
-3. Install dependencies:
+2. Install dependencies:
    ```bash
    npm install
+   # or
+   pnpm install
    ```
-4. Set up the environment variables:
-   Create a `.env` file in the root directory and add the following values:
+
+3. Set up environment variables:
+   Create a `.env.local` file in the root directory with the following:
+
    ```bash
+   # App Configuration
    NEXT_PUBLIC_HOST_URL="http://localhost:3000"
 
-   # Clerk (authentication)
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="your-api-key"
-   CLERK_SECRET_KEY="your-api-key"
+   # Supabase (Authentication & Database)
+   NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
+   NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
+
+   # Google Gemini API (AI Content Generation)
+   NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY="your-google-gemini-api-key"
+
+   # PostgreSQL Database
+   NEXT_PUBLIC_DRIZZLE_DATABASE_URL="postgresql://user:password@host:port/database"
+
+   # Firebase Storage (for course banners and assets)
+   NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-firebase-project-id"
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
+   NEXT_PUBLIC_FIREBASE_APP_ID="your-firebase-app-id"
+   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="your-measurement-id"
+
+   # YouTube API (for video integration)
+   NEXT_PUBLIC_YOUTUBE_API_KEY="your-youtube-api-key"
+
+   # Authentication Routes
    NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
    NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
+   ```
 
-   # Gemini API
-   NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY="your-api-key"
-
-   # Database
-   DRIZZLE_DATABASE_URL="your-api-key"
-
-   # Firebase config (from Firebase console → Project Settings → SDK Snippet)
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-api-key"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-api-key"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-api-key"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-api-key"
-   NEXT_PUBLIC_FIREBASE_APP_ID="your-api-key"
-   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="your-api-key"
-
-   # YouTube API
-   NEXT_PUBLIC_YOUTUBE_API_KEY="your-api-key"
-
+4. Set up the database:
+   ```bash
+   npm run db:generate
+   npm run db:push
    ```
 
 5. Run the development server:
-   `npm run dev`
-6. Visit `http://localhost:3000` to view the application.
+   ```bash
+   npm run dev
+   ```
 
-## Open to Contributions
+6. Visit `http://localhost:3000` in your browser
 
-AI Course Generator is an open-source project and we welcome contributions from the community. If you would like to contribute to the project, please follow the steps below:
+## Environment Variables Guide
 
-1. Fork the repository.
+### Supabase Setup
+- Go to [Supabase Console](https://app.supabase.com)
+- Create a new project or use existing one
+- Go to Settings → API to find your URL and Anon Key
+- Enable Google OAuth in Authentication Settings
 
-2. Create a new branch for your feature or bug fix.
-3. Make your changes and commit them to your branch.
-4. Push your changes to your fork.
-5. Create a pull request to the main repository.
+### Google Gemini API
+- Visit [Google AI Studio](https://aistudio.google.com/app/apikey)
+- Create an API key for Gemini
 
-We look forward to your contributions!
+### YouTube API
+- Go to [Google Cloud Console](https://console.cloud.google.com)
+- Create a new project
+- Enable YouTube Data API v3
+- Create an API key
+
+### Firebase Setup
+- Go to [Firebase Console](https://console.firebase.google.com)
+- Create a new project
+- Go to Project Settings → General
+- Scroll down to find SDK configuration and copy the values
+
+## Project Structure
+
+```
+nova-ai/
+├── app/
+│   ├── actions/          # Server-side actions for AI generation
+│   ├── api/              # API routes
+│   ├── course/           # Course viewing and learning pages
+│   ├── create-course/    # Course creation flow
+│   ├── dashboard/        # User dashboard
+│   └── (auth)/           # Authentication pages
+├── components/
+│   ├── auth/            # Login and signup forms
+│   ├── ui/              # Reusable Shadcn UI components
+│   └── providers/       # Context and state providers
+├── configs/             # Configuration files (Supabase, Firebase, etc.)
+├── drizzle/             # Database schema and migrations
+├── lib/                 # Utility functions
+└── public/              # Static assets
+```
+
+## Available Scripts
+
+```bash
+npm run dev        # Start development server
+npm run build      # Build for production
+npm run start      # Start production server
+npm run lint       # Run ESLint
+npm run db:push    # Push database schema
+npm run db:studio  # Open Drizzle Studio
+npm run db:generate # Generate database types
+```
+
+## Contributing
+
+We welcome contributions! To contribute:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is open source and available under the MIT License.
+
+## Support
+
+If you have any questions or need help, please open an issue on GitHub or reach out to the maintainers.
