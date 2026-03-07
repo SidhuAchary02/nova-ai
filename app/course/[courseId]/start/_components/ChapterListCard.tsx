@@ -1,6 +1,7 @@
 import { ChapterType } from "@/types/types";
 import React from "react";
 import { LuTimer } from "react-icons/lu";
+import { formatDuration } from "@/utils/formatDuration";
 
 type ChapterListCardProps = {
   chapter: ChapterType;
@@ -16,7 +17,7 @@ const ChapterListCard = ({ chapter, index }: ChapterListCardProps) => {
       <div className="col-span-4">
         <h2 className="font-medium">{chapter.chapterName}</h2>
         <h2 className="text-sm text-primary flex items-center gap-2"> 
-          <LuTimer /> {typeof chapter.duration === 'string' ? chapter.duration : chapter.duration?.value ? `${chapter.duration.value} ${chapter.duration.unit || ''}` : ''}
+          <LuTimer /> {formatDuration(chapter.duration)}
         </h2>
       </div>
     </div>

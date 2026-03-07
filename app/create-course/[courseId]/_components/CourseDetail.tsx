@@ -2,6 +2,7 @@ import { CourseType } from "@/types/types";
 import { LuTimer, LuBookOpen } from "react-icons/lu";
 import { FaChartBar, FaVideo } from "react-icons/fa";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
+import { formatDuration } from "@/utils/formatDuration";
 
 type CourseDetailProps = {
   courseDetail: CourseType | null;
@@ -29,7 +30,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
           <div>
             <h2 className="text-xs text-gray-500">Duration</h2>
             <h2 className="font-medium text-lg">
-              {typeof courseOutput?.duration === 'string' ? courseOutput.duration : courseOutput?.duration?.value ? `${courseOutput.duration.value} ${courseOutput.duration.unit || ''}` : ''}
+              {formatDuration(courseOutput?.duration)}
             </h2>
           </div>
         </div>

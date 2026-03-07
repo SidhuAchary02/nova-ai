@@ -6,6 +6,7 @@ import YouTube, { YouTubeProps } from "react-youtube";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeSandbox from "./CodeSandbox";
+import { formatDuration } from "@/utils/formatDuration";
 
 type ChapterContentProps = {
   chapter: ChapterType | null;
@@ -110,7 +111,7 @@ const ChapterContent = ({ chapter, content, courseCategory }: ChapterContentProp
         <p className="text-lg text-gray-600 leading-relaxed">{chapter?.description}</p>
         {chapter?.duration && (
           <p className="text-sm text-gray-500 mt-2">
-            ⏱️ Duration: {typeof chapter.duration === 'string' ? chapter.duration : chapter.duration?.value ? `${chapter.duration.value} ${chapter.duration.unit || ''}` : ''}
+            ⏱️ Duration: {formatDuration(chapter.duration)}
           </p>
         )}
       </div>

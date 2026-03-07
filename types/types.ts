@@ -11,7 +11,7 @@ export type UserInputType = {
 export type ChapterType = {
   chapterName: string;
   description: string;
-  duration: string;
+  duration: string | { value: number; unit: string };
 };
 
 export type courseOutputType = {

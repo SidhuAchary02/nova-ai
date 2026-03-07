@@ -3,6 +3,7 @@ import { FaCheckCircle } from "react-icons/fa";
 import EditChapters from "./_edit/EditChapters";
 import { CourseType } from "@/types/types";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
+import { formatDuration } from "@/utils/formatDuration";
 
 type ChapterListProps = {
   course: CourseType | null;
@@ -53,7 +54,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
 
                 {chapter.duration && (
                   <p className="flex gap-2 text-primary items-center">
-                    <LuTimer /> {typeof chapter.duration === 'string' ? chapter.duration : chapter.duration?.value ? `${chapter.duration.value} ${chapter.duration.unit || ''}` : ''}
+                    <LuTimer /> {formatDuration(chapter.duration)}
                   </p>
                 )}
               </div>
