@@ -23,12 +23,37 @@ const CodeSandbox = ({ code, language }: CodeSandboxProps) => {
     return language === "python" ? "python" : "javascript";
   };
 
+  const enhanceCodeWithOutput = (codeStr: string): string => {
+    // Check if code already has output statements
+    const hasOutput = 
+      (language === "javascript" && codeStr.includes("console.log")) ||
+      (language === "python" && codeStr.includes("print("));
+
+    if (hasOutput) return codeStr;
+
+    // If no output, wrap the code to show the last expression
+    if (language === "javascript") {
+      return `(function() {
+  ${codeStr}
+  // Auto-wrapped to show results
+  console.log("✅ Code executed successfully");
+})();`;
+    } else {
+      // Python
+      return `${codeStr}
+# Auto-wrapped to show results
+print("✅ Code executed successfully")`;
+    }
+  };
+
   const executeCode = async () => {
     setLoading(true);
     setError("");
     setOutput("");
 
     try {
+      const enhancedCode = enhanceCodeWithOutput(code);
+
       const response = await fetch("https://emkc.org/api/v2/piston/execute", {
         method: "POST",
         headers: {
@@ -40,7 +65,7 @@ const CodeSandbox = ({ code, language }: CodeSandboxProps) => {
           files: [
             {
               name: `main.${language === "python" ? "py" : "js"}`,
-              content: code,
+              content: enhancedCode,
             },
           ],
         }),
@@ -55,7 +80,7 @@ const CodeSandbox = ({ code, language }: CodeSandboxProps) => {
       } else if (result.run?.stdout) {
         setOutput(result.run.stdout);
       } else {
-        setOutput("Code executed successfully with no output");
+        setOutput("✅ Code executed successfully");
       }
     } catch (err) {
       setError(`Error: ${err instanceof Error ? err.message : "Failed to execute code"}`);

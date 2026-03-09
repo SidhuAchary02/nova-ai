@@ -94,6 +94,12 @@ Define it clearly in 1-2 sentences.
 7. ONLY include code_examples if the topic is about programming, software development, coding, or technical implementation
    - For business, management, or non-technical topics: Set "code_examples" to empty array []
 
+8. **CRITICAL: ALL code_examples MUST include output statements:**
+   - For JavaScript: ALWAYS include console.log() statements to show results
+   - For Python: ALWAYS include print() statements to show results
+   - Every code example should demonstrate its output clearly
+   - Example: "console.log('Result:', value)" or "print('Result:', value)"
+
 Return ONLY valid JSON (no markdown, no text outside JSON):
 
 [
