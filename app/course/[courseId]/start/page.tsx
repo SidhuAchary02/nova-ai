@@ -195,7 +195,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
     );
     
     if (result.success) {
-      setQuizPassedChapters(result.quizPassedChapters);
+      setQuizPassedChapters(result.quizPassedChapters || []);
       console.log(`✅ Quiz result stored: Chapter ${selectedChapterIndex + 1} - ${passed ? "Passed" : "Failed"} (${score}%)`);
     }
     
