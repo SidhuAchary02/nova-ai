@@ -38,6 +38,13 @@ export type CourseType = {
   isPublished: boolean;
   isCompleted?: boolean;
   completedChapters?: number[]; // Array of completed chapter indices
+  quizPassedChapters?: number[]; // Array of chapter indices where quiz was passed
+  certificateData?: {
+    certificateId: string;
+    issuedDate: string;
+    completedAt: string;
+  };
+  completedAt?: string; // When course was completed
 };
 
 export type CodeExampleType = {

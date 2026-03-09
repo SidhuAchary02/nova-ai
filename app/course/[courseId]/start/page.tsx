@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import ChapterListCard from "./_components/ChapterListCard";
 import ChapterContent from "./_components/ChapterContent";
 import ChapterQuiz from "./_components/ChapterQuiz";
+import CertificateModal from "./_components/CertificateModal";
 import Image from "next/image";
 import UserToolTip from "./_components/UserToolTip";
 import ScrollProgress from "@/components/ui/scroll-progress";
@@ -13,6 +14,8 @@ import { getChapterContentAction } from "@/app/actions/getChapterContent";
 import { markCourseAsCompletedAction } from "@/app/actions/courseEnhancements";
 import { toggleChapterCompletionAction } from "@/app/actions/toggleChapterCompletion";
 import { generateQuizAction, QuizQuestion } from "@/app/actions/generateQuiz";
+import { storeQuizResultAction, getQuizPassedChaptersAction } from "@/app/actions/storeQuizResult";
+import { generateCertificateAction, getCertificateAction } from "@/app/actions/generateCertificate";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
@@ -33,11 +36,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
     useState<ChapterContentType | null>(null);
   const [completingCourse, setCompletingCourse] = useState(false);
   const [completedChapters, setCompletedChapters] = useState<number[]>([]);
+  const [quizPassedChapters, setQuizPassedChapters] = useState<number[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [quizPassed, setQuizPassed] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateData, setCertificateData] = useState<any>(null);
   
   const router = useRouter();
 
@@ -46,6 +52,15 @@ const CourseStart = ({ params }: CourseStartProps) => {
       const result = await getCourseByIdPublicAction(params.courseId);
       setCourse(result as CourseType);
       setCompletedChapters((result as CourseType).completedChapters || []);
+      
+      // Load quiz passed chapters from database
+      const passedChapters = await getQuizPassedChaptersAction(params.courseId);
+      setQuizPassedChapters(passedChapters);
+      
+      // Check if current chapter quiz was already passed
+      if (passedChapters.includes(0)) {
+        setQuizPassed(true);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -131,8 +146,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const getChapterContent = async (chapterId: number) => {
     console.log("Fetching content for chapter:", chapterId, "course:", course.courseId);
     setShowQuiz(false);
-    setQuizPassed(false);
     setQuizQuestions([]);
+    
+    // Check if this chapter's quiz was already passed
+    const quizAlreadyPassed = quizPassedChapters.includes(chapterId);
+    setQuizPassed(quizAlreadyPassed);
     
     const res = await getChapterContentAction(chapterId, course.courseId);
     console.log("Chapter content received:", res);
@@ -168,6 +186,19 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const handleQuizComplete = async (passed: boolean, score: number) => {
     setQuizPassed(passed);
     
+    // Store quiz result in database
+    const result = await storeQuizResultAction(
+      course!.courseId,
+      selectedChapterIndex,
+      passed,
+      score
+    );
+    
+    if (result.success) {
+      setQuizPassedChapters(result.quizPassedChapters);
+      console.log(`✅ Quiz result stored: Chapter ${selectedChapterIndex + 1} - ${passed ? "Passed" : "Failed"} (${score}%)`);
+    }
+    
     if (passed) {
       // Quiz passed - allow chapter completion
       console.log(`Quiz passed with ${score}% - user can complete chapter`);
@@ -181,15 +212,36 @@ const CourseStart = ({ params }: CourseStartProps) => {
     if (!course) return;
     
     setCompletingCourse(true);
-    const result = await markCourseAsCompletedAction(course.courseId);
     
-    if (result.success) {
-      alert(`🎉 Congratulations! You've completed "${result.courseName}"!\n\nThe course is now marked as completed in your dashboard.`);
-      router.push("/dashboard");
-    } else {
-      alert("Failed to mark course as completed. Please try again.");
+    try {
+      // Generate certificate
+      const certResult = await generateCertificateAction(course.courseId);
+      
+      // Mark course as completed
+      const result = await markCourseAsCompletedAction(course.courseId);
+      
+      if (result.success && certResult.success) {
+        // Fetch and display certificate
+        const certData = await getCertificateAction(course.courseId);
+        if (certData.success) {
+          setCertificateData(certData);
+          setShowCertificate(true);
+          
+          // Redirect after a delay
+          setTimeout(() => {
+            alert(`🎉 Congratulations! You've completed "${result.courseName}"!\n\nYour certificate has been generated and is ready to download.`);
+            router.push("/dashboard");
+          }, 1000);
+        }
+      } else {
+        alert("Failed to mark course as completed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error completing course:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setCompletingCourse(false);
     }
-    setCompletingCourse(false);
   };
 
   const handleToggleChapterCompletion = async () => {
@@ -548,6 +600,19 @@ const CourseStart = ({ params }: CourseStartProps) => {
           </div>
         )}
       </div>
+
+      {/* Certificate Modal */}
+      {course && (
+        <CertificateModal
+          isOpen={showCertificate}
+          onClose={() => setShowCertificate(false)}
+          courseName={course.courseName}
+          userName={course.username || "Student"}
+          courseLevel={course.level}
+          issuedDate={certificateData?.certificateData?.issuedDate}
+          certificateId={certificateData?.certificateData?.certificateId}
+        />
+      )}
     </div>
   );
 };
