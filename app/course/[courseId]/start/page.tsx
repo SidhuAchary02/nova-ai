@@ -226,12 +226,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
         if (certData.success) {
           setCertificateData(certData);
           setShowCertificate(true);
-          
-          // Redirect after a delay
-          setTimeout(() => {
-            alert(`🎉 Congratulations! You've completed "${result.courseName}"!\n\nYour certificate has been generated and is ready to download.`);
-            router.push("/dashboard");
-          }, 1000);
         }
       } else {
         alert("Failed to mark course as completed. Please try again.");

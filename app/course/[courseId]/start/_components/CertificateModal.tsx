@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { FaDownload, FaPrint, FaTimes } from "react-icons/fa";
+import { FaDownload, FaPrint, FaTimes, FaHome } from "react-icons/fa";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 type CertificateModalProps = {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const CertificateModal = ({
   issuedDate,
   certificateId,
 }: CertificateModalProps) => {
+  const router = useRouter();
   const handleDownload = () => {
     const element = document.getElementById("certificate-content");
     if (element) {
@@ -35,17 +37,18 @@ const CertificateModal = ({
             <head>
               <title>Course Certificate</title>
               <style>
-                body { margin: 0; padding: 20px; background: #f5f5f5; font-family: Georgia, serif; }
+                body { margin: 0; padding: 20px; background: white; font-family: Georgia, serif; }
                 .certificate { 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  background: white;
                   padding: 60px;
                   border-radius: 10px;
-                  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                   max-width: 900px;
                   margin: 0 auto;
-                  color: white;
+                  color: #1a1a1a;
                   text-align: center;
                   page-break-after: always;
+                  border: 3px solid #000;
                 }
               </style>
             </head>
@@ -74,16 +77,17 @@ const CertificateModal = ({
                   body { margin: 0; padding: 0; }
                   .certificate { page-break-after: always; }
                 }
-                body { margin: 0; padding: 20px; background: #f5f5f5; font-family: Georgia, serif; }
+                body { margin: 0; padding: 20px; background: white; font-family: Georgia, serif; }
                 .certificate { 
-                  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                  background: white;
                   padding: 60px;
                   border-radius: 10px;
-                  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
                   max-width: 900px;
                   margin: 0 auto;
-                  color: white;
+                  color: #1a1a1a;
                   text-align: center;
+                  border: 3px solid #000;
                 }
               </style>
             </head>
@@ -112,52 +116,52 @@ const CertificateModal = ({
         </DialogHeader>
 
         {/* Certificate Preview */}
-        <div id="certificate-content" className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-lg p-12 text-center text-white shadow-2xl">
+        <div id="certificate-content" className="w-full bg-white rounded-lg p-12 text-center text-black shadow-2xl border-4 border-black">
           {/* Certificate Border */}
-          <div className="border-4 border-white/30 rounded-lg p-10 backdrop-blur-sm">
+          <div className="border-4 border-black rounded-lg p-10">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-2">Certificate of Completion</h1>
+              <h1 className="text-5xl font-bold mb-2 text-black">Certificate of Completion</h1>
               <div className="flex justify-center gap-2 mb-4">
-                <div className="h-1 w-20 bg-white/50"></div>
-                <div className="h-1 w-20 bg-white/50"></div>
-                <div className="h-1 w-20 bg-white/50"></div>
+                <div className="h-1 w-20 bg-black"></div>
+                <div className="h-1 w-20 bg-black"></div>
+                <div className="h-1 w-20 bg-black"></div>
               </div>
             </div>
 
             {/* Main Content */}
             <div className="mb-8">
-              <p className="text-xl mb-4 opacity-90">This Certifies That</p>
-              <h2 className="text-4xl font-bold mb-6 text-yellow-100">{userName}</h2>
+              <p className="text-xl mb-4 text-gray-800">This Certifies That</p>
+              <h2 className="text-4xl font-bold mb-6 text-black">{userName}</h2>
 
-              <p className="text-lg opacity-90 mb-2">Has Successfully Completed the Course</p>
-              <h3 className="text-3xl font-bold mb-6 text-yellow-100">{courseName}</h3>
+              <p className="text-lg text-gray-800 mb-2">Has Successfully Completed the Course</p>
+              <h3 className="text-3xl font-bold mb-6 text-black">{courseName}</h3>
 
-              <p className="text-base opacity-90 mb-2">
+              <p className="text-base text-gray-700 mb-2">
                 {courseLevel && `Course Level: ${courseLevel}`}
               </p>
             </div>
 
             {/* Details */}
-            <div className="grid grid-cols-3 gap-6 my-10 border-t border-b border-white/30 py-8">
+            <div className="grid grid-cols-3 gap-6 my-10 border-t-2 border-b-2 border-black py-8">
               <div>
-                <p className="text-sm opacity-75 mb-1">Issued By</p>
-                <p className="text-lg font-semibold">Nova AI</p>
+                <p className="text-sm text-gray-700 mb-1">Issued By</p>
+                <p className="text-lg font-semibold text-black">Nova AI</p>
               </div>
               <div>
-                <p className="text-sm opacity-75 mb-1">Date of Issue</p>
-                <p className="text-lg font-semibold">{issuedDate || new Date().toLocaleDateString()}</p>
+                <p className="text-sm text-gray-700 mb-1">Date of Issue</p>
+                <p className="text-lg font-semibold text-black">{issuedDate || new Date().toLocaleDateString()}</p>
               </div>
               <div>
-                <p className="text-sm opacity-75 mb-1">Certificate ID</p>
-                <p className="text-sm font-mono font-semibold">{certificateId || "N/A"}</p>
+                <p className="text-sm text-gray-700 mb-1">Certificate ID</p>
+                <p className="text-sm font-mono font-semibold text-black">{certificateId || "N/A"}</p>
               </div>
             </div>
 
             {/* Signature Area */}
             <div className="mt-8">
-              <p className="text-sm opacity-75 mb-4">Verified and Authenticated</p>
-              <p className="text-center italic text-yellow-100 text-sm">
+              <p className="text-sm text-gray-700 mb-4">Verified and Authenticated</p>
+              <p className="text-center italic text-black text-sm font-semibold">
                 "Excellence in Learning - Powered by Nova AI"
               </p>
             </div>
@@ -165,25 +169,30 @@ const CertificateModal = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-center mt-6">
+        <div className="flex flex-col gap-3 justify-center mt-6">
+          <div className="flex gap-3 justify-center">
+            <Button
+              onClick={handleDownload}
+              className="bg-black hover:bg-gray-800 text-white flex items-center gap-2"
+            >
+              <FaDownload /> Download Certificate
+            </Button>
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              className="border-black text-black hover:bg-gray-100 flex items-center gap-2"
+            >
+              <FaPrint /> Print Certificate
+            </Button>
+          </div>
           <Button
-            onClick={handleDownload}
-            className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+            onClick={() => {
+              onClose();
+              window.location.href = "/dashboard";
+            }}
+            className="bg-gray-700 hover:bg-gray-800 text-white flex items-center justify-center gap-2"
           >
-            <FaDownload /> Download Certificate
-          </Button>
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <FaPrint /> Print Certificate
-          </Button>
-          <Button
-            onClick={onClose}
-            variant="outline"
-          >
-            Close
+            <FaHome /> Return to Dashboard
           </Button>
         </div>
       </DialogContent>
