@@ -42,12 +42,16 @@ function extractChapters(data: any): any[] {
     // Root level variations
     normalized.chapterDetails,        // Root: chapterDetails
     normalized.chapters,              // Root: chapters (if it's an array)
+    normalized.courseDetails?.chapters,
+    normalized.courseDetails?.chapterDetails,
     
     // Nested under course
     normalized.course?.chapterDetails, // course.chapterDetails
     normalized.course?.details?.chapters,
     normalized.course?.details?.chapter,
     normalized.course?.chapters,      // course.chapters (if array)
+    normalized.course?.courseDetails?.chapters,
+    normalized.course?.courseDetails?.chapterDetails,
     
     // Alternative nested structures
     normalized.courseData?.chapters,
@@ -77,24 +81,30 @@ function extractTopic(data: any): string {
 
   const normalized = convertKeysToCamelCase(data);
 
-  // Try course.details.topic first (Schema 1)
-  if (normalized.course?.details?.topic) {
-    return normalized.course.details.topic;
-  }
+  const possibleTopics = [
+    // Existing/common formats
+    normalized.course?.details?.topic,
+    normalized.course?.fieldName,
+    normalized.course?.topic,
+    normalized.topic,
 
-  // Try course.fieldName (Schema 1 - AI fallback)
-  if (normalized.course?.fieldName) {
-    return normalized.course.fieldName;
-  }
+    // Newer/alternate formats
+    normalized.courseDetails?.topic,
+    normalized.courseDetails?.fieldName,
+    normalized.course?.courseDetails?.topic,
+    normalized.course?.courseDetails?.fieldName,
+    normalized.fieldName,
+    normalized.courseTitle,
+    normalized.title,
+    normalized.course?.title,
+    normalized.course?.name,
+    normalized.name,
+  ];
 
-  // Try course.topic (Schema 2)
-  if (normalized.course?.topic) {
-    return normalized.course.topic;
-  }
-
-  // Try root level topic (Schema 3)
-  if (normalized.topic) {
-    return normalized.topic;
+  for (const value of possibleTopics) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
   }
 
   return "Untitled Course";
@@ -108,14 +118,23 @@ function extractDescription(data: any): string {
 
   const normalized = convertKeysToCamelCase(data);
 
-  // Try course.description
-  if (normalized.course?.description) {
-    return normalized.course.description;
-  }
+  const possibleDescriptions = [
+    normalized.course?.description,
+    normalized.course?.details?.description,
+    normalized.description,
 
-  // Try root level description
-  if (normalized.description) {
-    return normalized.description;
+    // Newer/alternate formats
+    normalized.courseDetails?.description,
+    normalized.course?.courseDetails?.description,
+    normalized.summary,
+    normalized.about,
+    normalized.course?.summary,
+  ];
+
+  for (const value of possibleDescriptions) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
   }
 
   return "";
@@ -138,6 +157,14 @@ function extractDuration(data: any): string {
   // Try course.duration
   else if (normalized.course?.duration) {
     rawDuration = normalized.course.duration;
+  }
+  // Try root courseDetails.duration
+  else if (normalized.courseDetails?.duration) {
+    rawDuration = normalized.courseDetails.duration;
+  }
+  // Try nested course.courseDetails.duration
+  else if (normalized.course?.courseDetails?.duration) {
+    rawDuration = normalized.course.courseDetails.duration;
   }
   // Try root level duration
   else if (normalized.duration) {
