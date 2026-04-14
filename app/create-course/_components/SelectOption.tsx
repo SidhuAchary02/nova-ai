@@ -36,15 +36,15 @@ const SelectOption = () => {
   };
 
   return (
-    <div className="px-10 md:px-20 lg:px-44">
-      <div className="grid grid-cols-2 gap-10">
+    <div>
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div>
-          <label className="text-sm font-medium">🎓 Difficulty Level</label>
+          <label className="mb-2 block text-sm font-medium text-slate-200">Difficulty Level</label>
           <Select
             onValueChange={(value) => handleInputChange("difficulty", value)}
             defaultValue={userInput?.difficulty}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 border-white/15 bg-slate-950/70 text-slate-100">
               <SelectValue placeholder="Select Level" />
             </SelectTrigger>
             <SelectContent>
@@ -56,12 +56,12 @@ const SelectOption = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">⏳ Course Duration (Days)</label>
+          <label className="mb-2 block text-sm font-medium text-slate-200">Course Duration (Days)</label>
           <Select
             onValueChange={(value) => handleInputChange("duration", value)}
             defaultValue={userInput?.duration}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 border-white/15 bg-slate-950/70 text-slate-100">
               <SelectValue placeholder="Select Duration" />
             </SelectTrigger>
             <SelectContent>
@@ -73,16 +73,16 @@ const SelectOption = () => {
               <SelectItem value="15 Days">15 Days (Max)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-gray-500 mt-1">Maximum course duration is 15 days</p>
+          <p className="mt-1 text-xs text-slate-400">Maximum course duration is 15 days</p>
         </div>
 
         <div>
-          <label className="text-sm font-medium">🎥 Add Video</label>
+          <label className="mb-2 block text-sm font-medium text-slate-200">Add Video</label>
           <Select
             onValueChange={(value) => handleInputChange("video", value)}
             defaultValue={userInput?.video}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-11 border-white/15 bg-slate-950/70 text-slate-100">
               <SelectValue placeholder="Select Option" />
             </SelectTrigger>
             <SelectContent>
@@ -93,7 +93,7 @@ const SelectOption = () => {
         </div>
 
         <div>
-          <label className="text-sm font-medium">📄 Number of Chapters</label>
+          <label className="mb-2 block text-sm font-medium text-slate-200">Number of Chapters</label>
           <Input
             type="number"
             min="1"
@@ -101,12 +101,12 @@ const SelectOption = () => {
             placeholder="Enter chapters (1-20)"
             onChange={(e) => handleInputChange("totalChapters", e.target.value)}
             defaultValue={userInput?.totalChapters}
-            className={chaptersError ? "border-red-500" : ""}
+            className={`h-11 border-white/15 bg-slate-950/70 text-slate-100 ${chaptersError ? "border-red-500" : ""}`}
           />
           {chaptersError && (
             <p className="text-xs text-red-500 mt-1 font-medium">{chaptersError}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">Minimum 1, Maximum 20 chapters</p>
+          <p className="mt-1 text-xs text-slate-400">Minimum 1, Maximum 20 chapters</p>
         </div>
       </div>
     </div>

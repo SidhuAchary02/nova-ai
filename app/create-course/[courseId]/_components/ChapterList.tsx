@@ -12,31 +12,31 @@ type ChapterListProps = {
 };
 
 const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
-  if (!course) return <p>No course available.</p>;
+  if (!course) return <p className="text-slate-300">No course available.</p>;
 
   const courseOutput = parseCourseOutput(course.courseOutput);
 
   if (!courseOutput?.chapters?.length) {
-    return <p>No chapters available.</p>;
+    return <p className="text-slate-300">No chapters available.</p>;
   }
 
   return (
     <div className="mt-3">
-      <h2 className="font-medium text-2xl">Chapters</h2>
+      <h2 className="text-2xl font-medium text-slate-100">Chapters</h2>
 
       <div className="mt-2">
         {courseOutput.chapters.map((chapter, index) => (
           <div
             key={index}
-            className="border p-5 rounded-lg mb-2 flex items-center justify-between"
+            className="mb-2 flex items-center justify-between rounded-xl border border-white/10 bg-slate-900/60 p-5"
           >
             <div className="flex gap-5 items-center">
-              <h2 className="bg-primary h-10 w-10 flex-none text-white rounded-full text-center p-2">
+              <h2 className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-primary text-center text-slate-950">
                 {index + 1}
               </h2>
 
               <div>
-                <h2 className="font-medium text-lg">
+                <h2 className="text-lg font-medium text-slate-100">
                   {chapter.chapterName}
 
                   {edit && (
@@ -48,19 +48,19 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                   )}
                 </h2>
 
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-400">
                   {chapter.description}
                 </p>
 
                 {chapter.duration && (
-                  <p className="flex gap-2 text-primary items-center">
+                  <p className="flex items-center gap-2 text-cyan-300">
                     <LuTimer /> {formatDuration(chapter.duration)}
                   </p>
                 )}
               </div>
             </div>
 
-            <FaCheckCircle className="text-4xl text-gray-300 flex-none" />
+            <FaCheckCircle className="text-4xl text-slate-600 flex-none" />
           </div>
         ))}
       </div>

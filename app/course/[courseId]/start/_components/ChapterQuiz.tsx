@@ -53,10 +53,10 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
   const answeredAll = selectedAnswers.every((ans) => ans !== null);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-8">
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">Chapter Quiz</h2>
-      <p className="text-gray-600 mb-8">
-        Test your understanding of "{chapterName}" (5 questions • 70% to pass)
+    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-8">
+      <h2 className="mb-2 text-3xl font-bold text-slate-100">Chapter Quiz</h2>
+      <p className="mb-8 text-slate-300">
+        Test your understanding of &quot;{chapterName}&quot; (5 questions • 70% to pass)
       </p>
 
       {!quizSubmitted ? (
@@ -64,16 +64,16 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-slate-300">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-400">
                 {selectedAnswers.filter((a) => a !== null).length} answered
               </span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="h-2 w-full rounded-full bg-slate-700">
               <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                className="h-2 rounded-full bg-primary transition-all duration-300"
                 style={{
                   width: `${((currentQuestion + 1) / questions.length) * 100}%`,
                 }}
@@ -83,7 +83,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
 
           {/* Question */}
           <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
+            <h3 className="mb-6 text-xl font-semibold text-slate-100">
               {questions[currentQuestion].question}
             </h3>
 
@@ -95,23 +95,23 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   onClick={() => handleAnswerSelect(idx)}
                   className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
                     selectedAnswers[currentQuestion] === idx
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 bg-white hover:border-gray-300"
+                      ? "border-primary bg-primary/10"
+                      : "border-white/10 bg-slate-900/70 hover:border-white/20"
                   }`}
                 >
                   <div className="flex items-center">
                     <div
                       className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
                         selectedAnswers[currentQuestion] === idx
-                          ? "border-blue-500 bg-blue-500"
-                          : "border-gray-300"
+                          ? "border-primary bg-primary"
+                          : "border-slate-500"
                       }`}
                     >
                       {selectedAnswers[currentQuestion] === idx && (
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <div className="h-2 w-2 rounded-full bg-slate-950"></div>
                       )}
                     </div>
-                    <span className="text-gray-800">{option}</span>
+                    <span className="text-slate-200">{option}</span>
                   </div>
                 </button>
               ))}
@@ -134,7 +134,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setCurrentQuestion(Math.min(questions.length - 1, currentQuestion + 1))
                 }
                 variant="outline"
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
               >
                 Next <FaArrowRight size={14} />
               </Button>
@@ -142,7 +142,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
               <Button
                 onClick={handleSubmitQuiz}
                 disabled={!answeredAll}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-primary text-slate-950 hover:bg-primary/90"
               >
                 {answeredAll ? "Submit Quiz" : "Answer All Questions"}
               </Button>
@@ -169,13 +169,13 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
               {passed ? "Quiz Passed! 🎉" : "Quiz Failed ❌"}
             </h3>
 
-            <p className="text-lg text-gray-700 mb-2">
+            <p className="mb-2 text-lg text-slate-200">
               You scored <span className="font-bold text-2xl">{score}%</span>
             </p>
 
             <p className={`text-sm mb-4 ${passed ? "text-green-600" : "text-red-600"}`}>
               {passed ? (
-                <>You've passed with {score}% correct! You can now complete this chapter.</>
+                <>You&apos;ve passed with {score}% correct! You can now complete this chapter.</>
               ) : (
                 <>You need 70% to pass. You got {correctCount} out of {questions.length} correct.</>
               )}
@@ -184,7 +184,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
 
           {/* Answer Review */}
           <div className="mb-8">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4">Answer Review:</h4>
+            <h4 className="mb-4 text-lg font-semibold text-slate-100">Answer Review:</h4>
             <div className="space-y-4 max-h-80 overflow-y-auto">
               {questions.map((q, idx) => {
                 const isCorrect = selectedAnswers[idx] === q.correctAnswer;
@@ -194,7 +194,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                     className={`p-4 rounded-lg border ${
                       isCorrect
                         ? "bg-green-50 border-green-200"
-                        : "bg-red-50 border-red-200"
+                        : "bg-red-500/10 border-red-300/20"
                     }`}
                   >
                     <div className="flex items-start gap-3 mb-2">
@@ -204,16 +204,16 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                         <FaTimesCircle className="text-red-600 mt-1" />
                       )}
                       <div className="flex-1">
-                        <p className="font-medium text-gray-800">{q.question}</p>
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="font-medium text-slate-200">{q.question}</p>
+                        <p className="mt-2 text-sm text-slate-300">
                           Your answer: <span className="font-semibold">{q.options[selectedAnswers[idx]!]}</span>
                         </p>
                         {!isCorrect && (
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-slate-300">
                             Correct answer: <span className="font-semibold text-green-700">{q.options[q.correctAnswer]}</span>
                           </p>
                         )}
-                        <p className="text-xs text-gray-600 mt-2 italic">{q.explanation}</p>
+                        <p className="mt-2 text-xs italic text-slate-400">{q.explanation}</p>
                       </div>
                     </div>
                   </div>
@@ -232,7 +232,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setSelectedAnswers(new Array(questions.length).fill(null));
                 }}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-white/20 bg-slate-900/50 text-slate-200"
               >
                 Retry Quiz
               </Button>
@@ -240,7 +240,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
             {passed && (
               <Button
                 onClick={() => onQuizComplete(true, score)}
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                className="flex-1 bg-primary text-slate-950 hover:bg-primary/90"
               >
                 Continue to Chapter Completion
               </Button>

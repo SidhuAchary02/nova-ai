@@ -19,12 +19,20 @@ const AddCourse = () => {
 
   if (!user) return null;
 
+  const userName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Creator";
+
   return (
-    <div className="flex justify-between items-center">
+    <div className="glass-panel flex flex-col items-start justify-between gap-5 rounded-2xl p-5 sm:flex-row sm:items-center sm:p-6">
       <div>
-        <h2 className="text-3xl">
-          Hello <span className="font-bold">{user.email}</span>
+        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Dashboard</p>
+        <h2 className="text-2xl font-semibold sm:text-3xl">
+          Hello <span className="font-bold text-cyan-300">{userName}</span>
         </h2>
+        <p className="mt-1 text-sm text-slate-400">Continue building your course library.</p>
       </div>
 
       <Link
@@ -34,7 +42,7 @@ const AddCourse = () => {
             : "/create-course"
         }
       >
-        <Button className="gap-2">
+        <Button className="gap-2 bg-primary text-slate-950 hover:bg-primary/90">
           <FaWandMagicSparkles />
           Create AI course
         </Button>

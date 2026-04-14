@@ -74,19 +74,19 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
   return (
     <div>
       {/* Top Navigation Header - Professional & UX Friendly */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-30">
-        <div className="flex items-center justify-between h-16 px-4 md:px-6">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <div className="section-shell flex h-16 items-center justify-between">
           {/* Left Section - Back Button & Title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
             >
               <FaChevronLeft size={16} />
               <span className="text-sm font-medium">Dashboard</span>
             </button>
-            <div className="hidden md:block border-l border-gray-200 pl-4">
-              <h1 className="text-lg font-semibold text-gray-900">
+            <div className="hidden border-l border-white/10 pl-4 md:block">
+              <h1 className="text-lg font-semibold text-slate-100">
                 {course?.courseName || "Create Course"}
               </h1>
             </div>
@@ -95,11 +95,11 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
           {/* Right Section - Status */}
           <div className="flex items-center gap-3">
             {course?.isPublished ? (
-              <span className="text-xs md:text-sm font-medium px-3 py-1 bg-green-100 text-green-700 rounded-full">
+              <span className="rounded-full border border-emerald-300/20 bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-200 md:text-sm">
                 Published ✓
               </span>
             ) : (
-              <span className="text-xs md:text-sm font-medium px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+              <span className="rounded-full border border-amber-300/20 bg-amber-500/20 px-3 py-1 text-xs font-medium text-amber-200 md:text-sm">
                 Draft
               </span>
             )}
@@ -108,8 +108,8 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
       </div>
 
       {/* Main Content with top padding */}
-      <div className="mt-20 px-7 md:px-20 lg:px-44">
-        <h2 className="font-bold text-center text-2xl">Course Layout</h2>
+      <div className="section-shell mt-20 pb-8">
+        <h2 className="text-center text-2xl font-bold text-slate-100">Course Layout</h2>
 
         <LoadingDialog loading={loading} />
 
@@ -119,7 +119,7 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
 
         <ChapterList course={course} onRefresh={getCourse} />
 
-        <Button className="my-10" onClick={handleGenerateCourseContent}>
+        <Button className="my-10 bg-primary text-slate-950 hover:bg-primary/90" onClick={handleGenerateCourseContent}>
           Generate Course Content
         </Button>
       </div>

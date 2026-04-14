@@ -6,8 +6,6 @@ import ChapterListCard from "./_components/ChapterListCard";
 import ChapterContent from "./_components/ChapterContent";
 import ChapterQuiz from "./_components/ChapterQuiz";
 import CertificateModal from "./_components/CertificateModal";
-import Image from "next/image";
-import UserToolTip from "./_components/UserToolTip";
 import ScrollProgress from "@/components/ui/scroll-progress";
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { getChapterContentAction } from "@/app/actions/getChapterContent";
@@ -21,6 +19,8 @@ import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
 import { FaCheckCircle, FaRegCircle, FaChevronLeft, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
+import CourseCover from "@/components/common/CourseCover";
+import Link from "next/link";
 
 type CourseStartProps = {
   params: { courseId: string };
@@ -44,22 +44,50 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateData, setCertificateData] = useState<any>(null);
-  
+
   const router = useRouter();
+
+  const getChapterContent = async (
+    chapterId: number,
+    activeCourse?: CourseType | null
+  ) => {
+    const resolvedCourse = activeCourse ?? course;
+    if (!resolvedCourse) return;
+
+    setShowQuiz(false);
+    setQuizQuestions([]);
+
+    const quizAlreadyPassed = quizPassedChapters.includes(chapterId);
+    setQuizPassed(quizAlreadyPassed);
+
+    const res = await getChapterContentAction(chapterId, resolvedCourse.courseId);
+    setChapterContent(res as ChapterContentType);
+  };
 
   const getCourse = async () => {
     try {
       const result = await getCourseByIdPublicAction(params.courseId);
-      setCourse(result as CourseType);
-      setCompletedChapters((result as CourseType).completedChapters || []);
+      const currentCourse = result as CourseType;
+
+      if (!currentCourse) return;
+
+      setCourse(currentCourse);
+      setCompletedChapters(currentCourse.completedChapters || []);
       
       // Load quiz passed chapters from database
       const passedChapters = await getQuizPassedChaptersAction(params.courseId);
       setQuizPassedChapters(passedChapters);
       
-      // Check if current chapter quiz was already passed
-      if (passedChapters.includes(0)) {
-        setQuizPassed(true);
+      if (currentCourse.isPublished) {
+        const parsed = parseCourseOutput(currentCourse.courseOutput);
+        const firstChapter = parsed?.chapters?.[0];
+
+        if (firstChapter) {
+          setSelectedChapter(firstChapter);
+          setSelectedChapterIndex(0);
+          setQuizPassed(passedChapters.includes(0));
+          await getChapterContent(0, currentCourse);
+        }
       }
     } catch (e) {
       console.log(e);
@@ -72,26 +100,26 @@ const CourseStart = ({ params }: CourseStartProps) => {
   }, [params]);
 
   if (!course) return (
-    <div>
+    <div className="min-h-screen">
       {/* Loading Header */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-30">
-        <div className="flex items-center justify-between h-16 px-4 md:px-6">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <div className="section-shell flex h-16 items-center justify-between">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800"
           >
             <FaChevronLeft size={16} />
             <span className="text-sm font-medium">Dashboard</span>
           </button>
-          <h1 className="text-lg font-semibold text-gray-900">Loading Course...</h1>
+          <h1 className="text-lg font-semibold text-slate-100">Loading Course...</h1>
         </div>
       </div>
 
       {/* Loading Content */}
       <div className="flex items-center justify-center h-screen pt-16">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading course...</p>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-primary"></div>
+          <p className="text-slate-300">Loading course...</p>
         </div>
       </div>
     </div>
@@ -100,62 +128,48 @@ const CourseStart = ({ params }: CourseStartProps) => {
   // Check if course content has been generated
   if (!course.isPublished) {
     return (
-      <div>
+      <div className="min-h-screen">
         {/* Top Navigation Header */}
-        <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-30">
-          <div className="flex items-center justify-between h-16 px-4 md:px-6">
+        <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+          <div className="section-shell flex h-16 items-center justify-between">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800"
             >
               <FaChevronLeft size={16} />
               <span className="text-sm font-medium">Dashboard</span>
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">Setup Course Content</h1>
+            <h1 className="text-lg font-semibold text-slate-100">Setup Course Content</h1>
           </div>
         </div>
 
         {/* Content Area with top padding */}
         <div className="flex items-center justify-center min-h-screen pt-20 p-10">
-          <div className="text-center max-w-2xl bg-yellow-50 border border-yellow-200 rounded-lg p-10">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">⚠️ Course Content Not Generated Yet</h2>
-            <p className="text-gray-600 mb-6">
+          <div className="max-w-2xl rounded-2xl border border-amber-300/20 bg-amber-500/10 p-10 text-center">
+            <h2 className="mb-4 text-2xl font-bold text-amber-200">Course Content Not Generated Yet</h2>
+            <p className="mb-6 text-slate-300">
               This course needs to have its content generated before you can start learning.
             </p>
-            <div className="text-left bg-white rounded-lg p-6 mb-6">
-              <h3 className="font-semibold mb-3">To generate content:</h3>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700">
+            <div className="mb-6 rounded-xl border border-white/10 bg-slate-900/60 p-6 text-left">
+              <h3 className="mb-3 font-semibold text-slate-100">To generate content:</h3>
+              <ol className="list-inside list-decimal space-y-2 text-slate-300">
                 <li>Go back to the course layout page</li>
-                <li>Click the "Generate Course Content" button</li>
+                <li>Click the &quot;Generate Course Content&quot; button</li>
                 <li>Wait for the AI to generate content for all chapters</li>
                 <li>Return here to start learning</li>
               </ol>
             </div>
-            <a 
+            <Link
               href={`/create-course/${course.courseId}`}
-              className="inline-block bg-primary text-white px-6 py-3 rounded-lg hover:bg-primary/90 transition"
+              className="inline-block rounded-lg bg-primary px-6 py-3 font-medium text-slate-950 transition hover:bg-primary/90"
             >
               Go to Course Layout
-            </a>
+            </Link>
           </div>
         </div>
       </div>
     );
   }
-
-  const getChapterContent = async (chapterId: number) => {
-    console.log("Fetching content for chapter:", chapterId, "course:", course.courseId);
-    setShowQuiz(false);
-    setQuizQuestions([]);
-    
-    // Check if this chapter's quiz was already passed
-    const quizAlreadyPassed = quizPassedChapters.includes(chapterId);
-    setQuizPassed(quizAlreadyPassed);
-    
-    const res = await getChapterContentAction(chapterId, course.courseId);
-    console.log("Chapter content received:", res);
-    setChapterContent(res as ChapterContentType);
-  };
 
   const handleGenerateQuiz = async () => {
     if (!chapterContent || !selectedChapter || !course) return;
@@ -196,15 +210,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
     
     if (result.success) {
       setQuizPassedChapters(result.quizPassedChapters || []);
-      console.log(`✅ Quiz result stored: Chapter ${selectedChapterIndex + 1} - ${passed ? "Passed" : "Failed"} (${score}%)`);
-    }
-    
-    if (passed) {
-      // Quiz passed - allow chapter completion
-      console.log(`Quiz passed with ${score}% - user can complete chapter`);
-    } else {
-      // Quiz failed - show retry message
-      console.log(`Quiz failed with ${score}% - needs to retry`);
     }
   };
 
@@ -296,21 +301,21 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const courseOutput = parseCourseOutput(course?.courseOutput);
 
   return (
-    <div>
+    <div className="min-h-screen">
       {/* Top Navigation Header - Professional & UX Friendly */}
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-30">
-        <div className="flex items-center justify-between h-16 px-4 md:px-6">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <div className="section-shell flex h-16 items-center justify-between">
           {/* Left Section - Back Button & Course Title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-primary hover:bg-gray-100 rounded-lg transition-colors"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800"
             >
               <FaChevronLeft size={16} />
               <span className="text-sm font-medium">Dashboard</span>
             </button>
-            <div className="hidden md:block border-l border-gray-200 pl-4">
-              <h1 className="text-lg font-semibold text-gray-900 truncate">
+            <div className="hidden border-l border-white/10 pl-4 md:block">
+              <h1 className="truncate text-lg font-semibold text-slate-100">
                 {course?.courseName}
               </h1>
             </div>
@@ -320,10 +325,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
           <div className="flex items-center gap-4">
             {selectedChapter && (
               <div className="hidden sm:flex items-center gap-2 text-sm">
-                <span className="font-medium text-gray-700">
+                <span className="font-medium text-slate-300">
                   Chapter {selectedChapterIndex + 1}/{courseOutput?.chapters?.length || 0}
                 </span>
-                <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-700">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
@@ -337,10 +342,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
             {/* Sidebar Toggle Button */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`p-2.5 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
+              className={`rounded-lg p-2.5 transition-all duration-300 ${
                 sidebarOpen
-                  ? "bg-primary text-white hover:bg-primary/90"
-                  : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+                  ? "bg-primary text-slate-950 hover:bg-primary/90"
+                  : "border border-white/15 bg-slate-900 text-slate-200 hover:bg-slate-800"
               }`}
               title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             >
@@ -353,10 +358,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
       {/* Sidebar Toggle Button - Keep for mobile consistency */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
-        className={`fixed top-4 left-4 z-50 p-2.5 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl md:hidden ${
+        className={`fixed left-4 top-4 z-50 rounded-lg p-2.5 transition-all duration-300 md:hidden ${
           sidebarOpen
-            ? "bg-primary text-white hover:bg-primary/90"
-            : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:border-gray-300"
+            ? "bg-primary text-slate-950 hover:bg-primary/90"
+            : "border border-white/15 bg-slate-900 text-slate-200 hover:bg-slate-800"
         }`}
       >
         {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -364,50 +369,38 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
       {/* Sidebar - Professional Styling */}
       <div
-        className={`fixed transition-all duration-300 w-64 top-16 h-[calc(100vh-64px)] border-r border-gray-200 overflow-y-auto z-40 ${
-          sidebarOpen 
-            ? "left-0 bg-white shadow-xl" 
-            : "-left-64 bg-white shadow-md"
+        className={`fixed top-16 z-40 h-[calc(100vh-64px)] w-72 overflow-y-auto border-r border-white/10 bg-slate-950/95 transition-all duration-300 lg:left-0 lg:translate-x-0 ${
+          sidebarOpen ? "left-0" : "-left-72"
         }`}
       >
         {/* Sidebar Header */}
-        <div className={`transition-all duration-300 ${
-          sidebarOpen
-            ? "bg-gradient-to-r from-primary to-primary/90 shadow-md"
-            : "bg-gradient-to-r from-primary/95 to-primary/85"
-        }`}>
-          <h2 className="font-bold text-lg p-4 text-white truncate">
+        <div className="border-b border-white/10 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800">
+          <h2 className="truncate p-4 text-lg font-bold text-slate-100">
             {courseOutput?.topic || "Course"}
           </h2>
         </div>
         
         {/* Progress Bar */}
-        <div className={`p-4 transition-all duration-300 ${
-          sidebarOpen
-            ? "bg-gradient-to-r from-blue-50 to-transparent"
-            : "bg-gray-50"
-        } border-b border-gray-100`}>
+        <div className="border-b border-white/10 bg-slate-900/50 p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-gray-700">Progress</span>
-            <span className={`text-sm font-bold transition-colors duration-300 ${
-              sidebarOpen ? "text-primary" : "text-gray-600"
-            }`}>{calculateProgress()}%</span>
+            <span className="text-sm font-semibold text-slate-200">Progress</span>
+            <span className="text-sm font-bold text-primary">{calculateProgress()}%</span>
           </div>
           <Progress value={calculateProgress()} className="h-2" />
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="mt-2 text-xs text-slate-400">
             {completedChapters.length} of {courseOutput?.chapters?.length || 0} chapters
           </p>
         </div>
         
         {/* Chapters List */}
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-white/5">
           {courseOutput?.chapters?.map((chapter, index) => (
             <div
               key={index}
               className={`cursor-pointer transition-all duration-200 ${
                 selectedChapter?.chapterName === chapter.chapterName
-                  ? "bg-gradient-to-r from-primary/10 to-transparent border-l-4 border-primary"
-                  : "hover:bg-gray-50/80 border-l-4 border-transparent"
+                  ? "border-l-4 border-primary bg-primary/10"
+                  : "border-l-4 border-transparent hover:bg-slate-900"
               }`}
               onClick={() => {
                 setSelectedChapter(chapter);
@@ -421,10 +414,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
                   {isChapterCompleted(index) ? (
                     <FaCheckCircle className="text-green-500" size={16} />
                   ) : (
-                    <FaRegCircle className={`text-gray-300 transition-colors ${
+                    <FaRegCircle className={`transition-colors ${
                       selectedChapter?.chapterName === chapter.chapterName
                         ? "text-primary/50"
-                        : ""
+                        : "text-slate-500"
                     }`} size={16} />
                   )}
                 </div>
@@ -440,19 +433,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
       {/* Mobile Sidebar Overlay - Professional */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-gradient-to-r from-black/50 to-black/30 z-30 backdrop-blur-sm transition-all duration-300"
+          className="fixed inset-0 z-30 bg-black/55 backdrop-blur-sm transition-all duration-300 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
 
-      <div className="md:w-64 md:fixed md:left-0">
-        {/* Desktop sidebar spacer - takes up space on desktop, hides on mobile */}
-        <div className="hidden md:block w-64 h-screen"></div>
-      </div>
-
-      <div className="md:ml-64 pt-20">
+      <div className="pt-20 lg:pl-72">
         {selectedChapter ? (
-          <div>
+          <div className="section-shell max-w-6xl">
             <ChapterContent
               chapter={selectedChapter}
               content={chapterContent}
@@ -464,15 +452,15 @@ const CourseStart = ({ params }: CourseStartProps) => {
             
             {/* Quiz Section */}
             {!showQuiz && chapterContent && (
-              <div className="max-w-4xl mx-auto px-4 py-8">
+              <div className="mx-auto max-w-4xl px-4 py-8">
                 <Button
                   onClick={handleGenerateQuiz}
                   disabled={loadingQuiz}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                  className="w-full bg-primary py-3 text-lg text-slate-950 hover:bg-primary/90"
                 >
                   {loadingQuiz ? "Generating Quiz..." : "Take Chapter Quiz"}
                 </Button>
-                <p className="text-center text-gray-500 text-sm mt-2">
+                <p className="mt-2 text-center text-sm text-slate-400">
                   You must pass the quiz (70%+) to complete this chapter
                 </p>
               </div>
@@ -501,8 +489,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
                       !quizPassed
                         ? "opacity-50 cursor-not-allowed"
                         : isChapterCompleted(selectedChapterIndex)
-                        ? "border-green-500 text-green-600 hover:bg-green-50"
-                        : "bg-primary hover:bg-primary/90"
+                        ? "border-green-400 text-green-300 hover:bg-green-500/10"
+                        : "bg-primary text-slate-950 hover:bg-primary/90"
                     }`}
                   >
                     {!quizPassed ? (
@@ -527,12 +515,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     onClick={handlePrevChapter}
                     disabled={selectedChapterIndex === 0}
                     variant="outline"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
                   >
                     <FaChevronLeft /> Previous
                   </Button>
                   
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-slate-400">
                     Chapter {selectedChapterIndex + 1} of {courseOutput?.chapters?.length || 0}
                   </span>
                   
@@ -540,7 +528,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     onClick={handleNextChapter}
                     disabled={selectedChapterIndex === (courseOutput?.chapters?.length || 0) - 1}
                     variant="outline"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
                   >
                     Next <FaChevronRight />
                   </Button>
@@ -550,17 +538,17 @@ const CourseStart = ({ params }: CourseStartProps) => {
             
             {/* Show "Mark Course as Complete" button on last chapter */}
             {isLastChapter && quizPassed && (
-              <div className="px-4 py-8 mx-auto max-w-4xl flex flex-col items-center justify-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg mb-10">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+              <div className="mx-auto mb-10 flex max-w-4xl flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/80 to-slate-800/70 px-4 py-8">
+                <h2 className="mb-4 text-2xl font-bold text-slate-100">
                   🎉 Congratulations!
                 </h2>
-                <p className="text-gray-600 mb-6 text-center max-w-md">
-                  You've reached the end of this course. Mark it as completed to track your progress!
+                <p className="mb-6 max-w-md text-center text-slate-300">
+                  You&apos;ve reached the end of this course. Mark it as completed to track your progress!
                 </p>
                 <Button
                   onClick={handleMarkAsComplete}
                   disabled={completingCourse}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 text-lg"
+                  className="bg-primary px-8 py-3 text-lg text-slate-950 hover:bg-primary/90"
                 >
                   {completingCourse ? "Completing..." : "✓ Mark Course as Complete"}
                 </Button>
@@ -570,30 +558,23 @@ const CourseStart = ({ params }: CourseStartProps) => {
             <ScrollProgress />
           </div>
         ) : (
-          <div className="p-10 flex justify-center flex-col items-center">
-            <Image
-              src={course.courseBanner || "/thumbnail.png"}
-              alt={course.courseName || "AI Course Generator"}
-              width={350}
-              height={10}
-              priority
-              className="rounded-lg hover:shadow-lg hover:scale-105 transition-transform duration-500 cursor-pointer mt-20"
-              onError={(e) => {
-                // Fallback to default banner if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.src = "/thumbnail.png";
-              }}
-            />
-            <p className="felx justify-center gap-3 mt-10">
-              lets get started with the course {courseOutput?.topic || "this course"}.
-              Click on the chapters to get started. Enjoy learning!
-            </p>
-            <p className="mt-10">
-              <UserToolTip
-                username={course.username || "AI Course Generator"}
-                userProfileImage={course.userprofileimage || "/userProfile.png"}
-              />
-            </p>
+          <div className="section-shell flex min-h-[65vh] max-w-5xl items-center justify-center">
+            <div className="w-full rounded-2xl border border-white/10 bg-slate-900/70 p-8 text-center">
+              <div className="mx-auto h-[190px] max-w-lg overflow-hidden rounded-xl">
+                <CourseCover
+                  title={courseOutput?.topic || course.courseName}
+                  category={course.category}
+                  imageUrl={course.courseBanner}
+                  className="h-full w-full"
+                />
+              </div>
+              <h2 className="mt-6 text-xl font-semibold text-slate-100">
+                Preparing your first chapter...
+              </h2>
+              <p className="mt-2 text-slate-400">
+                If this takes long, click any chapter from the left panel.
+              </p>
+            </div>
           </div>
         )}
       </div>

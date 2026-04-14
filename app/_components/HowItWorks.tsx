@@ -38,28 +38,32 @@ const features: FeatureProps[] = [
 
 export const HowItWorks = () => {
   return (
-    <section id="get-started" className="container text-center py-24 sm:py-32">
-      <h2 className="text-3xl md:text-4xl font-bold ">
-        How To{" "}
-        <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
-          Get{" "}
-        </span>
-        Started
-      </h2>
-      <p className="md:w-3/4 mx-auto mt-4 mb-8 text-xl text-muted-foreground">
-        Create Smarter, Learn Faster – AI-Powered Courses at Your Fingertips
-      </p>
+    <section id="get-started" className="section-shell py-16 sm:py-20">
+      <div className="mx-auto max-w-4xl text-center">
+        <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl">
+          Launch Your First Course in
+          <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-amber-300 bg-clip-text text-transparent">
+            {" "}
+            Minutes
+          </span>
+        </h2>
+        <p className="mx-auto mt-4 max-w-3xl text-base text-slate-300 sm:text-lg">
+          Move from idea to publish-ready content with a guided, production-ready workflow.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {features.map(({ icon, title, description }: FeatureProps) => (
-          <Card key={title} className="bg-muted/50">
+          <Card key={title} className="glass-panel h-full border-white/10 bg-slate-900/60">
             <CardHeader>
-              <CardTitle className="grid gap-4 place-items-center">
-                {React.createElement(icon, { size: 40 })}
+              <CardTitle className="grid place-items-center gap-4 text-slate-100">
+                <div className="rounded-2xl border border-cyan-400/35 bg-cyan-300/10 p-3 text-cyan-300">
+                  {React.createElement(icon, { size: 30 })}
+                </div>
                 {title}
               </CardTitle>
             </CardHeader>
-            <CardContent>{description}</CardContent>
+            <CardContent className="text-sm text-slate-300">{description}</CardContent>
           </Card>
         ))}
       </div>

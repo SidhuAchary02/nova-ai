@@ -5,6 +5,7 @@ import { GradientTextAnimation } from "./textAnimations/GradientTextAnimation";
 import PulsatingButton from "@/components/ui/pulsating-button";
 import WordPullUp from "@/components/ui/word-pull-up";
 import ShinyButton from "@/components/ui/shiny-button";
+import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/configs/supabase";
 
@@ -26,38 +27,47 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="py-20 md:py-32">
-      <div className="mx-auto max-w-screen-xl px-4 py-32 lg:flex lg:items-center">
-        <div className="mx-auto max-w-xl text-center">
-          <GradientTextAnimation title="Introducting AI Course Generator" />
+    <section className="section-shell">
+      <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl items-center justify-center py-10 sm:py-14">
+        <div className="glass-panel w-full rounded-3xl px-6 py-14 text-center sm:px-12">
+          <div className="mx-auto max-w-3xl">
+            <GradientTextAnimation title="Introducing Nova AI Course Studio" />
 
-          <WordPullUp
-            className="text-4xl font-bold md:text-7xl"
-            words="AI Course Generator"
-          />
+            <WordPullUp
+              className="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl"
+              words="Design Better Courses with AI"
+            />
 
-          <p className="mt-10 sm:text-xl">
-            Revolutionize your course creation with AI.
-          </p>
+            <p className="mx-auto mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
+              Create complete learning experiences with guided structure, chapter content,
+              quizzes, and curated videos. Publish polished courses in minutes.
+            </p>
 
-          <div className="mt-8 flex justify-center gap-4">
-            {!user ? (
-              <Link href="/sign-in">
-                <PulsatingButton
-                  text="Get Started"
-                  pulseColor="150,0,255"
-                  backgroundColor="#9945FF"
-                  textColor="#fff"
-                  animationDuration="1.5s"
-                  buttonWidth="200px"
-                  buttonHeight="50px"
-                />
+            <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+              {!user ? (
+                <Link href="/sign-in">
+                  <PulsatingButton
+                    text="Start Building"
+                    pulseColor="14,165,233"
+                    backgroundColor="#06b6d4"
+                    textColor="#04131f"
+                    animationDuration="1.6s"
+                    buttonWidth="220px"
+                    buttonHeight="52px"
+                  />
+                </Link>
+              ) : (
+                <Link href="/dashboard">
+                  <ShinyButton text="Go to Dashboard" />
+                </Link>
+              )}
+
+              <Link href="/dashboard/explore">
+                <Button variant="outline" className="border-white/20 bg-slate-900/70 text-slate-100 hover:bg-slate-800">
+                  Explore Courses
+                </Button>
               </Link>
-            ) : (
-              <Link href="/dashboard">
-                <ShinyButton text="Go to Dashboard" />
-              </Link>
-            )}
+            </div>
           </div>
         </div>
       </div>

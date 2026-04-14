@@ -20,26 +20,45 @@ const Header = () => {
   }, []);
 
   return (
-    <div className="flex justify-between p-5 shadow-sm items-center">
-      <Image
-        src={"/logo.png"}
-        alt="logo"
-        width={150}
-        height={100}
-        priority
-        className="object-cover"
-      />
+    <header className="section-shell pt-4">
+      <div className="glass-panel flex items-center justify-between rounded-2xl px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="rounded-lg border border-white/20 bg-white p-1.5">
+            <Image
+              src={"/logo.png"}
+              alt="Nova AI logo"
+              width={92}
+              height={40}
+              priority
+              className="h-auto w-auto object-cover"
+            />
+          </div>
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-slate-100">
+              Nova AI Studio
+            </p>
+            <p className="text-xs text-slate-400">Build smart courses faster</p>
+          </div>
+        </Link>
 
-      {!user ? (
-        <Link href="/sign-up">
-          <ShinyButton text="Sign Up" />
-        </Link>
-      ) : (
-        <Link href="/dashboard">
-          <Button>Dashboard</Button>
-        </Link>
-      )}
-    </div>
+        {!user ? (
+          <div className="flex items-center gap-2">
+            <Link href="/sign-in">
+              <Button variant="ghost" className="text-slate-200 hover:bg-white/10 hover:text-white">
+                Sign in
+              </Button>
+            </Link>
+            <Link href="/sign-up">
+              <ShinyButton text="Get Started" />
+            </Link>
+          </div>
+        ) : (
+          <Link href="/dashboard">
+            <Button className="bg-primary text-slate-950 hover:bg-primary/90">Dashboard</Button>
+          </Link>
+        )}
+      </div>
+    </header>
   );
 };
 

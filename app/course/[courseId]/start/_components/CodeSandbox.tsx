@@ -96,17 +96,17 @@ print("✅ Code executed successfully")`;
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 my-4">
+    <div className="my-4 rounded-lg border border-white/10 bg-slate-900/60 p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-gray-700">Code Sandbox</span>
-          <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded-full font-medium">
+          <span className="text-sm font-semibold text-slate-200">Code Sandbox</span>
+          <span className="rounded-full bg-cyan-500/15 px-2 py-1 text-xs font-medium text-cyan-300">
             {language.toUpperCase()}
           </span>
         </div>
         <button
           onClick={copyCode}
-          className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+          className="flex items-center gap-2 rounded px-3 py-1 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
         >
           {copied ? (
             <>
@@ -132,7 +132,7 @@ print("✅ Code executed successfully")`;
         <Button
           onClick={executeCode}
           disabled={loading}
-          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+          className="flex items-center gap-2 bg-primary text-slate-950 hover:bg-primary/90"
         >
           {loading ? (
             <>
@@ -146,7 +146,7 @@ print("✅ Code executed successfully")`;
             </>
           )}
         </Button>
-        <span className="text-xs text-gray-500 pt-2">
+        <span className="pt-2 text-xs text-slate-400">
           {language === "python" ? "🐍 Python 3.10" : "🟨 JavaScript (Node.js 18)"}
         </span>
       </div>
@@ -166,8 +166,8 @@ print("✅ Code executed successfully")`;
       )}
 
       {!output && !error && !loading && (
-        <div className="rounded-lg p-4 bg-gray-50 border border-gray-200 text-center text-gray-500 text-sm">
-          Click "Run Code" to execute this code
+        <div className="rounded-lg border border-white/10 bg-slate-950 p-4 text-center text-sm text-slate-400">
+          Click &quot;Run Code&quot; to execute this code
         </div>
       )}
     </div>

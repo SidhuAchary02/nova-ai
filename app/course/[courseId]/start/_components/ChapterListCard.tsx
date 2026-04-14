@@ -10,13 +10,13 @@ type ChapterListCardProps = {
 
 const ChapterListCard = ({ chapter, index }: ChapterListCardProps) => {
   return (
-    <div className="grid grid-cols-5 p-3 items-center border-b">
+    <div className="grid grid-cols-5 items-center p-2.5">
       <div>
-        <h2 className="p-1 bg-primary text-white rounded-full w-8 h-8 text-center">{index +1}</h2>
+        <h2 className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-center text-slate-950">{index +1}</h2>
       </div>
       <div className="col-span-4">
-        <h2 className="font-medium">{chapter.chapterName}</h2>
-        <h2 className="text-sm text-primary flex items-center gap-2"> 
+        <h2 className="font-medium text-slate-100">{chapter.chapterName}</h2>
+        <h2 className="flex items-center gap-2 text-sm text-sky-300"> 
           <LuTimer /> {formatDuration(chapter.duration)}
         </h2>
       </div>

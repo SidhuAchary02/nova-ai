@@ -28,11 +28,11 @@ const ChapterSources = ({
   if (!sources || sources.length === 0) {
     console.warn("⚠️ No sources to display");
     return (
-      <div className="mt-12 pt-8 border-t-2 border-gray-200">
+      <div className="mt-12 border-t border-white/10 pt-8">
         <div className="max-w-4xl mx-auto px-4">
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg mb-4">
-            <p className="text-sm text-yellow-800">
-              <strong>ℹ️ No Sources Yet:</strong> This chapter doesn't have sources yet, but you can generate them now!
+          <div className="mb-4 rounded-lg border border-amber-300/20 bg-amber-500/10 p-4">
+            <p className="text-sm text-amber-200">
+              <strong>ℹ️ No Sources Yet:</strong> This chapter doesn&apos;t have sources yet, but you can generate them now!
             </p>
           </div>
           
@@ -52,14 +52,14 @@ const ChapterSources = ({
   }
 
   return (
-    <div className="mt-12 pt-8 border-t-2 border-gray-200">
+    <div className="mt-12 border-t border-white/10 pt-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <FaBook className="text-2xl text-blue-600" />
+          <FaBook className="text-2xl text-cyan-300" />
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Sources & References</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-2xl font-bold text-slate-100">Sources & References</h2>
+            <p className="mt-1 text-sm text-slate-400">
               Reliable sources that support the content in this chapter
             </p>
           </div>
@@ -70,20 +70,20 @@ const ChapterSources = ({
           {sources.map((source, index) => (
             <div
               key={index}
-              className="border border-gray-300 rounded-lg p-4 hover:shadow-md hover:border-blue-400 transition-all bg-gradient-to-r from-gray-50 to-transparent"
+              className="rounded-lg border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-cyan-300/40 hover:shadow-md"
             >
               {/* Source Number and Title */}
               <div className="flex items-start gap-3 mb-2">
-                <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-sm font-semibold flex-shrink-0 mt-0.5">
+                <span className="mt-0.5 inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-slate-950">
                   {index + 1}
                 </span>
-                <h3 className="text-lg font-semibold text-gray-900 flex-1 break-words">
+                <h3 className="flex-1 break-words text-lg font-semibold text-slate-100">
                   {source.title}
                 </h3>
               </div>
 
               {/* Description */}
-              <p className="text-gray-700 text-sm mb-3 ml-9 leading-relaxed">
+              <p className="mb-3 ml-9 text-sm leading-relaxed text-slate-300">
                 {source.description}
               </p>
 
@@ -93,10 +93,10 @@ const ChapterSources = ({
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline text-sm font-medium break-all"
+                  className="inline-flex break-all text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:underline items-center gap-2"
                 >
                   <FaExternalLinkAlt size={12} />
-                  <span className="hover:text-blue-800">{source.url}</span>
+                  <span className="hover:text-cyan-200">{source.url}</span>
                 </a>
               </div>
             </div>
@@ -104,8 +104,8 @@ const ChapterSources = ({
         </div>
 
         {/* Footer Note */}
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-900">
+        <div className="mt-6 rounded-lg border border-cyan-300/20 bg-cyan-500/10 p-4">
+          <p className="text-sm text-cyan-100">
             <strong>✓ Content Reliability:</strong> This course content has been created based on these verified sources. All sources are publicly accessible and relevant to the topics covered in this chapter. Teachers and learners can verify the content accuracy by reviewing these sources.
           </p>
         </div>

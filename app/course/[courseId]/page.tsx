@@ -30,7 +30,7 @@ const Course = ({ params }: CourseParams) => {
   return (
     <div>
       <Header />
-      <div className="px-10 p-10 md:px-20 lg:px-44">
+      <div className="section-shell py-8">
         <CourseBasicInfo
           courseInfo={course}
           onRefresh={() => console.log("REfreshing")}

@@ -44,8 +44,8 @@ const FinsihScreen = ({ params }: { params: ParamsType }) => {
   };
 
   return (
-    <div className="px-10 md:px-20 lg:px-44 my-7">
-      <h2 className="text-center font-bold text-2xl my-3 text-primary">
+    <div className="section-shell my-7">
+      <h2 className="my-3 text-center text-2xl font-bold text-primary">
         Congrats! Your course is Ready
       </h2>
 
@@ -54,12 +54,12 @@ const FinsihScreen = ({ params }: { params: ParamsType }) => {
         onRefresh={() => console.log("Refreshing")}
       />
 
-      <h2 className="mt-3">Course URL</h2>
+      <h2 className="mt-5 text-slate-200">Course URL</h2>
 
-      <h2 className="text-center font-bold text-gray-400 border p-2 rounded flex gap-5 items-center">
+      <h2 className="mt-2 flex items-center gap-5 rounded-lg border border-white/10 bg-slate-900/70 p-2 text-center font-bold text-slate-300">
         <Link
           href={COURSE_LINK}
-          className="cursor-pointer hover:text-primary transition-all"
+          className="cursor-pointer transition-all hover:text-primary"
         >
           {COURSE_LINK}
         </Link>

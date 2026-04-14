@@ -26,11 +26,13 @@ const ExplorePage = () => {
   }, [pageIndex]);
 
   return (
-    <div>
-      <h2 className="font-bold text-3xl">Explore More Courses</h2>
-      <p>Explore courses build with AI by Other Users</p>
+    <div className="space-y-6">
+      <div className="glass-panel rounded-2xl p-5 sm:p-6">
+        <h2 className="text-3xl font-bold text-slate-100">Explore Courses</h2>
+        <p className="mt-1 text-slate-300">Discover what other creators are publishing with Nova AI Studio.</p>
+      </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 mt-5">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {courseList ? (
           courseList?.map((course) => (
             <div key={course.courseId}>
@@ -46,17 +48,19 @@ const ExplorePage = () => {
         )}
       </div>
 
-      <div className="flex justify-between mt-5 items-center">
+      <div className="glass-panel flex items-center justify-between rounded-2xl p-3 sm:p-4">
         <Button
           onClick={() => setPageIndex(pageIndex - 1)}
           disabled={pageIndex == 0}
+          variant="outline"
         >
           Prev
         </Button>
-        <Badge>Page : {pageIndex + 1}</Badge>
+        <Badge className="bg-slate-800 text-slate-200">Page : {pageIndex + 1}</Badge>
         <Button
           onClick={() => setPageIndex(pageIndex + 1)}
           disabled={courseList?.length !== 8}
+          variant="outline"
         >
           Next
         </Button>

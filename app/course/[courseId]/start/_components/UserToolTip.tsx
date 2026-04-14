@@ -20,15 +20,15 @@ const UserToolTip = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <p className="flex justify-center items-center gap-2">
-            This Course is by -
-            <Badge className="cursor-pointer">{username}</Badge>
+          <p className="flex items-center justify-center gap-2 text-slate-300">
+            Course by
+            <Badge className="cursor-pointer bg-slate-800 text-slate-100">{username}</Badge>
           </p>
         </TooltipTrigger>
         <TooltipContent variant={"secondary"}>
           <Image
             src={userProfileImage || "/userProfile.png"}
-            alt={username || "AI Course Generator"}
+            alt={username || "Course creator"}
             width={50}
             height={50}
             priority

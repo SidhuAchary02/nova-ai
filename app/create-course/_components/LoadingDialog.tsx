@@ -14,12 +14,12 @@ import Image from "next/image";
 const LoadingDialog = ({ loading }: { loading: boolean }) => {
   return (
     <AlertDialog open={loading}>
-      <AlertDialogContent>
+      <AlertDialogContent className="border-white/10 bg-slate-900/95">
         <AlertDialogHeader className="flex flex-col items-center p-10">
-          <AlertDialogTitle>
-            Hold on, your course will be generated soon!!!!
+          <AlertDialogTitle className="text-center text-slate-100">
+            Generating your course. Hold tight.
           </AlertDialogTitle>
-          <AlertDialogDescription>
+          <AlertDialogDescription className="text-slate-300">
             <Image
               src={"/rocket.gif"}
               alt="loading"

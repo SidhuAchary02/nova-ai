@@ -14,13 +14,13 @@ const DashboardLayout = ({
     <UserCourseListContext.Provider
       value={{ userCourseList, setUserCourseList }}
     >
-      <div>
-        <div className="md:w-64 hidden md:block">
+      <div className="min-h-screen">
+        <div className="hidden md:block md:w-72">
           <Sidebar />
         </div>
-        <div className="md:ml-64">
+        <div className="md:ml-72">
           <Header />
-          <div className="p-10">{children}</div>
+          <main className="section-shell py-6 md:py-10">{children}</main>
         </div>
       </div>
     </UserCourseListContext.Provider>

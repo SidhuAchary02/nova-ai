@@ -7,6 +7,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { deleteCourseAction } from "@/app/actions/deleteCourse";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
+import CourseCover from "@/components/common/CourseCover";
 
 type CourseCardProps = {
   course: CourseType;
@@ -19,7 +20,6 @@ const CourseCard = ({
   onRefresh,
   displayUser = false,
 }: CourseCardProps) => {
-  // Safely parse courseOutput which can be a JSON string or object
   const courseOutput = parseCourseOutput(course.courseOutput);
 
   const handleOnDelete = async () => {
@@ -34,58 +34,53 @@ const CourseCard = ({
     }
   };
 
-  console.log('course data', course)
-
   return (
-    <div className="shadow-sm rounded-lg border p-2 relative">
+    <div className="group relative overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 p-2 shadow-[0_10px_28px_rgba(2,6,23,0.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_35px_rgba(2,6,23,0.5)]">
       {/* Completed Badge */}
       {course.isCompleted && (
-        <div className="absolute top-4 right-4 z-10 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+        <div className="absolute right-4 top-4 z-10 rounded-full border border-emerald-300/30 bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg">
           ✓ Completed
         </div>
       )}
 
       {/* Course Image */}
       <Link href={`/course/${course.courseId}`}>
-        <Image
-          src={course?.courseBanner ?? "/thumbnail.png"}
-          alt={course?.courseName ?? "AI Course Generator"}
-          width={300}
-          height={200}
-          priority
-          className="w-full h-[200px] object-cover rounded-lg hover:scale-105 transition-all cursor-pointer"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = "/thumbnail.png";
-          }}
-        />
+        <div className="h-[190px] overflow-hidden rounded-xl">
+          <CourseCover
+            title={courseOutput?.topic || course.courseName}
+            category={course.category}
+            imageUrl={course?.courseBanner}
+            className="h-full w-full transition duration-300 group-hover:scale-[1.02]"
+            compact
+          />
+        </div>
       </Link>
 
       {/* Course Info */}
-      <div className="p-2">
-        <h2 className="font-medium text-lg flex items-center justify-between">
+      <div className="p-3">
+        <h2 className="flex items-center justify-between text-lg font-semibold text-slate-100">
           {courseOutput?.topic ?? "Untitled Course"}
 
           {!displayUser && (
             <DropDownOptions handleDeleteCourse={() => handleOnDelete()}>
               <HiOutlineDotsVertical
                 size={20}
-                className="cursor-pointer p-1 bg-purple-50 text-primary text-sm rounded-sm"
+                className="cursor-pointer rounded-md bg-slate-800 p-1 text-slate-300 text-sm"
               />
             </DropDownOptions>
           )}
         </h2>
 
-        <p className="text-sm text-gray-400 my-1">{course.category}</p>
+        <p className="my-1 text-sm text-slate-400">{course.category}</p>
 
         {/* Chapter Count + Level */}
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 p-1 bg-purple-50 text-primary text-sm rounded-sm">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 rounded-md bg-sky-500/15 px-2 py-1 text-sm text-sky-200">
             <MdMenuBook />
             {courseOutput?.chapters?.length ?? 0} Chapters
           </h2>
 
-          <h2 className="text-sm p-1 bg-purple-50 text-primary rounded-sm">
+          <h2 className="rounded-md bg-amber-500/15 px-2 py-1 text-sm text-amber-200">
             {course.level} Level
           </h2>
         </div>
@@ -101,7 +96,9 @@ const CourseCard = ({
               priority
               className="rounded-full"
             />
-            <Badge variant={"outline"}>{course.username}</Badge>
+            <Badge variant={"outline"} className="border-slate-600 text-slate-200">
+              {course.username}
+            </Badge>
           </div>
         )}
       </div>

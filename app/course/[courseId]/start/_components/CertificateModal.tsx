@@ -162,7 +162,7 @@ const CertificateModal = ({
             <div className="mt-8">
               <p className="text-sm text-gray-700 mb-4">Verified and Authenticated</p>
               <p className="text-center italic text-black text-sm font-semibold">
-                "Excellence in Learning - Powered by Nova AI"
+                &ldquo;Excellence in Learning - Powered by Nova AI&rdquo;
               </p>
             </div>
           </div>
