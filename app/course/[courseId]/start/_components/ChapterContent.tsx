@@ -6,12 +6,16 @@ import YouTube, { YouTubeProps } from "react-youtube";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeSandbox from "./CodeSandbox";
+import ChapterSources from "./ChapterSources";
 import { formatDuration } from "@/utils/formatDuration";
 
 type ChapterContentProps = {
   chapter: ChapterType | null;
   content: ChapterContentType | null;
   courseCategory?: string;
+  courseId?: string;
+  courseName?: string;
+  chapterId?: number;
 };
 
 const videoOpts = {
@@ -48,10 +52,10 @@ const extractCodeFromExplanation = (explanation: string, language: "python" | "j
   return match ? match[1] : null;
 };
 
-const ChapterContent = ({ chapter, content, courseCategory }: ChapterContentProps) => {
+const ChapterContent = ({ chapter, content, courseCategory, courseId, courseName, chapterId }: ChapterContentProps) => {
   const [expandedCode, setExpandedCode] = useState<Set<number>>(new Set());
   
-  console.log("ChapterContent rendered with:", { chapter, content, courseCategory });
+  console.log("ChapterContent rendered with:", { chapter, content, courseCategory, courseId, courseName, chapterId });
   console.log("content?.content:", content?.content);
   console.log("typeof content?.content:", typeof content?.content);
 
@@ -281,6 +285,22 @@ const ChapterContent = ({ chapter, content, courseCategory }: ChapterContentProp
             ))}
           </div>
         )}
+
+        {/* Chapter Sources Section */}
+        {(() => {
+          const chapterNum = chapterId !== undefined ? chapterId : 0;
+          console.log("🔍 Before rendering ChapterSources - content object:", content);
+          console.log("🔍 Sources from content:", content?.sources);
+          return (
+            <ChapterSources 
+              sources={content?.sources} 
+              chapterName={chapter?.chapterName}
+              courseId={courseId}
+              chapterId={chapterNum}
+              courseName={courseName}
+            />
+          );
+        })()}
       </div>
     </div>
   );

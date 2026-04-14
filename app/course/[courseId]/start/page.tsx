@@ -457,6 +457,9 @@ const CourseStart = ({ params }: CourseStartProps) => {
               chapter={selectedChapter}
               content={chapterContent}
               courseCategory={course?.category}
+              courseId={course?.courseId}
+              courseName={course?.courseName}
+              chapterId={selectedChapterIndex}
             />
             
             {/* Quiz Section */}

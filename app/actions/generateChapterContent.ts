@@ -189,6 +189,78 @@ Generate comprehensive, beautifully formatted, HIGHLY READABLE content now:
       `✅ Chapter ${chapterIndex + 1} generated with ${normalizedContent.length} sections`
     );
 
+    // Generate sources for this chapter
+    const SOURCES_PROMPT = `
+You are a reliable source research assistant. Based on the following course chapter, provide 5-8 credible and relevant sources that would be helpful for learning about this topic.
+
+Chapter: "${chapterName}"
+Course: "${courseName}"
+
+For each source, provide:
+1. A title
+2. A valid URL (must be a real, accessible website - no made-up URLs)
+3. A brief description (1-2 sentences)
+
+IMPORTANT GUIDELINES:
+- Only include REAL, VERIFIABLE sources
+- Include mix of: academic sources, official documentation, reputable educational platforms, industry websites
+- URLs must be specific and valid (not just domain.com)
+- For academic topics: Include Wikipedia, academic journals, or educational institutions
+- For technical topics: Include official documentation, GitHub, Stack Overflow, Medium articles
+- For business topics: Include industry publications, case studies, best practice guides
+- Ensure all URLs start with http:// or https://
+- Each source should be directly relevant to the chapter topic
+
+Return ONLY valid JSON array with NO additional text:
+[
+  {
+    "title": "Source Title",
+    "url": "https://example.com/specific-path",
+    "description": "Brief description of what this source offers"
+  }
+]
+
+Generate the sources now:
+`;
+
+    let sources: any[] = [];
+
+    try {
+      // Generate sources
+      const sourcesResult = await retryWithBackoff(async () => {
+        return await generateCourseChapters(SOURCES_PROMPT);
+      });
+
+      console.log("📚 Raw sources result:", sourcesResult);
+
+      const sourcesCleaned =
+        sourcesResult
+          ?.replace(/```json/g, "")
+          ?.replace(/```/g, "")
+          ?.trim() ?? "";
+
+      console.log("📚 Cleaned sources:", sourcesCleaned);
+
+      const sourcesParsed = JSON.parse(sourcesCleaned);
+
+      console.log("📚 Parsed sources:", sourcesParsed);
+
+      if (Array.isArray(sourcesParsed)) {
+        sources = sourcesParsed.map((item: any) => ({
+          title: item.title || "",
+          url: item.url || "",
+          description: item.description || "",
+        }));
+      }
+
+      console.log(`📚 Generated ${sources.length} sources for chapter ${chapterIndex + 1}:`, sources);
+    } catch (error) {
+      console.error("⚠️ Failed to generate sources:", error);
+      console.error("⚠️ Error details:", error instanceof Error ? error.message : String(error));
+      // Continue without sources if generation fails
+      sources = [];
+    }
+
     // Save to DB in ONE consistent structure
     await db.insert(CourseChapters).values({
       chapterId: chapterIndex,
@@ -197,12 +269,14 @@ Generate comprehensive, beautifully formatted, HIGHLY READABLE content now:
         content: normalizedContent
       },
       videoId: videoId,
+      sources: sources,
     });
 
     return {
       success: true,
       videoId,
       hasContent: normalizedContent.length > 0,
+      sourcesCount: sources.length,
     };
 
   } catch (error: any) {

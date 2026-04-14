@@ -34,4 +34,5 @@ export const CourseChapters = pgTable("courseChapters", {
   chapterId: integer("chapterId").notNull(),
   content: json("content").notNull(),
   videoId: varchar("videoId").notNull(),
+  sources: json("sources").default([]), // Array of {title, url, description}
 });

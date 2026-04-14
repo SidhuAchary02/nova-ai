@@ -51,6 +51,12 @@ export type CodeExampleType = {
   code: string[];
 };
 
+export type SourceType = {
+  title: string;
+  url: string;
+  description: string;
+};
+
 export type ChapterSectionType = {
   title: string;
   explanation: string;
@@ -63,6 +69,7 @@ export type ChapterContentType = {
   courseId: string;
   content: ChapterSectionType[];
   videoId: string;
+  sources?: SourceType[];
 };
 
 export type QuizQuestionType = {
