@@ -35,7 +35,9 @@ const GenerateMissingSources = ({
 
       if (result.success) {
         setDone(true);
-        onSourcesGenerated?.(result.sources);
+        if (result.sources) {
+          onSourcesGenerated?.(result.sources);
+        }
         // Refresh the page after a short delay
         setTimeout(() => {
           window.location.reload();
