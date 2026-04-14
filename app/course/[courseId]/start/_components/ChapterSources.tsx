@@ -56,7 +56,7 @@ const ChapterSources = ({
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <FaBook className="text-2xl text-cyan-300" />
+          <FaBook className="text-2xl text-primary" />
           <div>
             <h2 className="text-2xl font-bold text-slate-100">Sources & References</h2>
             <p className="mt-1 text-sm text-slate-400">
@@ -70,7 +70,7 @@ const ChapterSources = ({
           {sources.map((source, index) => (
             <div
               key={index}
-              className="rounded-lg border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-cyan-300/40 hover:shadow-md"
+              className="rounded-lg border border-white/10 bg-slate-900/60 p-4 transition-all hover:border-primary/40 hover:shadow-md"
             >
               {/* Source Number and Title */}
               <div className="flex items-start gap-3 mb-2">
@@ -93,10 +93,10 @@ const ChapterSources = ({
                   href={source.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex break-all text-sm font-medium text-cyan-300 hover:text-cyan-200 hover:underline items-center gap-2"
+                  className="inline-flex items-center gap-2 break-all text-sm font-medium text-primary hover:text-primary/80 hover:underline"
                 >
                   <FaExternalLinkAlt size={12} />
-                  <span className="hover:text-cyan-200">{source.url}</span>
+                  <span className="hover:text-primary/80">{source.url}</span>
                 </a>
               </div>
             </div>
@@ -104,8 +104,8 @@ const ChapterSources = ({
         </div>
 
         {/* Footer Note */}
-        <div className="mt-6 rounded-lg border border-cyan-300/20 bg-cyan-500/10 p-4">
-          <p className="text-sm text-cyan-100">
+        <div className="mt-6 rounded-lg border border-primary/20 bg-primary/10 p-4">
+          <p className="text-sm text-slate-200">
             <strong>✓ Content Reliability:</strong> This course content has been created based on these verified sources. All sources are publicly accessible and relevant to the topics covered in this chapter. Teachers and learners can verify the content accuracy by reviewing these sources.
           </p>
         </div>

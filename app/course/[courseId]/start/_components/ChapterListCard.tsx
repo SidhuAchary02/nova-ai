@@ -16,7 +16,7 @@ const ChapterListCard = ({ chapter, index }: ChapterListCardProps) => {
       </div>
       <div className="col-span-4">
         <h2 className="font-medium text-slate-100">{chapter.chapterName}</h2>
-        <h2 className="flex items-center gap-2 text-sm text-sky-300"> 
+        <h2 className="flex items-center gap-2 text-sm text-primary"> 
           <LuTimer /> {formatDuration(chapter.duration)}
         </h2>
       </div>

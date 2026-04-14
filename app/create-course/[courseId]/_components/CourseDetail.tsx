@@ -18,7 +18,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
         
         <div className="flex gap-2">
-          <FaChartBar className="text-4xl text-cyan-300" />
+          <FaChartBar className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-slate-400">Skill Level</h2>
             <h2 className="text-lg font-medium text-slate-100">{courseDetail.level}</h2>
@@ -26,7 +26,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
         </div>
 
         <div className="flex gap-2">
-          <LuTimer className="text-4xl text-cyan-300" />
+          <LuTimer className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-slate-400">Duration</h2>
             <h2 className="text-lg font-medium text-slate-100">
@@ -36,7 +36,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
         </div>
 
         <div className="flex gap-2">
-          <LuBookOpen className="text-4xl text-cyan-300" />
+          <LuBookOpen className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-slate-400">Chapters</h2>
             <h2 className="text-lg font-medium text-slate-100">
@@ -46,7 +46,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
         </div>
 
         <div className="flex gap-2">
-          <FaVideo className="text-4xl text-cyan-300" />
+          <FaVideo className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-slate-400">Video Included</h2>
             <h2 className="text-lg font-medium text-slate-100">

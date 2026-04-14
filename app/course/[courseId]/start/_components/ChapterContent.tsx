@@ -97,7 +97,7 @@ const ChapterContent = ({ chapter, content, courseCategory, courseId, courseName
         <h1 className="mb-3 text-3xl font-bold text-slate-100 sm:text-4xl">{chapter?.chapterName}</h1>
         <p className="text-base leading-relaxed text-slate-300 sm:text-lg">{chapter?.description}</p>
         {chapter?.duration && (
-          <p className="mt-2 text-sm text-sky-300">
+          <p className="mt-2 text-sm text-primary">
             ⏱️ Duration: {formatDuration(chapter.duration)}
           </p>
         )}
@@ -137,7 +137,7 @@ const ChapterContent = ({ chapter, content, courseCategory, courseId, courseName
                 key={index} 
                 className="rounded-xl border border-white/10 bg-slate-900/70 p-5 shadow-[0_8px_24px_rgba(2,6,23,0.35)]"
               >
-                <h2 className="mb-4 flex items-center text-2xl font-bold text-cyan-200">
+                <h2 className="mb-4 flex items-center text-2xl font-bold text-primary">
                   <span className="mr-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-slate-950">
                     {index + 1}
                   </span>
@@ -145,7 +145,7 @@ const ChapterContent = ({ chapter, content, courseCategory, courseId, courseName
                 </h2>
 
                 {/* Markdown Content with Enhanced Styling */}
-                <div className="prose prose-sm max-w-none leading-relaxed prose-headings:text-slate-100 prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-cyan-200 prose-code:text-amber-200">
+                <div className="prose prose-sm max-w-none leading-relaxed prose-headings:text-slate-100 prose-p:text-slate-300 prose-li:text-slate-300 prose-strong:text-primary prose-code:text-amber-200">
                   <ReactMarkdown 
                     remarkPlugins={[remarkGfm]}
                     components={{
@@ -258,8 +258,8 @@ const ChapterContent = ({ chapter, content, courseCategory, courseId, courseName
 
                 {/* Try It Yourself Section for Programming Courses */}
                 {isProgramming && !item.code_examples && (
-                  <div className="mt-5 rounded-lg border border-cyan-300/20 bg-cyan-500/10 p-4">
-                    <p className="text-sm text-cyan-200">
+                  <div className="mt-5 rounded-lg border border-primary/20 bg-primary/10 p-4">
+                    <p className="text-sm text-primary">
                       💡 <strong>Tip:</strong> Code examples in this section can be executed directly in the browser using the embedded code sandbox!
                     </p>
                   </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FaWandMagicSparkles } from "react-icons/fa6";
 import { UserCourseListContext } from "@/app/_context/UserCourseList.context";
+import NameChip from "@/components/common/NameChip";
 
 const AddCourse = () => {
   const [user, setUser] = useState<any>(null);
@@ -30,7 +31,7 @@ const AddCourse = () => {
       <div>
         <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Dashboard</p>
         <h2 className="text-2xl font-semibold sm:text-3xl">
-          Hello <span className="font-bold text-cyan-300">{userName}</span>
+          Hello <NameChip name={userName} maxLength={15} className="bg-primary/15 text-primary border-primary/20 text-base sm:text-lg" />
         </h2>
         <p className="mt-1 text-sm text-slate-400">Continue building your course library.</p>
       </div>

@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { UserCourseListContext } from "@/app/_context/UserCourseList.context";
-import Image from "next/image";
 
 const Sidebar = () => {
   const path = usePathname();
@@ -16,8 +15,8 @@ const Sidebar = () => {
     <aside className="fixed h-screen w-72 border-r border-white/10 bg-slate-950/75 p-5 backdrop-blur-xl">
       <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg border border-white/20 bg-white p-1.5">
-            <Image src="/logo.png" alt="Nova AI" width={96} height={30} />
+          <div className="rounded-lg border border-white/20 bg-slate-950/90 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
+            NOVA
           </div>
           <div>
             <h1 className="text-2xl font-extrabold text-slate-100">Nova</h1>
@@ -31,7 +30,7 @@ const Sidebar = () => {
           <Link href={item.route} key={item.id}>
             <div
               className={`mb-2 flex items-center gap-3 rounded-xl p-3 text-slate-300 transition hover:bg-slate-800/80 hover:text-slate-100 ${
-                item.route === path && "bg-sky-500/15 text-sky-200"
+                item.route === path && "bg-primary/15 text-primary"
               }`}
             >
               <div className="text-2xl">

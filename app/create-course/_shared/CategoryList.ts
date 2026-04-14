@@ -13,7 +13,7 @@ export const categoryList: CategoryListType[] = [
     name: "Programming",
     icon: "💻",
     description: "Web dev, DSA, software engineering, and coding skills",
-    color: "from-sky-500/30 to-cyan-500/10",
+    color: "from-violet-500/30 to-fuchsia-500/10",
     prompt: "development",
   },
   {

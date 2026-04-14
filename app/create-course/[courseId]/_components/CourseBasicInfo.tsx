@@ -56,7 +56,7 @@ const CourseBasicInfo = ({
           <p className="mt-3 text-sm text-slate-300">
             {courseOutput?.description || "No description available"}
           </p>
-          <h2 className="mt-2 flex items-center gap-2 font-medium text-cyan-300">
+          <h2 className="mt-2 flex items-center gap-2 font-medium text-primary">
             <LuPuzzle /> {courseInfo?.category}
           </h2>
 

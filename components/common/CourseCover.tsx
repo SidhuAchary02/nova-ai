@@ -8,15 +8,16 @@ type CourseCoverProps = {
   imageUrl?: string | null;
   className?: string;
   compact?: boolean;
+  showTitle?: boolean;
 };
 
 const gradients = [
-  "from-cyan-500/35 via-sky-500/10 to-slate-900/80",
+  "from-violet-500/30 via-fuchsia-500/10 to-slate-900/80",
   "from-amber-500/35 via-orange-500/10 to-slate-900/80",
-  "from-fuchsia-500/25 via-indigo-500/10 to-slate-900/80",
-  "from-emerald-500/30 via-teal-500/10 to-slate-900/80",
-  "from-rose-500/30 via-red-500/10 to-slate-900/80",
-  "from-violet-500/25 via-slate-700/10 to-slate-900/80",
+  "from-rose-500/30 via-pink-500/10 to-slate-900/80",
+  "from-emerald-500/30 via-lime-500/10 to-slate-900/80",
+  "from-indigo-500/25 via-purple-500/10 to-slate-900/80",
+  "from-red-500/25 via-amber-500/10 to-slate-900/80",
 ];
 
 const isDefaultBanner = (imageUrl?: string | null) => {
@@ -42,6 +43,7 @@ const CourseCover = ({
   imageUrl,
   className,
   compact = false,
+  showTitle = true,
 }: CourseCoverProps) => {
   if (!isDefaultBanner(imageUrl)) {
     return (
@@ -72,7 +74,7 @@ const CourseCover = ({
     >
       <div className={ny("absolute inset-0 bg-gradient-to-br", gradient)} />
       <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-      <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-cyan-300/20 blur-2xl" />
+      <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl" />
 
       <div className="relative z-10 flex w-full items-end justify-between gap-3">
         <div>
@@ -80,12 +82,14 @@ const CourseCover = ({
             <LuSparkles size={11} />
             {category || "AI Course"}
           </div>
-          <p className="mt-2 text-lg font-semibold leading-tight text-white drop-shadow-md">
-            {compact ? title || "Untitled" : title || "New Course"}
-          </p>
+          {showTitle && (
+            <p className="mt-2 text-lg font-semibold leading-tight text-white drop-shadow-md">
+              {compact ? title || "Untitled" : title || "New Course"}
+            </p>
+          )}
         </div>
 
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-black/35 text-base font-bold text-cyan-200">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-black/35 text-base font-bold text-amber-200">
           {initials}
         </div>
       </div>

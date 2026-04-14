@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipArrow,
@@ -8,6 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import Image from "next/image";
 import React from "react";
+import NameChip from "@/components/common/NameChip";
 
 const UserToolTip = ({
   username,
@@ -22,7 +22,7 @@ const UserToolTip = ({
         <TooltipTrigger asChild>
           <p className="flex items-center justify-center gap-2 text-slate-300">
             Course by
-            <Badge className="cursor-pointer bg-slate-800 text-slate-100">{username}</Badge>
+            <NameChip name={username} maxLength={14} />
           </p>
         </TooltipTrigger>
         <TooltipContent variant={"secondary"}>

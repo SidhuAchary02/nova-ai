@@ -55,8 +55,8 @@ const GenerateMissingSources = ({
 
   if (done) {
     return (
-      <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-        <p className="text-sm text-green-800">
+      <div className="mt-4 rounded-lg border border-emerald-300/20 bg-emerald-500/10 p-4">
+        <p className="text-sm text-emerald-200">
           ✅ <strong>Sources Generated!</strong> Refreshing page to show sources...
         </p>
       </div>
@@ -64,15 +64,15 @@ const GenerateMissingSources = ({
   }
 
   return (
-    <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+    <div className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-blue-800">
+        <p className="text-sm text-slate-200">
           <strong>📚 Generate Sources:</strong> Click below to add reliable sources for this chapter.
         </p>
         <Button
           onClick={handleGenerateSources}
           disabled={loading}
-          className="ml-4 bg-blue-600 hover:bg-blue-700"
+          className="ml-4 bg-primary text-slate-950 hover:bg-primary/90"
         >
           {loading ? "Generating..." : "Generate Sources"}
         </Button>

@@ -53,7 +53,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                 </p>
 
                 {chapter.duration && (
-                  <p className="flex items-center gap-2 text-cyan-300">
+                  <p className="flex items-center gap-2 text-primary">
                     <LuTimer /> {formatDuration(chapter.duration)}
                   </p>
                 )}

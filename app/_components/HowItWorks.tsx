@@ -42,7 +42,7 @@ export const HowItWorks = () => {
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="text-3xl font-bold sm:text-4xl md:text-5xl">
           Launch Your First Course in
-          <span className="bg-gradient-to-r from-cyan-300 via-cyan-400 to-amber-300 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-primary via-violet-300 to-amber-300 bg-clip-text text-transparent">
             {" "}
             Minutes
           </span>
@@ -57,7 +57,7 @@ export const HowItWorks = () => {
           <Card key={title} className="glass-panel h-full border-white/10 bg-slate-900/60">
             <CardHeader>
               <CardTitle className="grid place-items-center gap-4 text-slate-100">
-                <div className="rounded-2xl border border-cyan-400/35 bg-cyan-300/10 p-3 text-cyan-300">
+                <div className="rounded-2xl border border-primary/35 bg-primary/10 p-3 text-primary">
                   {React.createElement(icon, { size: 30 })}
                 </div>
                 {title}

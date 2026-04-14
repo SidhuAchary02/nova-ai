@@ -100,7 +100,7 @@ print("✅ Code executed successfully")`;
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-slate-200">Code Sandbox</span>
-          <span className="rounded-full bg-cyan-500/15 px-2 py-1 text-xs font-medium text-cyan-300">
+          <span className="rounded-full bg-primary/15 px-2 py-1 text-xs font-medium text-primary">
             {language.toUpperCase()}
           </span>
         </div>

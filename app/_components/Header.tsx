@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import ShinyButton from "@/components/ui/shiny-button";
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/configs/supabase";
@@ -23,15 +22,8 @@ const Header = () => {
     <header className="section-shell pt-4">
       <div className="glass-panel flex items-center justify-between rounded-2xl px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="rounded-lg border border-white/20 bg-white p-1.5">
-            <Image
-              src={"/logo.png"}
-              alt="Nova AI logo"
-              width={92}
-              height={40}
-              priority
-              className="h-auto w-auto object-cover"
-            />
+          <div className="rounded-lg border border-white/20 bg-slate-900/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
+            NOVA
           </div>
           <div>
             <p className="text-sm font-semibold tracking-wide text-slate-100">
