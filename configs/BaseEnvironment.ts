@@ -45,11 +45,14 @@ export class BaseEnvironment {
 
   get DRIZZLE_DATABASE_URL(): string {
     const url =
+      process.env.DATABASE_URL ||
       process.env.DRIZZLE_DATABASE_URL ||
       this.defaultEnvironmentValues.DRIZZLE_DATABASE_URL;
 
     if (!url) {
-      console.error("❌ Missing DRIZZLE_DATABASE_URL in environment");
+      console.error(
+        "❌ Missing DATABASE_URL or DRIZZLE_DATABASE_URL in environment"
+      );
     }
 
     return url;

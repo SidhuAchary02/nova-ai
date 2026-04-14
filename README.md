@@ -1,11 +1,11 @@
 # AI Course Generator
 
-A modern, AI-powered platform for creating educational courses. Users can generate complete course structures with AI-generated content, chapters, quizzes, and integrated YouTube videos. Built with Next.js, Supabase, and Google Gemini AI.
+A modern, AI-powered platform for creating educational courses. Users can generate complete course structures with AI-generated content, chapters, quizzes, and integrated YouTube videos. Built with Next.js, Supabase, and Groq.
 
 ## Features
 
 - **User Authentication**: Email/password and Google OAuth login via Supabase
-- **AI-Generated Courses**: Uses Google Gemini AI to generate complete course structures based on user input
+- **AI-Generated Courses**: Uses Groq to generate complete course structures based on user input
 - **Dynamic Course Creation**: Input course name, duration, number of chapters, and AI generates the full curriculum
 - **Chapter Content Generation**: Automatic AI-generated content for each chapter
 - **Quiz Generation**: AI creates quizzes for each chapter with automatic scoring
@@ -23,7 +23,7 @@ A modern, AI-powered platform for creating educational courses. Users can genera
 - **UI Library**: Shadcn UI, Tailwind CSS
 - **Authentication**: Supabase (Email + Google OAuth)
 - **Database**: PostgreSQL with Drizzle ORM
-- **AI**: Google Gemini API
+- **AI**: Groq API
 - **Video API**: YouTube API
 - **File Storage**: Firebase Storage
 - **Animations**: Framer Motion
@@ -52,15 +52,17 @@ A modern, AI-powered platform for creating educational courses. Users can genera
    # App Configuration
    NEXT_PUBLIC_HOST_URL="http://localhost:3000"
 
-   # Supabase (Authentication & Database)
+   # Supabase
    NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
    NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 
-   # Google Gemini API (AI Content Generation)
-   NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY="your-google-gemini-api-key"
-
    # PostgreSQL Database
-   NEXT_PUBLIC_DRIZZLE_DATABASE_URL="postgresql://user:password@host:port/database"
+   DATABASE_URL="postgresql://user:password@host:port/database"
+   DRIZZLE_DATABASE_URL="postgresql://user:password@host:port/database"
+
+   # AI
+   NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY="your-google-gemini-api-key"
+   GROQ_API_KEY="your-groq-api-key"
 
    # Firebase Storage (for course banners and assets)
    NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
@@ -74,9 +76,6 @@ A modern, AI-powered platform for creating educational courses. Users can genera
    # YouTube API (for video integration)
    NEXT_PUBLIC_YOUTUBE_API_KEY="your-youtube-api-key"
 
-   # Authentication Routes
-   NEXT_PUBLIC_CLERK_SIGN_IN_URL="/sign-in"
-   NEXT_PUBLIC_CLERK_SIGN_UP_URL="/sign-up"
    ```
 
 4. Set up the database:
