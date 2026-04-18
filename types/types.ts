@@ -1,3 +1,23 @@
+export type LearningGoal =
+  | "job"
+  | "internship"
+  | "exam"
+  | "hobby"
+  | "project";
+
+export type UserLearningProfileInput = {
+  goal: LearningGoal;
+  currentLevel: "beginner" | "intermediate" | "advanced";
+  timePerDayHours: number;
+  preferredLearningStyle: "video" | "text" | "hands-on" | "mixed";
+  topicsToFocus: string[];
+  featuresRequired: Array<
+    "quiz" | "videos" | "code_sandbox" | "sources" | "reading" | "projects"
+  >;
+};
+
+export type PacingStyle = "easy" | "balanced" | "fast";
+
 export type UserInputType = {
   category?: string;
   difficulty?: string;
@@ -6,6 +26,14 @@ export type UserInputType = {
   totalChapters?: number;
   topic?: string;
   description?: string;
+  /** Personalized learning pipeline (Step 1) */
+  learningProfile?: UserLearningProfileInput;
+  /** UI-only: topics learner wants to de-emphasize (shown in summary; optional for future prompts) */
+  topicsToAvoid?: string[];
+  /** Maps to difficulty when syncing course options */
+  pacingStyle?: PacingStyle;
+  /** Free text when user picks a custom learning goal */
+  goalCustomNote?: string;
 };
 
 export type ChapterType = {
@@ -45,6 +73,9 @@ export type CourseType = {
     completedAt: string;
   };
   completedAt?: string; // When course was completed
+  /** Snapshot of learner context when using the new pipeline */
+  learningContext?: unknown;
+  learningStrategyId?: number | null;
 };
 
 export type CodeExampleType = {

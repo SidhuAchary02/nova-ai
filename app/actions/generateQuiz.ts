@@ -1,6 +1,7 @@
 "use server";
 
-import Groq from "groq-sdk";
+import { generateQuizStructured } from "@/configs/ai-models";
+import { quizOutputSchema } from "@/lib/validation/learningSchemas";
 
 export type QuizQuestion = {
   question: string;
@@ -9,18 +10,13 @@ export type QuizQuestion = {
   explanation: string;
 };
 
-const client = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 export const generateQuizAction = async (
   chapterName: string,
   courseName: string,
   chapterContent: string
 ): Promise<QuizQuestion[]> => {
   try {
-    const QUIZ_PROMPT = `
-You are an expert educator creating a quiz to test understanding of course content.
+    const userPrompt = `You are an expert educator creating a quiz to test understanding of course content.
 
 Course: "${courseName}"
 Chapter: "${chapterName}"
@@ -28,7 +24,7 @@ Chapter: "${chapterName}"
 Chapter Content:
 ${chapterContent}
 
-Create 5 multiple-choice questions to assess the student's understanding of this chapter content.
+Create exactly 5 multiple-choice questions to assess the student's understanding of this chapter content.
 
 IMPORTANT:
 1. Questions should be directly based on the chapter content
@@ -38,63 +34,21 @@ IMPORTANT:
 5. Include explanations for why the correct answer is right
 6. Difficulty should be moderate (not too easy, not too hard)
 
-Return ONLY valid JSON (no markdown, no text outside JSON):
+Return JSON with a "questions" array of 5 objects with keys: question, options (4 strings), correctAnswer (0-3), explanation.`;
 
-[
- {
-   "question": "What is the definition of X?",
-   "options": ["Option A", "Option B", "Option C", "Option D"],
-   "correctAnswer": 0,
-   "explanation": "The correct answer is Option A because..."
- }
-]
+    const raw = await generateQuizStructured(userPrompt);
+    const parsed = quizOutputSchema.parse(JSON.parse(raw));
 
-Create the quiz now:
-`;
-
-    const response = await client.chat.completions.create({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: QUIZ_PROMPT,
-        },
-      ],
-    });
-
-    const content = response.choices[0]?.message?.content;
-    if (!content || typeof content !== "string") {
-      throw new Error("Unexpected response type from Groq API");
-    }
-
-    // Parse the JSON response
-    let jsonText = content.trim();
-    
-    // Remove markdown code blocks if present
-    if (jsonText.startsWith("```json")) {
-      jsonText = jsonText.replace(/^```json\n/, "").replace(/\n```$/, "");
-    } else if (jsonText.startsWith("```")) {
-      jsonText = jsonText.replace(/^```\n/, "").replace(/\n```$/, "");
-    }
-
-    const quizData = JSON.parse(jsonText);
-    
-    if (!Array.isArray(quizData)) {
-      throw new Error("Quiz data is not an array");
-    }
-
-    // Validate quiz questions
-    const validatedQuestions: QuizQuestion[] = quizData.map((q: any) => ({
-      question: q.question || "Question",
-      options: Array.isArray(q.options) ? q.options : ["A", "B", "C", "D"],
-      correctAnswer: typeof q.correctAnswer === "number" ? q.correctAnswer : 0,
-      explanation: q.explanation || "No explanation provided",
+    return parsed.questions.map((q) => ({
+      question: q.question,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      explanation: q.explanation,
     }));
-
-    return validatedQuestions;
   } catch (error) {
     console.error("Error generating quiz:", error);
-    throw new Error(`Failed to generate quiz: ${error}`);
+    throw new Error(
+      `Failed to generate quiz: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 };

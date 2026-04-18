@@ -3,24 +3,25 @@
 import { db } from "@/configs/db";
 import { CourseChapters } from "@/schema/schema";
 import { and, eq } from "drizzle-orm";
-import { generateCourseChapters } from "@/configs/ai-models";
+import { generateSourcesJsonObject } from "@/configs/ai-models";
+import { sourceListOutputSchema } from "@/lib/validation/learningSchemas";
 
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function retryWithBackoff<T>(
   fn: () => Promise<T>,
   maxRetries: number = 3,
   initialDelay: number = 2000
 ): Promise<T> {
-  let lastError: any;
+  let lastError: unknown;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await fn();
-    } catch (error: any) {
+    } catch (error: unknown) {
       lastError = error;
-
-      if (error.status === 429 || error.message?.includes("429")) {
+      const err = error as { status?: number; message?: string };
+      if (err.status === 429 || err.message?.includes("429")) {
         const delay = initialDelay * Math.pow(2, i);
         await sleep(delay);
         continue;
@@ -35,51 +36,43 @@ async function retryWithBackoff<T>(
 
 export async function quickAddSourcesForChapterAction(
   courseId: string,
-  chapterId: number,
+  chapterIndex: number,
   chapterName: string,
   courseName: string
 ) {
   try {
     console.log(`🚀 QUICK: Adding sources to chapter: ${chapterName}`);
 
-    const SOURCES_PROMPT = `Provide 5-8 credible academic and industry sources for learning about "${chapterName}" in the course "${courseName}". 
+    const SOURCES_PROMPT = `Provide 5-8 credible academic and industry sources for learning about "${chapterName}" in the course "${courseName}".
 
-Return ONLY this valid JSON with no other text:
-[{"title":"","url":"https://","description":""}]
-
-Each URL must start with https:// and be real, accessible. Only real websites. No made-up URLs.`;
+Return JSON with root key "sources" only. Each item: title, url (https), description.`;
 
     const sourcesResult = await retryWithBackoff(async () => {
-      return await generateCourseChapters(SOURCES_PROMPT);
+      return await generateSourcesJsonObject(SOURCES_PROMPT);
     });
 
-    const sourcesCleaned = sourcesResult?.replace(/```json/g, "")?.replace(/```/g, "")?.trim() ?? "";
-    const sourcesParsed = JSON.parse(sourcesCleaned);
+    const parsed = sourceListOutputSchema.parse(JSON.parse(sourcesResult));
 
-    let sources: any[] = [];
-    if (Array.isArray(sourcesParsed)) {
-      sources = sourcesParsed
-        .filter((item: any) => item.url && item.title)
-        .map((item: any) => ({
-          title: item.title?.slice(0, 100) || "",
-          url: item.url?.startsWith('http') ? item.url : `https://${item.url}` || "",
-          description: item.description?.slice(0, 200) || "",
-        }))
-        .slice(0, 8);
-    }
+    let sources = parsed.sources
+      .filter((item) => item.url && item.title)
+      .map((item) => ({
+        title: item.title.slice(0, 100),
+        url: item.url.startsWith("http") ? item.url : `https://${item.url}`,
+        description: item.description.slice(0, 200),
+      }))
+      .slice(0, 8);
 
     if (sources.length === 0) {
       throw new Error("No valid sources generated");
     }
 
-    // Update the chapter directly by courseId and chapterId
     const chapter = await db
       .select()
       .from(CourseChapters)
       .where(
         and(
           eq(CourseChapters.courseId, courseId),
-          eq(CourseChapters.chapterId, chapterId)
+          eq(CourseChapters.chapterId, chapterIndex)
         )
       );
 
