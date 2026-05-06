@@ -26,15 +26,29 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
       <div className="section-shell flex items-center justify-between py-3">
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg border border-white/20 bg-slate-900/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
-            NOVA
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg border border-white/20 bg-slate-900/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
+              NOVA
+            </div>
+            <div className="hidden md:block">
+              <h2 className="text-sm font-semibold text-slate-100">Nova AI Studio</h2>
+              <p className="text-xs text-slate-400">
+                Welcome back, <NameChip name={userName} maxLength={14} className="bg-transparent border-transparent px-0 py-0 text-slate-300" />
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm font-semibold text-slate-100">Nova AI Studio</h2>
-            <p className="text-xs text-slate-400">
-              Welcome back, <NameChip name={userName} maxLength={14} className="bg-transparent border-transparent px-0 py-0 text-slate-300" />
-            </p>
+
+          <div className="flex items-center gap-2 border-l border-white/10 pl-6">
+            <a href="/" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
+              Home
+            </a>
+            <a href="/dashboard" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
+              Dashboard
+            </a>
+            <a href="/create-course" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
+              Create Course
+            </a>
           </div>
         </div>
 

@@ -17,6 +17,8 @@ import { FaChevronLeft } from "react-icons/fa";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import { generateCourseStructureAction } from "@/app/actions/generateCourseStructureAction";
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
+import { generateCourseContent } from "./[courseId]/_utils/generateCourseContent";
+import { updateCoursePublishStatusAction } from "@/app/actions/updateCoursePublishStatus";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
 
@@ -24,6 +26,7 @@ const CreateCoursePage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<unknown>(null);
   const [phase, setPhase] = useState<"wizard" | "roadmap">("wizard");
+  const [hasUnsavedProgress, setHasUnsavedProgress] = useState(false);
   const [learningStrategy, setLearningStrategy] =
     useState<LearningStrategyOutput | null>(null);
 
@@ -91,6 +94,8 @@ in JSON format.`;
     }
   };
 
+  const [returningFromRoadmap, setReturningFromRoadmap] = useState(false);
+
   const handleGenerateRoadmap = async (input: UserInputType) => {
     setUserInput((prev) => ({ ...prev, ...input }));
 
@@ -100,14 +105,19 @@ in JSON format.`;
     }
 
     setLoading(true);
+    const minWait = new Promise((resolve) => setTimeout(resolve, 4000));
     try {
-      const res = await generateLearningStrategyAction(input);
+      const [res] = await Promise.all([
+        generateLearningStrategyAction(input),
+        minWait
+      ]);
       if (!res.success) {
         alert(res.error || "Failed to generate roadmap");
         return;
       }
       setLearningStrategy(res.strategy);
       setPhase("roadmap");
+      setReturningFromRoadmap(false);
     } catch (e) {
       console.error(e);
       alert("Failed to generate roadmap");
@@ -121,27 +131,96 @@ in JSON format.`;
     setLoading(true);
     try {
       const id = uuid4();
+
+      // Fallback topic and category dynamically
+      const activeTopic = userInput.topic || userInput.intent || "General Course";
+      const activeCategory = userInput.category || "General";
+
+      // Ensure defaults before calling backend
+      const courseInput = {
+        ...userInput,
+        topic: activeTopic,
+        category: activeCategory,
+        totalChapters: userInput.totalChapters || 10, // Use user requested chapters or default to a richer experience
+      };
+
+      console.log("==> Creating course with:", {
+        topic: courseInput.topic,
+        category: courseInput.category,
+        totalChapters: courseInput.totalChapters,
+      });
+
+      console.log("==> Calling generateCourseStructureAction");
       const struct = await generateCourseStructureAction(
-        userInput,
+        courseInput,
         learningStrategy
       );
-      if (!struct.success) {
+      
+      console.log("==> Response from generateCourseStructureAction:", struct.success ? "Success" : struct.error);
+      if (!struct.success || !struct.courseOutput) {
         alert(struct.error || "Could not build course structure");
         return;
       }
+
+      console.log("==> Validating course details before DB save");
+      const cOut = struct.courseOutput as any;
+      if (!cOut.course?.chapters || !Array.isArray(cOut.course.chapters) || cOut.course.chapters.length === 0) {
+        throw new Error("Validation Failed: AI returned 0 chapters.");
+      }
+      if (!courseInput.topic || !courseInput.category) {
+        throw new Error("Validation Failed: Missing topic or category.");
+      }
+
+      console.log("==> Proceeding to DB Save...");
       await saveLearningPipelineDataInDb(
         id,
-        userInput,
+        courseInput,
         struct.courseOutput,
         learningStrategy
       );
-      router.replace(`/create-course/${id}`);
-    } catch (e) {
-      console.error(e);
-      alert("Failed to create course");
+      
+      console.log("==> DB Save Complete");
+
+      // Generate the freemium content limit immediately
+      console.log("==> Generating Freemium Content Limit...");
+      const fullCourseObj = {
+        courseId: id,
+        courseName: courseInput.topic,
+        category: courseInput.category,
+        courseOutput: struct.courseOutput
+      } as any;
+      
+      const contentResult = await generateCourseContent(fullCourseObj, setLoading);
+      
+      if (contentResult.success) {
+        await updateCoursePublishStatusAction(id);
+      } else {
+        console.warn("==> Content generation had issues:", contentResult.error);
+      }
+
+      // Clear localStorage on success
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("nova_onboarding_progress");
+      }
+
+      router.replace(`/course/${id}/start`);
+    } catch (e: any) {
+      console.error("==> Caught exception during Course Generation:", e);
+      alert(e?.message || "Failed to create course");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNavigationClick = (path: string) => {
+    if (phase === "wizard" && hasUnsavedProgress) {
+      if (
+        !window.confirm("You have unsaved progress. Do you want to leave?")
+      ) {
+        return;
+      }
+    }
+    router.push(path);
   };
 
   const showLegacy =
@@ -152,14 +231,29 @@ in JSON format.`;
       <div className="pb-12">
         <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
           <div className="section-shell flex h-16 items-center justify-between">
-            <button
-              type="button"
-              onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
-            >
-              <FaChevronLeft size={16} />
-              <span className="text-sm font-medium">Dashboard</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => handleNavigationClick("/")}
+                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavigationClick("/dashboard")}
+                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => handleNavigationClick("/create-course")}
+                className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-slate-800 text-sm font-medium"
+              >
+                Create Course
+              </button>
+            </div>
             <h1 className="text-lg font-semibold text-slate-100">Learning roadmap</h1>
             <div className="w-20" />
           </div>
@@ -170,7 +264,10 @@ in JSON format.`;
             <PersonalizedRoadmapReview
               strategy={learningStrategy}
               dailyHours={userInput.learningProfile?.timePerDayHours}
-              onBack={() => setPhase("wizard")}
+              onBack={() => {
+                setPhase("wizard");
+                setReturningFromRoadmap(true);
+              }}
               onConfirm={handleConfirmRoadmap}
               loading={loading}
             />
@@ -186,14 +283,29 @@ in JSON format.`;
     <div className="min-h-screen pb-16">
       <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
-          <button
-            type="button"
-            onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
-          >
-            <FaChevronLeft size={16} />
-            <span className="text-sm font-medium">Dashboard</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleNavigationClick("/")}
+              className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavigationClick("/dashboard")}
+              className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+            >
+              Dashboard
+            </button>
+            <button
+              type="button"
+              onClick={() => handleNavigationClick("/create-course")}
+              className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-slate-800 text-sm font-medium"
+            >
+              Create Course
+            </button>
+          </div>
           <div className="w-20" />
         </div>
       </div>
@@ -213,11 +325,13 @@ in JSON format.`;
             loading={loading}
             showLegacyButton={showLegacy}
             onLegacyGenerate={showLegacy ? generateCourseLegacy : undefined}
+            initialStep={returningFromRoadmap ? 6 : 0}
+            onProgressChange={setHasUnsavedProgress}
           />
         </div>
       </div>
 
-      <LoadingDialog loading={loading} />
+      <LoadingDialog loading={loading} variant={phase === "roadmap" ? "course" : "roadmap"} />
     </div>
   );
 };

@@ -32,27 +32,37 @@ export function StepTimeCommitment({ hoursPerDay, onHoursChange }: Props) {
       </div>
 
       <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/50 p-6">
-        <label className="text-sm font-medium text-slate-200">
+        <label className="text-sm font-medium text-slate-200 block text-center mb-6">
           Daily study time
         </label>
-        <p className="text-xs text-slate-500">
-          Drag to match a realistic window (0.5 – 8 hours).
-        </p>
-        <input
-          type="range"
-          min={0.5}
-          max={8}
-          step={0.5}
-          value={hoursPerDay}
-          onChange={(e) => onHoursChange(Number(e.target.value))}
-          className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-800 accent-primary"
-        />
-        <div className="flex justify-between text-sm text-slate-400">
-          <span>0.5h</span>
-          <span className="text-lg font-semibold text-primary">
-            {hoursPerDay} hrs / day
-          </span>
-          <span>8h</span>
+        
+        <div className="flex items-center justify-center gap-6">
+          <button
+            type="button"
+            onClick={() => onHoursChange(Math.max(0.5, hoursPerDay - 0.5))}
+            disabled={hoursPerDay <= 0.5}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-xl font-bold text-slate-200 transition-colors hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            -
+          </button>
+          
+          <div className="w-32 text-center flex flex-col items-center">
+            <span className="text-4xl font-bold text-primary">
+              {hoursPerDay}
+            </span>
+            <span className="text-sm font-medium text-slate-400 mt-1">
+              hrs / day
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onHoursChange(Math.min(8, hoursPerDay + 0.5))}
+            disabled={hoursPerDay >= 8}
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-slate-800 text-xl font-bold text-slate-200 transition-colors hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            +
+          </button>
         </div>
       </div>
 

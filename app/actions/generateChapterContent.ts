@@ -36,119 +36,122 @@ async function retryWithBackoff<T>(
   throw lastError;
 }
 
-export async function generateChapterContentAction(
-  courseId: string,
+export async function generateSingleSubtopicLesson(
   courseName: string,
   chapterName: string,
-  chapterIndex: number
+  subtopicName: string
 ) {
   try {
-    const PROMPT = `You are an expert course content creator. Create comprehensive educational content for this chapter.
+    const PROMPT = `You are an elite instructional designer and senior technical educator. Create highly engaging, comprehensive educational content.
 
 Chapter: "${chapterName}"
 Course: "${courseName}"
+Specific Subtopic to cover: "${subtopicName}"
 
-Produce BOTH lesson sections AND reference sources in ONE response using the JSON schema from your system prompt.
+**GOAL:**
+Produce a deep, beginner-friendly but technically accurate lesson specifically for the subtopic: "${subtopicName}".
 
-Sections: 5–7 items. Each section:
-- "title": short title
-- "explanation": markdown string with ## headings, **bold**, lists, short paragraphs, optional blockquotes
-- "code_examples": array of code objects OR empty [] for non-programming topics. For code topics include console.log / print for output.
+**REQUIREMENTS:**
+1. Generate EXACTLY ONE section. The "title" MUST exactly match "${subtopicName}".
+2. Follow the GOLD STANDARD pedagogy guidelines provided in your system instructions (overview, deep explanation, markdown tables, callouts, etc.).
+3. If applicable, provide a "code_sandbox" object with language, initial_code, and solution.
+4. Include a "mini_challenge" and a "summary_cheat_sheet".
+5. Provide 2-3 highly credible sources for further reading.
 
-Sources: 5–8 credible items with real https URLs (documentation, Wikipedia, official sites, reputable blogs).
+**JSON OUTPUT FORMAT:**
+Produce valid JSON strictly matching the shape:
+{
+  "sections": [
+    { 
+      "title": "${subtopicName}", 
+      "lesson_plan_scratchpad": "string",
+      "learning_overview": "string",
+      "deep_explanation": "string (with rich markdown)",
+      "code_sandbox": { "language": "string", "initial_code": "string", "solution": "string" },
+      "mini_challenge": { "challenge": "string", "hint": "string" },
+      "interview_relevance": "string",
+      "summary_cheat_sheet": "string"
+    }
+  ],
+  "sources": [
+    { "title": "string", "url": "https://...", "description": "string" }
+  ]
+}`;
 
-Return JSON with keys "sections" and "sources" only.`;
+    const result = await retryWithBackoff(async () => {
+      return await generateChapterContentBundle(PROMPT);
+    });
 
-    const query = `${courseName}:${chapterName}`;
+    try {
+      const cleaned = result?.replace(/```json/g, "").replace(/```/g, "").trim() ?? "";
+      const parsedUnknown = JSON.parse(cleaned);
+      const bundleResult = chapterContentBundleSchema.safeParse(parsedUnknown);
 
+      if (!bundleResult.success) {
+        console.error("❌ Lesson validation failed:", bundleResult.error.flatten(), result);
+        return { success: false, error: "Validation failed" };
+      }
+
+      return {
+        success: true,
+        lesson: bundleResult.data.sections[0],
+        sources: bundleResult.data.sources,
+      };
+    } catch (error) {
+      console.error("❌ Lesson parse failed:", error, result);
+      return { success: false, error: "Parse failed" };
+    }
+  } catch (error: unknown) {
+    const err = error as { message?: string };
+    console.error(`❌ Error generating lesson for ${subtopicName}:`, err.message || error);
+    return { success: false, error: String(err.message || error) };
+  }
+}
+
+export async function saveGroupedChapterLessons(
+  courseId: string,
+  courseName: string,
+  chapterName: string,
+  chapterIndex: number,
+  lessons: any[],
+  sources: any[]
+) {
+  try {
+    const query = `${chapterName} tutorial ${courseName} practical example`;
     const resp = await getYoutubeVideos(query);
     let videoId = "";
     if (resp?.length > 0 && resp[0]?.id?.videoId) {
       videoId = resp[0].id.videoId;
     }
 
-    console.log("📺 Video for chapter:", chapterName, videoId);
+    console.log(`📺 Video for chapter ${chapterIndex}:`, chapterName, videoId);
 
-    const result = await retryWithBackoff(async () => {
-      return await generateChapterContentBundle(PROMPT);
-    });
-
-    let normalizedContent: {
-      title: string;
-      explanation: string;
-      code_examples: unknown[];
-    }[] = [];
-    let sources: { title: string; url: string; description: string }[] = [];
-
-    try {
-      const cleaned =
-        result?.replace(/```json/g, "").replace(/```/g, "").trim() ?? "";
-      const parsedUnknown = JSON.parse(cleaned);
-      const bundleResult = chapterContentBundleSchema.safeParse(parsedUnknown);
-
-      if (!bundleResult.success) {
-        console.error(
-          "❌ Chapter bundle validation failed:",
-          bundleResult.error.flatten(),
-          result
-        );
-        normalizedContent = [];
-        sources = [];
-      } else {
-        const bundle = bundleResult.data;
-        normalizedContent = bundle.sections.map((item) => ({
-          title: item.title,
-          explanation: item.explanation,
-          code_examples: item.code_examples ?? [],
-        }));
-        sources = bundle.sources;
-      }
-    } catch (error) {
-      console.error("❌ Chapter bundle parse failed:", error, result);
-      normalizedContent = [];
-      sources = [];
-    }
-
-    console.log(
-      `✅ Chapter ${chapterIndex + 1} generated with ${normalizedContent.length} sections`
-    );
+    // Deduplicate sources by URL
+    const uniqueSourcesMap = new Map();
+    sources.forEach(s => uniqueSourcesMap.set(s.url, s));
+    const uniqueSources = Array.from(uniqueSourcesMap.values());
 
     await db
       .insert(CourseChapters)
       .values({
         chapterId: chapterIndex,
         courseId: courseId,
-        content: {
-          content: normalizedContent,
-        },
+        content: { content: lessons },
         videoId: videoId,
-        sources: sources,
+        sources: uniqueSources,
       })
       .onConflictDoUpdate({
         target: [CourseChapters.courseId, CourseChapters.chapterId],
         set: {
-          content: { content: normalizedContent },
+          content: { content: lessons },
           videoId: videoId,
-          sources: sources,
+          sources: uniqueSources,
         },
       });
 
-    return {
-      success: true,
-      videoId,
-      hasContent: normalizedContent.length > 0,
-      sourcesCount: sources.length,
-    };
-  } catch (error: unknown) {
-    const err = error as { message?: string };
-    console.error(
-      `❌ Error generating chapter ${chapterIndex}:`,
-      err.message || error
-    );
-
-    return {
-      success: false,
-      error: String(err.message || error),
-    };
+    return { success: true, videoId };
+  } catch (error) {
+    console.error(`❌ Failed to save grouped lessons for chapter ${chapterIndex}`, error);
+    return { success: false };
   }
 }

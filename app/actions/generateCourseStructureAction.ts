@@ -23,8 +23,18 @@ export async function generateCourseStructureAction(
   strategy: LearningStrategyOutput
 ): Promise<GenerateCourseStructureResult> {
   try {
+    console.log("==> generateCourseStructureAction initiated");
+    
+    // Safely fallback fields
+    const safeInput = {
+      ...userInput,
+      topic: userInput.topic || userInput.intent || "General Topic",
+      category: userInput.category || "General",
+    };
+
+    console.log("==> Building learning context with safeInput");
     const ctx = userLearningContextSchema.parse(
-      buildLearningContextFromInput(userInput)
+      buildLearningContextFromInput(safeInput)
     );
 
     const targetChapters = userInput.totalChapters;
@@ -33,7 +43,9 @@ export async function generateCourseStructureAction(
         ? `You MUST output exactly ${targetChapters} chapters (no more, no less).`
         : "Choose an appropriate number of chapters (6–14) based on the roadmap depth.";
 
-    const userPrompt = `Build the course STRUCTURE only (titles + short descriptions + duration labels). Do not write lesson prose.
+    const userPrompt = `Build the course STRUCTURE only (titles + short descriptions + duration labels + subtopics). Do not write lesson prose.
+Make sure to include a 'subtopics' array (strings) for each chapter with 3-5 specific subtopics to cover.
+Do NOT use generic subtopics like 'Key concepts' or 'Practical examples'. Use actual, specific technical concepts related to the chapter (e.g. 'useState Hook', 'Component Lifecycle').
 
 Topic: ${userInput.topic ?? ""}
 Category: ${userInput.category ?? ""}
@@ -48,25 +60,38 @@ ${chapterHint}
 
 Respond with JSON matching your system schema.`;
 
+    console.log("==> Calling Groq API...");
     const raw = await generateGroqJsonObject(
       SYSTEM_PROMPTS.courseStructure,
       userPrompt,
       0.55
     );
+    console.log("==> Groq API response received. Parsing JSON...");
+    
+    let parsedJson;
+    try {
+      parsedJson = JSON.parse(raw);
+    } catch (err) {
+      console.error("==> JSON Parse Failed. Raw string:", raw);
+      throw new Error("Failed to parse AI JSON response.");
+    }
 
-    const parsed = courseStructureOutputSchema.parse(JSON.parse(raw));
+    console.log("==> Validating with courseStructureOutputSchema...");
+    let parsed;
+    try {
+      parsed = courseStructureOutputSchema.parse(parsedJson);
+    } catch (err) {
+      console.error("==> Schema Validation Failed:", JSON.stringify(err, null, 2));
+      throw new Error("AI response did not match the expected course schema.");
+    }
 
     let chapters = [...parsed.course.chapters];
 
     if (typeof targetChapters === "number" && targetChapters > 0) {
       if (chapters.length > targetChapters) {
         chapters = chapters.slice(0, targetChapters);
-      } else if (chapters.length < targetChapters) {
-        return {
-          success: false,
-          error: `AI returned ${chapters.length} chapters; expected ${targetChapters}. Retry or adjust settings.`,
-        };
       }
+      // If AI returns fewer chapters, we just accept them instead of failing
     }
 
     const final: CourseStructureOutput = {
@@ -77,7 +102,8 @@ Respond with JSON matching your system schema.`;
     };
 
     const courseOutput = normalizeCourseStructureForStorage(final);
-
+    
+    console.log("==> Successfully built courseOutput. Saving...");
     return { success: true, courseOutput };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);

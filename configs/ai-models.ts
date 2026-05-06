@@ -12,7 +12,8 @@ export const GROQ_MODEL = "llama-3.3-70b-versatile";
 export const SYSTEM_PROMPTS = {
   roadmap: `You are a senior learning experience designer. You output ONLY valid JSON (no markdown fences, no prose outside JSON).
 The JSON must match the user's requested schema with keys: phases, skillGraph, estimatedTimelineDays, estimatedDaysPerPhase, reasoning.
-phases: array of { order (number), name (string), objectives (string[]) }.
+phases: array of { order (number), name (string), durationDays (number), objectives (string[]), chapters (array of { chapterName (string), durationDays (number), subtopics (string[]) }) }.
+Provide a deeply structured hierarchy for phases. Every phase MUST contain 'chapters', and every chapter MUST contain actual 'subtopics' representing the specific technical topics to be learned.
 skillGraph: array of { skill (string), order (number), dependsOn (optional string[]) } — total order of skills to master.
 estimatedTimelineDays: positive number of calendar days to finish if the learner follows the plan.
 estimatedDaysPerPhase: array of { phaseOrder (number), days (number) }.
@@ -23,11 +24,18 @@ The root object MUST be: { "course": { "details": { "topic", "description", "dur
 Each chapter: { "chapterName", "description", "duration" } where duration is a string (e.g. "45 min" or "1 hour").
 Chapters must be non-empty, ordered, and aligned with the provided learning strategy phases and skills.`,
 
-  chapterBundle: `You are an expert course author. Output ONLY valid JSON (no markdown).
-Shape: { "sections": [ { "title", "explanation", "code_examples" } ], "sources": [ { "title", "url", "description" } ] }.
-sections: 5–7 items; explanation uses markdown inside the string (headers, lists, bold) as specified in the user message.
-code_examples: array (empty for non-programming topics).
-sources: 5–8 items; every url MUST be https and plausible (prefer real documentation domains).`,
+  chapterBundle: `You are an elite course author from a premium platform like Educative.io or Frontend Masters. Output ONLY valid JSON (no markdown fences).
+Shape: { "sections": [ { "title", "lesson_plan_scratchpad", "learning_overview", "deep_explanation", "code_sandbox": { "language", "initial_code", "solution" }, "mini_challenge": { "challenge", "hint" }, "interview_relevance", "summary_cheat_sheet" } ], "sources": [ { "title", "url", "description" } ] }.
+
+**PEDAGOGY GUIDELINES (GOLD STANDARD):**
+1. **learning_overview**: A 2-sentence hook explaining why this subtopic matters.
+2. **deep_explanation**: This is the core lesson. MUST be rich markdown. You MUST include at least one Markdown Table (e.g., comparing approaches) or ASCII Diagram. Use blockquotes for Callouts: "> 💡 **Tip:**" or "> ⚠️ **Warning:**" or "> 🎯 **Core Concept:**". Break down complex topics with real-world analogies.
+3. **code_sandbox**: Provide starting code that the user can run and tweak. If non-technical, omit this field entirely.
+4. **mini_challenge**: A quick mental check or small coding task to verify understanding.
+5. **interview_relevance**: Explain how this topic appears in job interviews.
+6. **summary_cheat_sheet**: A bulleted list of 3-5 core takeaways.
+
+Generate EXACTLY ONE section per requested subtopic. The "title" of each section must match the subtopic precisely. Provide 5-8 highly credible sources for further reading.`,
 
   quiz: `You are an assessment designer. Output ONLY valid JSON (no markdown).
 Shape: { "questions": [ { "question", "options" (4 strings), "correctAnswer" (0-3), "explanation" } ] }.

@@ -2,7 +2,9 @@
 
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { Button } from "@/components/ui/button";
-import { FaCheck } from "react-icons/fa6";
+import { FaCheck, FaChevronDown } from "react-icons/fa6";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type Props = {
   strategy: LearningStrategyOutput;
@@ -45,6 +47,59 @@ function objectiveDayRanges(
     out.push({ start, end });
   }
   return out;
+}
+
+function ChapterCard({ title, subtopics, timeLabel, index }: { title: string; subtopics?: string[] | null; timeLabel: string; index: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasSubtopics = Array.isArray(subtopics) && subtopics.length > 0;
+
+  return (
+    <div className="group rounded-xl border border-white/5 bg-slate-950/60 transition hover:border-primary/25 hover:bg-slate-950/90 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => hasSubtopics && setExpanded(!expanded)}
+        className={`flex w-full flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between text-left ${hasSubtopics ? "cursor-pointer focus:outline-none" : "cursor-default"}`}
+      >
+        <div className="flex items-start gap-3 min-w-0 flex-1">
+          {hasSubtopics && (
+            <div className={`mt-0.5 shrink-0 transition-transform duration-300 ${expanded ? "rotate-180 text-primary" : "text-slate-500"}`}>
+              <FaChevronDown className="h-4 w-4" />
+            </div>
+          )}
+          <p className="text-sm leading-relaxed text-slate-200">
+            {title}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ml-7 sm:ml-0">
+          {timeLabel}
+        </span>
+      </button>
+
+      {hasSubtopics && (
+        <AnimatePresence initial={false}>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <div className="pl-11 pr-4 pb-4 sm:pl-[3.25rem]">
+                <ul className="space-y-2 text-sm text-slate-400 list-disc list-outside ml-4">
+                  {subtopics.map((topic, i) => (
+                    <li key={i} className="pl-1 marker:text-slate-600">
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+    </div>
+  );
 }
 
 const PersonalizedRoadmapReview = ({
@@ -178,28 +233,28 @@ const PersonalizedRoadmapReview = ({
                 </div>
 
                 <div className="mt-5 space-y-3">
-                  {phase.objectives.map((obj, oi) => {
+                  {(phase.chapters || phase.objectives)?.map((item: any, oi: number) => {
                     const r = ranges[oi];
-                    const timeLabel =
-                      r && r.start === r.end
+                    const timeLabel = item.durationDays
+                      ? `${item.durationDays} day${item.durationDays === 1 ? "" : "s"}`
+                      : r && r.start === r.end
                         ? `Day ${r.start}`
                         : r
                           ? `Days ${r.start}–${r.end}`
                           : "—";
+
+                    const isChapter = typeof item === 'object' && item !== null;
+                    const title = isChapter ? item.chapterName : item;
+                    const subtopics = isChapter ? item.subtopics : null;
+
                     return (
-                      <div
+                      <ChapterCard
                         key={oi}
-                        className="group rounded-xl border border-white/5 bg-slate-950/60 p-4 transition hover:border-primary/25 hover:bg-slate-950/90"
-                      >
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <p className="min-w-0 flex-1 text-sm leading-relaxed text-slate-200">
-                            {obj}
-                          </p>
-                          <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                            {timeLabel}
-                          </span>
-                        </div>
-                      </div>
+                        title={title}
+                        subtopics={subtopics}
+                        timeLabel={timeLabel}
+                        index={oi}
+                      />
                     );
                   })}
                 </div>

@@ -64,7 +64,13 @@ export type UserLearningContextValidated = z.infer<
 export const learningPhaseSchema = z.object({
   order: z.number().int().min(1),
   name: z.string().min(1),
-  objectives: z.array(z.string().min(1)).min(1),
+  durationDays: z.number().optional(),
+  objectives: z.array(z.string().min(1)).optional(),
+  chapters: z.array(z.object({
+    chapterName: z.string(),
+    durationDays: z.number().optional(),
+    subtopics: z.array(z.string())
+  })).optional(),
 });
 
 export const skillNodeSchema = z.object({
@@ -94,6 +100,7 @@ export const courseChapterOutlineSchema = z.object({
   chapterName: z.string().min(1),
   description: z.string(),
   duration: z.union([z.string(), z.object({ value: z.number(), unit: z.string() })]),
+  subtopics: z.array(z.string()).optional(),
 });
 
 /** AI must return this exact shape for chapter outlines */
@@ -110,10 +117,22 @@ export const courseStructureOutputSchema = z.object({
 
 export type CourseStructureOutput = z.infer<typeof courseStructureOutputSchema>;
 
-export const chapterSectionSchema = z.object({
+export const subtopicLessonSchema = z.object({
   title: z.string().min(1),
-  explanation: z.string().min(1),
-  code_examples: z.array(z.unknown()).optional(),
+  lesson_plan_scratchpad: z.string().min(1),
+  learning_overview: z.string().min(1),
+  deep_explanation: z.string().min(1),
+  code_sandbox: z.object({
+    language: z.string(),
+    initial_code: z.string(),
+    solution: z.string().optional(),
+  }).optional(),
+  mini_challenge: z.object({
+    challenge: z.string(),
+    hint: z.string(),
+  }).optional(),
+  interview_relevance: z.string().optional(),
+  summary_cheat_sheet: z.string().min(1),
 });
 
 export const sourceItemSchema = z.object({
@@ -123,10 +142,11 @@ export const sourceItemSchema = z.object({
 });
 
 export const chapterContentBundleSchema = z.object({
-  sections: z.array(chapterSectionSchema).min(1),
+  sections: z.array(subtopicLessonSchema).min(1),
   sources: z.array(sourceItemSchema).min(1),
 });
 
+export type SubtopicLesson = z.infer<typeof subtopicLessonSchema>;
 export type ChapterContentBundle = z.infer<typeof chapterContentBundleSchema>;
 
 export const quizQuestionSchema = z.object({

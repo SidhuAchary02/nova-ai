@@ -34,6 +34,8 @@ type Props = {
   loading: boolean;
   showLegacyButton?: boolean;
   onLegacyGenerate?: (input: UserInputType) => void;
+  initialStep?: number;
+  onProgressChange?: (hasProgress: boolean) => void;
 };
 
 export function CourseOnboardingAssistant({
@@ -41,22 +43,29 @@ export function CourseOnboardingAssistant({
   loading,
   showLegacyButton,
   onLegacyGenerate,
+  initialStep = 0,
+  onProgressChange,
 }: Props) {
   const { userInput, setUserInput } = useContext(UserInputContext);
 
-  const [step, setStep] = useState(0);
-  const [intent, setIntent] = useState("");
-  const [category, setCategory] = useState("");
-  const [goal, setGoal] = useState<LearningGoal>("hobby");
-  const [goalCustomNote, setGoalCustomNote] = useState("");
-  const [level, setLevel] = useState<
-    UserLearningProfileInput["currentLevel"] | "not_sure"
-  >("not_sure");
-  const [hoursPerDay, setHoursPerDay] = useState(1);
-  const [featureCards, setFeatureCards] = useState<Set<FeatureKey>>(DEFAULT_FEATURES);
-  const [topicsToFocus, setTopicsToFocus] = useState<string[]>([]);
-  const [topicsToAvoid, setTopicsToAvoid] = useState<string[]>([]);
-  const [pacingStyle, setPacingStyle] = useState<PacingStyle>("balanced");
+  const [isClient, setIsClient] = useState(false);
+  const [step, setStep] = useState(initialStep);
+  const [intent, setIntent] = useState(userInput.intent || "");
+  const [category, setCategory] = useState(userInput.category || "");
+  const [goal, setGoal] = useState<LearningGoal>(userInput.goal || "hobby");
+  const [goalCustomNote, setGoalCustomNote] = useState(userInput.goalCustomNote || "");
+  const [level, setLevel] = useState<UserLearningProfileInput["currentLevel"] | "not_sure">(
+    userInput.learningProfile?.currentLevel || "not_sure"
+  );
+  const [hoursPerDay, setHoursPerDay] = useState(userInput.learningProfile?.timePerDayHours || 1);
+  const [featureCards, setFeatureCards] = useState<Set<FeatureKey>>(
+    userInput.learningProfile?.featuresRequired 
+      ? new Set(userInput.learningProfile.featuresRequired as FeatureKey[]) 
+      : DEFAULT_FEATURES()
+  );
+  const [topicsToFocus, setTopicsToFocus] = useState<string[]>(userInput.learningProfile?.topicsToFocus || []);
+  const [topicsToAvoid, setTopicsToAvoid] = useState<string[]>(userInput.learningProfile?.topicsToAvoid || []);
+  const [pacingStyle, setPacingStyle] = useState<PacingStyle>(userInput.learningProfile?.pacingStyle || "balanced");
 
   const progressValue = useMemo(
     () => Math.round(((step + 1) / stepperOptions.length) * 100),
@@ -96,7 +105,74 @@ export function CourseOnboardingAssistant({
   const commitToContext = useCallback(() => {
     const merged = getMergedInput();
     setUserInput((prev) => ({ ...prev, ...merged }));
-  }, [getMergedInput, setUserInput]);
+    
+    // Save to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(
+          "nova_onboarding_progress",
+          JSON.stringify({ step: step + 1, data: merged })
+        );
+      } catch (e) {
+        console.error("Failed to save progress", e);
+      }
+    }
+  }, [getMergedInput, setUserInput, step]);
+
+  useEffect(() => {
+    if (step > 0) {
+      onProgressChange?.(true);
+    } else {
+      onProgressChange?.(intent.trim().length > 0);
+    }
+  }, [step, intent, onProgressChange]);
+
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Always sync with userInput context on mount if we are returning from roadmap
+    if (initialStep === 6) {
+      if (userInput.intent) setIntent(userInput.intent);
+      if (userInput.category) setCategory(userInput.category);
+      if (userInput.goal) setGoal(userInput.goal);
+      if (userInput.goalCustomNote) setGoalCustomNote(userInput.goalCustomNote);
+      if (userInput.learningProfile?.currentLevel) setLevel(userInput.learningProfile.currentLevel);
+      if (userInput.learningProfile?.timePerDayHours) setHoursPerDay(userInput.learningProfile.timePerDayHours);
+      if (userInput.learningProfile?.featuresRequired) setFeatureCards(new Set(userInput.learningProfile.featuresRequired as FeatureKey[]));
+      if (userInput.learningProfile?.topicsToFocus) setTopicsToFocus(userInput.learningProfile.topicsToFocus);
+      if (userInput.learningProfile?.topicsToAvoid) setTopicsToAvoid(userInput.learningProfile.topicsToAvoid);
+      if (userInput.learningProfile?.pacingStyle) setPacingStyle(userInput.learningProfile.pacingStyle);
+    }
+    
+    // Restore from localStorage only on initial fresh start
+    if (initialStep === 0 && typeof window !== "undefined") {
+      try {
+        const saved = window.localStorage.getItem("nova_onboarding_progress");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed.step === "number") {
+            setStep(parsed.step);
+            setUserInput((prev) => ({ ...prev, ...parsed.data }));
+            
+            // Restore basic local states from parsed.data if needed, 
+            // but usually userInput context holds it. For exact restoration:
+            if (parsed.data.intent) setIntent(parsed.data.intent);
+            if (parsed.data.category) setCategory(parsed.data.category);
+            if (parsed.data.goal) setGoal(parsed.data.goal);
+            if (parsed.data.level) setLevel(parsed.data.level);
+            if (parsed.data.timePerDayHours) setHoursPerDay(parsed.data.timePerDayHours);
+            if (parsed.data.featureCards) setFeatureCards(new Set(parsed.data.featureCards));
+            if (parsed.data.topicsToFocus) setTopicsToFocus(parsed.data.topicsToFocus);
+            if (parsed.data.topicsToAvoid) setTopicsToAvoid(parsed.data.topicsToAvoid);
+            if (parsed.data.pacingStyle) setPacingStyle(parsed.data.pacingStyle);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to restore progress", e);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStep, setUserInput]);
 
   useEffect(() => {
     if (step === 5 && topicsToFocus.length === 0 && intent.trim()) {
@@ -108,7 +184,7 @@ export function CourseOnboardingAssistant({
   const allowNext = () => {
     switch (step) {
       case 0:
-        return intent.trim().length >= 8 && !!category;
+        return intent.trim().length > 0;
       case 1:
         return !!goal;
       case 2:
@@ -157,6 +233,10 @@ export function CourseOnboardingAssistant({
       return next;
     });
   };
+
+  if (!isClient) {
+    return <div className="min-h-[58vh]" />; // Prevent hydration mismatch
+  }
 
   return (
     <div className="mx-auto flex min-h-[58vh] w-full max-w-3xl flex-col">

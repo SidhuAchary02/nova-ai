@@ -17,7 +17,7 @@ import { generateCertificateAction, getCertificateAction } from "@/app/actions/g
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Progress } from "@/components/ui/progress";
-import { FaCheckCircle, FaRegCircle, FaChevronLeft, FaChevronRight, FaBars, FaTimes } from "react-icons/fa";
+import { FaCheckCircle, FaRegCircle, FaChevronLeft, FaChevronRight, FaBars, FaTimes, FaLock } from "react-icons/fa";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 import CourseCover from "@/components/common/CourseCover";
 import Link from "next/link";
@@ -32,6 +32,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
     null
   );
   const [selectedChapterIndex, setSelectedChapterIndex] = useState<number>(0);
+  const [selectedSubtopicIndex, setSelectedSubtopicIndex] = useState<number>(0);
   const [chapterContent, setChapterContent] =
     useState<ChapterContentType | null>(null);
   const [completingCourse, setCompletingCourse] = useState(false);
@@ -44,6 +45,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [loadingQuiz, setLoadingQuiz] = useState(false);
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateData, setCertificateData] = useState<any>(null);
+  const [showPremiumCTA, setShowPremiumCTA] = useState(false);
+  
+  // Accordion state for sidebar
+  const [expandedSidebarChapters, setExpandedSidebarChapters] = useState<number[]>([0]);
 
   const router = useRouter();
 
@@ -54,6 +59,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
     const resolvedCourse = activeCourse ?? course;
     if (!resolvedCourse) return;
 
+    if (chapterId > 4) {
+      setShowPremiumCTA(true);
+      return;
+    }
+    
+    setShowPremiumCTA(false);
     setShowQuiz(false);
     setQuizQuestions([]);
 
@@ -80,13 +91,25 @@ const CourseStart = ({ params }: CourseStartProps) => {
       
       if (currentCourse.isPublished) {
         const parsed = parseCourseOutput(currentCourse.courseOutput);
-        const firstChapter = parsed?.chapters?.[0];
+        
+        // Check for URL parameters
+        const searchParams = new URLSearchParams(window.location.search);
+        const chapterParam = searchParams.get('chapter');
+        const subtopicParam = searchParams.get('subtopic');
+        
+        const initialChapterIdx = chapterParam ? parseInt(chapterParam) : 0;
+        const initialSubtopicIdx = subtopicParam ? parseInt(subtopicParam) : 0;
+        
+        setExpandedSidebarChapters([initialChapterIdx]);
+        
+        const initialChapter = parsed?.chapters?.[initialChapterIdx];
 
-        if (firstChapter) {
-          setSelectedChapter(firstChapter);
-          setSelectedChapterIndex(0);
-          setQuizPassed(passedChapters.includes(0));
-          await getChapterContent(0, currentCourse);
+        if (initialChapter) {
+          setSelectedChapter(initialChapter);
+          setSelectedChapterIndex(initialChapterIdx);
+          setSelectedSubtopicIndex(initialSubtopicIdx);
+          setQuizPassed(passedChapters.includes(initialChapterIdx));
+          await getChapterContent(initialChapterIdx, currentCourse);
         }
       }
     } catch (e) {
@@ -127,46 +150,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   // Check if course content has been generated
   if (!course.isPublished) {
+    if (typeof window !== "undefined") {
+      router.replace(`/create-course/${course.courseId}`);
+    }
     return (
-      <div className="min-h-screen">
-        {/* Top Navigation Header */}
-        <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
-          <div className="section-shell flex h-16 items-center justify-between">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800"
-            >
-              <FaChevronLeft size={16} />
-              <span className="text-sm font-medium">Dashboard</span>
-            </button>
-            <h1 className="text-lg font-semibold text-slate-100">Setup Course Content</h1>
-          </div>
-        </div>
-
-        {/* Content Area with top padding */}
-        <div className="flex items-center justify-center min-h-screen pt-20 p-10">
-          <div className="max-w-2xl rounded-2xl border border-amber-300/20 bg-amber-500/10 p-10 text-center">
-            <h2 className="mb-4 text-2xl font-bold text-amber-200">Course Content Not Generated Yet</h2>
-            <p className="mb-6 text-slate-300">
-              This course needs to have its content generated before you can start learning.
-            </p>
-            <div className="mb-6 rounded-xl border border-white/10 bg-slate-900/60 p-6 text-left">
-              <h3 className="mb-3 font-semibold text-slate-100">To generate content:</h3>
-              <ol className="list-inside list-decimal space-y-2 text-slate-300">
-                <li>Go back to the course layout page</li>
-                <li>Click the &quot;Generate Course Content&quot; button</li>
-                <li>Wait for the AI to generate content for all chapters</li>
-                <li>Return here to start learning</li>
-              </ol>
-            </div>
-            <Link
-              href={`/create-course/${course.courseId}`}
-              className="inline-block rounded-lg bg-primary px-6 py-3 font-medium text-slate-950 transition hover:bg-primary/90"
-            >
-              Go to Course Layout
-            </Link>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-slate-400">Redirecting to course layout...</p>
       </div>
     );
   }
@@ -243,62 +232,119 @@ const CourseStart = ({ params }: CourseStartProps) => {
     }
   };
 
-  const handleToggleChapterCompletion = async () => {
+  const handleToggleLessonCompletion = async () => {
     if (!course) return;
     
-    const result = await toggleChapterCompletionAction(course.courseId, selectedChapterIndex);
+    const globalIdx = getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex);
+    const result = await toggleChapterCompletionAction(course.courseId, globalIdx);
     
     if (result.success) {
       setCompletedChapters(result.completedChapters || []);
     }
   };
 
-  const handlePrevChapter = () => {
-    if (selectedChapterIndex > 0 && course) {
-      const courseOutput = parseCourseOutput(course.courseOutput);
-      if (courseOutput?.chapters) {
-        const prevIndex = selectedChapterIndex - 1;
-        setSelectedChapterIndex(prevIndex);
-        setSelectedChapter(courseOutput.chapters[prevIndex]);
-        getChapterContent(prevIndex);
-      }
+  const navigateToLesson = (cIdx: number, sIdx: number) => {
+    if (!courseOutput?.chapters) return;
+    const targetChapter = courseOutput.chapters[cIdx];
+    if (!targetChapter) return;
+
+    setSelectedChapterIndex(cIdx);
+    setSelectedChapter(targetChapter);
+    setSelectedSubtopicIndex(sIdx);
+    
+    // Update URL without reloading
+    window.history.pushState(null, '', `?chapter=${cIdx}&subtopic=${sIdx}`);
+    
+    // Only fetch content if changing chapters
+    if (cIdx !== selectedChapterIndex) {
+      getChapterContent(cIdx);
     }
   };
 
-  const handleNextChapter = () => {
-    if (course) {
-      const courseOutput = parseCourseOutput(course.courseOutput);
-      if (courseOutput?.chapters && selectedChapterIndex < courseOutput.chapters.length - 1) {
-        const nextIndex = selectedChapterIndex + 1;
-        setSelectedChapterIndex(nextIndex);
-        setSelectedChapter(courseOutput.chapters[nextIndex]);
-        getChapterContent(nextIndex);
-      }
+  const handlePrevLesson = () => {
+    if (!courseOutput?.chapters) return;
+
+    if (selectedSubtopicIndex > 0) {
+      navigateToLesson(selectedChapterIndex, selectedSubtopicIndex - 1);
+    } else if (selectedChapterIndex > 0) {
+      const prevChapterIndex = selectedChapterIndex - 1;
+      const prevChapter = courseOutput.chapters[prevChapterIndex];
+      navigateToLesson(prevChapterIndex, (prevChapter.subtopics?.length || 1) - 1);
     }
+  };
+
+  const handleNextLesson = () => {
+    if (!courseOutput?.chapters) return;
+
+    const currentChapter = courseOutput.chapters[selectedChapterIndex];
+    const subtopicsCount = currentChapter?.subtopics?.length || 1;
+
+    if (selectedSubtopicIndex < subtopicsCount - 1) {
+      const nextGlobalIdx = getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex + 1);
+      if (nextGlobalIdx > 4) {
+        setShowPremiumCTA(true);
+        return;
+      }
+      navigateToLesson(selectedChapterIndex, selectedSubtopicIndex + 1);
+    } else if (selectedChapterIndex < courseOutput.chapters.length - 1) {
+      const nextGlobalIdx = getGlobalSubtopicIndex(selectedChapterIndex + 1, 0);
+      if (nextGlobalIdx > 4) {
+        setShowPremiumCTA(true);
+        return;
+      }
+      navigateToLesson(selectedChapterIndex + 1, 0);
+    }
+  };
+
+  const courseOutput = parseCourseOutput(course?.courseOutput);
+
+  // Pre-calculate global subtopic offsets for freemium lock
+  const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {
+    let globalIdx = 0;
+    if (!courseOutput?.chapters) return 0;
+    for (let i = 0; i < cIdx; i++) {
+      globalIdx += courseOutput.chapters[i].subtopics?.length || 0;
+    }
+    return globalIdx + sIdx;
   };
 
   const calculateProgress = () => {
-    if (!course) return 0;
-    const courseOutput = parseCourseOutput(course.courseOutput);
-    const total = courseOutput?.chapters?.length || 0;
-    const completed = completedChapters.length;
-    return total > 0 ? Math.round((completed / total) * 100) : 0;
+    if (!courseOutput?.chapters) return 0;
+    
+    // Total free subtopics (max 5)
+    let totalFreeSubtopics = 0;
+    for (let i = 0; i < courseOutput.chapters.length; i++) {
+      const subs = courseOutput.chapters[i].subtopics || [];
+      for (let j = 0; j < subs.length; j++) {
+        if (getGlobalSubtopicIndex(i, j) < 5) {
+          totalFreeSubtopics++;
+        }
+      }
+    }
+    
+    const completedFree = completedChapters.filter(idx => idx < 5).length;
+    return totalFreeSubtopics > 0 ? Math.round((completedFree / totalFreeSubtopics) * 100) : 0;
   };
 
-  const isChapterCompleted = (index: number) => {
-    return completedChapters.includes(index);
+  const isLessonCompleted = (globalIndex: number) => {
+    return completedChapters.includes(globalIndex);
   };
 
-  const isLastChapter = (() => {
-    if (!selectedChapter || !course) return false;
-    const courseOutput = parseCourseOutput(course.courseOutput);
+  const isLastSubtopic = (() => {
+    if (!selectedChapter || !courseOutput) return false;
     if (!courseOutput?.chapters || courseOutput.chapters.length === 0) return false;
-    const lastChapter = courseOutput.chapters[courseOutput.chapters.length - 1];
-    return lastChapter.chapterName === selectedChapter.chapterName;
+    
+    // Find the last available subtopic (either the absolute last, or index 4 if freemium)
+    let lastChapterIdx = courseOutput.chapters.length - 1;
+    let lastSubtopicIdx = (courseOutput.chapters[lastChapterIdx].subtopics?.length || 1) - 1;
+    
+    // If freemium, max global index is 4
+    if (getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex) === 4) {
+      return true;
+    }
+    
+    return selectedChapterIndex === lastChapterIdx && selectedSubtopicIndex === lastSubtopicIdx;
   })();
-
-  //   console.log("chapterContent", chapterContent);
-  const courseOutput = parseCourseOutput(course?.courseOutput);
 
   return (
     <div className="min-h-screen">
@@ -326,13 +372,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
             {selectedChapter && (
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <span className="font-medium text-slate-300">
-                  Chapter {selectedChapterIndex + 1}/{courseOutput?.chapters?.length || 0}
+                  Chapter {Math.min(selectedChapterIndex + 1, 5)}/{Math.min(courseOutput?.chapters?.length || 0, 5)}
                 </span>
                 <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-700">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
-                      width: `${((selectedChapterIndex + 1) / (courseOutput?.chapters?.length || 1)) * 100}%`,
+                      width: `${((Math.min(selectedChapterIndex + 1, 5)) / (Math.min(courseOutput?.chapters?.length || 1, 5))) * 100}%`,
                     }}
                   ></div>
                 </div>
@@ -383,50 +429,123 @@ const CourseStart = ({ params }: CourseStartProps) => {
         {/* Progress Bar */}
         <div className="border-b border-white/10 bg-slate-900/50 p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-slate-200">Progress</span>
+            <span className="text-sm font-semibold text-slate-200">Free Tier Progress</span>
             <span className="text-sm font-bold text-primary">{calculateProgress()}%</span>
           </div>
           <Progress value={calculateProgress()} className="h-2" />
           <p className="mt-2 text-xs text-slate-400">
-            {completedChapters.length} of {courseOutput?.chapters?.length || 0} chapters
+            {completedChapters.filter(c => c <= 4).length} of {Math.min(courseOutput?.chapters?.length || 0, 5)} free chapters
           </p>
         </div>
         
         {/* Chapters List */}
         <div className="divide-y divide-white/5">
-          {courseOutput?.chapters?.map((chapter, index) => (
-            <div
-              key={index}
-              className={`cursor-pointer transition-all duration-200 ${
-                selectedChapter?.chapterName === chapter.chapterName
-                  ? "border-l-4 border-primary bg-primary/10"
-                  : "border-l-4 border-transparent hover:bg-slate-900"
-              }`}
-              onClick={() => {
-                setSelectedChapter(chapter);
-                setSelectedChapterIndex(index);
-                getChapterContent(index);
-                setSidebarOpen(false);
-              }}
-            >
-              <div className="flex items-center gap-3 p-3">
-                <div className="transition-all duration-200">
-                  {isChapterCompleted(index) ? (
-                    <FaCheckCircle className="text-green-500" size={16} />
-                  ) : (
-                    <FaRegCircle className={`transition-colors ${
-                      selectedChapter?.chapterName === chapter.chapterName
-                        ? "text-primary/50"
-                        : "text-slate-500"
-                    }`} size={16} />
-                  )}
+          {courseOutput?.chapters?.map((chapter: any, index: number) => {
+            const isSelectedChapter = selectedChapter?.chapterName === chapter.chapterName;
+            const isExpanded = expandedSidebarChapters.includes(index);
+            
+            // A chapter is locked if its FIRST subtopic is locked
+            const firstSubtopicGlobalIndex = getGlobalSubtopicIndex(index, 0);
+            const isChapterFullyLocked = firstSubtopicGlobalIndex > 4;
+
+            return (
+              <div key={index} className="border-b border-white/5 last:border-0 bg-slate-950">
+                {/* Chapter Header */}
+                <div
+                  className={`cursor-pointer transition-all duration-200 flex items-center justify-between p-3 group ${
+                    isSelectedChapter
+                      ? "border-l-4 border-primary bg-primary/5"
+                      : isChapterFullyLocked
+                      ? "border-l-4 border-transparent hover:bg-slate-900/50 opacity-60"
+                      : "border-l-4 border-transparent hover:bg-slate-900/50"
+                  }`}
+                  onClick={() => {
+                    // Toggle expansion state
+                    setExpandedSidebarChapters(prev => 
+                      prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+                    );
+                    
+                    // Auto-select chapter if not locked
+                    if (!isChapterFullyLocked && !isSelectedChapter) {
+                      setSelectedChapter(chapter);
+                      setSelectedChapterIndex(index);
+                      setSelectedSubtopicIndex(0); // Reset to first subtopic when chapter clicked
+                      getChapterContent(index);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="transition-all duration-200">
+                      {isChapterFullyLocked ? (
+                        <FaLock className="text-amber-500/70" size={14} />
+                      ) : isLessonCompleted(firstSubtopicGlobalIndex) ? (
+                        <FaCheckCircle className="text-green-500" size={16} />
+                      ) : (
+                        <div className={`w-2 h-2 rounded-full transition-colors ${
+                          isSelectedChapter ? "bg-primary" : "bg-slate-600 group-hover:bg-primary/50"
+                        }`} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <ChapterListCard chapter={chapter} index={index} />
+                    </div>
+                  </div>
+                  
+                  {/* Accordion Arrow */}
+                  <div className={`transition-transform duration-200 flex-none ml-2 ${isExpanded ? "rotate-180 text-primary" : "text-slate-500"}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <ChapterListCard chapter={chapter} index={index} />
-                </div>
+
+                {/* Subtopics List (Rendered as accordion) */}
+                {isExpanded && chapter.subtopics && chapter.subtopics.length > 0 && (
+                  <div className="bg-slate-950 py-1 animate-in slide-in-from-top-2 fade-in duration-200 shadow-inner">
+                    {chapter.subtopics.map((subtopic: string, sIdx: number) => {
+                      const isSelectedSubtopic = isSelectedChapter && selectedSubtopicIndex === sIdx;
+                      const globalSubtopicIdx = getGlobalSubtopicIndex(index, sIdx);
+                      const isSubtopicLocked = globalSubtopicIdx > 4;
+                      
+                      return (
+                        <div
+                          key={sIdx}
+                          className={`pl-12 pr-4 py-2.5 cursor-pointer text-sm transition-all duration-200 border-l-2 ${
+                            isSelectedSubtopic 
+                              ? "border-primary text-primary bg-primary/10 font-medium" 
+                              : isSubtopicLocked
+                              ? "border-transparent text-slate-500 hover:text-slate-400 hover:bg-slate-900/30 opacity-70"
+                              : "border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isSubtopicLocked) {
+                              setShowPremiumCTA(true);
+                              // We don't want to actually change the lesson if locked
+                              return;
+                            }
+                            navigateToLesson(index, sIdx);
+                            setShowPremiumCTA(false);
+                            if (window.innerWidth < 1024) setSidebarOpen(false);
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2.5 truncate">
+                              {isLessonCompleted(globalSubtopicIdx) ? (
+                                <FaCheckCircle className="text-green-500 flex-shrink-0" size={12} />
+                              ) : (
+                                <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isSelectedSubtopic ? "bg-primary" : "bg-current opacity-30"}`} />
+                              )}
+                              <span className="truncate">{subtopic}</span>
+                            </div>
+                            {isSubtopicLocked && <FaLock className="text-amber-500/50 flex-shrink-0" size={10} />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -439,7 +558,22 @@ const CourseStart = ({ params }: CourseStartProps) => {
       )}
 
       <div className="pt-20 lg:pl-72">
-        {selectedChapter ? (
+        {showPremiumCTA ? (
+          <div className="section-shell max-w-4xl px-4 py-12">
+            <div className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-slate-900 to-slate-800 p-8 text-center shadow-xl">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
+                <FaLock className="h-8 w-8 text-amber-500" />
+              </div>
+              <h2 className="mb-4 text-3xl font-bold text-slate-100">Unlock the Full Course</h2>
+              <p className="mb-8 mx-auto max-w-lg text-lg text-slate-300">
+                You've reached the end of the free preview! Upgrade to Premium to unlock the remaining chapters, advanced practical examples, and your completion certificate.
+              </p>
+              <Button className="bg-amber-500 text-slate-950 hover:bg-amber-400 px-8 py-6 text-lg font-bold shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]">
+                Upgrade to Premium
+              </Button>
+            </div>
+          </div>
+        ) : selectedChapter ? (
           <div className="section-shell max-w-6xl">
             <ChapterContent
               chapter={selectedChapter}
@@ -448,6 +582,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
               courseId={course?.courseId}
               courseName={course?.courseName}
               chapterId={selectedChapterIndex}
+              subtopicIndex={selectedSubtopicIndex}
             />
             
             {/* Quiz Section */}
@@ -482,28 +617,28 @@ const CourseStart = ({ params }: CourseStartProps) => {
                 {/* Mark Chapter as Complete Button */}
                 <div className="flex justify-center mb-6">
                   <Button
-                    onClick={handleToggleChapterCompletion}
-                    disabled={!quizPassed}
-                    variant={isChapterCompleted(selectedChapterIndex) ? "outline" : "default"}
+                    onClick={handleToggleLessonCompletion}
+                    disabled={!quizPassed && selectedSubtopicIndex === ((selectedChapter?.subtopics?.length || 1) - 1)}
+                    variant={isLessonCompleted(getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex)) ? "outline" : "default"}
                     className={`px-6 py-3 ${
-                      !quizPassed
+                      !quizPassed && selectedSubtopicIndex === ((selectedChapter?.subtopics?.length || 1) - 1)
                         ? "opacity-50 cursor-not-allowed"
-                        : isChapterCompleted(selectedChapterIndex)
+                        : isLessonCompleted(getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex))
                         ? "border-green-400 text-green-300 hover:bg-green-500/10"
                         : "bg-primary text-slate-950 hover:bg-primary/90"
                     }`}
                   >
-                    {!quizPassed ? (
+                    {!quizPassed && selectedSubtopicIndex === ((selectedChapter?.subtopics?.length || 1) - 1) ? (
                       <>
                         <FaRegCircle className="mr-2" /> Complete Quiz First
                       </>
-                    ) : isChapterCompleted(selectedChapterIndex) ? (
+                    ) : isLessonCompleted(getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex)) ? (
                       <>
-                        <FaCheckCircle className="mr-2" /> Chapter Completed
+                        <FaCheckCircle className="mr-2" /> Lesson Completed
                       </>
                     ) : (
                       <>
-                        <FaRegCircle className="mr-2" /> Mark Chapter as Complete
+                        <FaRegCircle className="mr-2" /> Mark Lesson as Complete
                       </>
                     )}
                   </Button>
@@ -512,25 +647,25 @@ const CourseStart = ({ params }: CourseStartProps) => {
                 {/* Navigation Buttons */}
                 <div className="flex justify-between items-center">
                   <Button
-                    onClick={handlePrevChapter}
-                    disabled={selectedChapterIndex === 0}
+                    onClick={handlePrevLesson}
+                    disabled={selectedChapterIndex === 0 && selectedSubtopicIndex === 0}
                     variant="outline"
                     className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
                   >
-                    <FaChevronLeft /> Previous
+                    <FaChevronLeft /> Previous Lesson
                   </Button>
                   
                   <span className="text-sm text-slate-400">
-                    Chapter {selectedChapterIndex + 1} of {courseOutput?.chapters?.length || 0}
+                    Lesson {getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex) + 1}
                   </span>
                   
                   <Button
-                    onClick={handleNextChapter}
-                    disabled={selectedChapterIndex === (courseOutput?.chapters?.length || 0) - 1}
+                    onClick={handleNextLesson}
+                    disabled={isLastSubtopic}
                     variant="outline"
                     className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
                   >
-                    Next <FaChevronRight />
+                    Next Lesson <FaChevronRight />
                   </Button>
                 </div>
               </div>

@@ -65,7 +65,7 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
 
     if (result.success) {
       await updateCoursePublishStatusAction(params.courseId);
-      router.replace(`/create-course/${params.courseId}/finish`);
+      router.replace(`/course/${params.courseId}`);
     }
 
     setLoading(false);
@@ -76,18 +76,34 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
       {/* Top Navigation Header - Professional & UX Friendly */}
       <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
-          {/* Left Section - Back Button & Title */}
+          {/* Left Section - Navigation & Title */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
-            >
-              <FaChevronLeft size={16} />
-              <span className="text-sm font-medium">Dashboard</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => router.push("/")}
+                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/dashboard")}
+                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              >
+                Dashboard
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push("/create-course")}
+                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              >
+                Create Course
+              </button>
+            </div>
             <div className="hidden border-l border-white/10 pl-4 md:block">
               <h1 className="text-lg font-semibold text-slate-100">
-                {course?.courseName || "Create Course"}
+                {course?.courseName || "Course Preview"}
               </h1>
             </div>
           </div>
@@ -119,9 +135,51 @@ const CoursePageLayout = ({ params }: { params: ParamsType }) => {
 
         <ChapterList course={course} onRefresh={getCourse} />
 
-        <Button className="my-10 bg-primary text-slate-950 hover:bg-primary/90" onClick={handleGenerateCourseContent}>
-          Generate Course Content
-        </Button>
+        <div className="my-10 flex flex-col sm:flex-row items-center gap-4">
+          {course?.isPublished ? (
+            <>
+              <Button 
+                className="bg-primary text-slate-950 hover:bg-primary/90 w-full sm:w-auto" 
+                onClick={() => router.push(`/course/${params.courseId}`)}
+              >
+                Start Course
+              </Button>
+              <Button 
+                variant="outline"
+                className="border-white/20 bg-slate-900/50 text-slate-100 hover:bg-slate-800 w-full sm:w-auto" 
+                onClick={() => router.push("/dashboard")}
+              >
+                Go to Dashboard
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                className="bg-primary text-slate-950 hover:bg-primary/90 w-full sm:w-auto" 
+                onClick={handleGenerateCourseContent}
+                disabled={loading}
+              >
+                {loading ? "Adding to Dashboard..." : "Add to Dashboard"}
+              </Button>
+
+              <div className="relative group w-full sm:w-auto">
+                <Button 
+                  variant="outline"
+                  disabled
+                  className="w-full sm:w-auto border-white/20 bg-slate-900/50 text-slate-400 gap-2 cursor-not-allowed"
+                >
+                  Improve Course
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </Button>
+                
+                {/* Tooltip for disabled button */}
+                <div className="absolute left-1/2 -top-10 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap bg-slate-800 text-slate-200 text-xs px-2 py-1 rounded shadow-lg z-10 border border-white/10">
+                  Available with subscription
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

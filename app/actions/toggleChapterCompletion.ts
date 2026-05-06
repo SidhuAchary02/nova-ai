@@ -5,11 +5,11 @@ import { CourseList } from "@/schema/schema";
 import { eq } from "drizzle-orm";
 
 /**
- * Toggle chapter completion status
+ * Toggle lesson completion status based on global subtopic index
  */
 export async function toggleChapterCompletionAction(
   courseId: string,
-  chapterIndex: number
+  globalLessonIndex: number
 ) {
   try {
     // Get current course
@@ -27,12 +27,12 @@ export async function toggleChapterCompletionAction(
 
     // Toggle chapter completion
     let updatedChapters: number[];
-    if (completedChapters.includes(chapterIndex)) {
+    if (completedChapters.includes(globalLessonIndex)) {
       // Remove from completed
-      updatedChapters = completedChapters.filter((idx) => idx !== chapterIndex);
+      updatedChapters = completedChapters.filter((idx) => idx !== globalLessonIndex);
     } else {
       // Add to completed
-      updatedChapters = [...completedChapters, chapterIndex];
+      updatedChapters = [...completedChapters, globalLessonIndex];
     }
 
     // Update database
@@ -44,7 +44,7 @@ export async function toggleChapterCompletionAction(
     return {
       success: true,
       completedChapters: updatedChapters,
-      isCompleted: completedChapters.includes(chapterIndex),
+      isCompleted: completedChapters.includes(globalLessonIndex),
     };
   } catch (error) {
     console.error("Error toggling chapter completion:", error);
