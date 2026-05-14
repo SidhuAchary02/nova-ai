@@ -86,7 +86,7 @@ in JSON format.`;
 
       await storeDataInDatabase(id, input, data);
 
-      router.replace(`/create-course/${id}`);
+      router.replace(`/course/${id}`);
     } catch (error) {
       console.log("AI Error:", error);
     } finally {
@@ -158,7 +158,7 @@ in JSON format.`;
       
       console.log("==> Response from generateCourseStructureAction:", struct.success ? "Success" : struct.error);
       if (!struct.success || !struct.courseOutput) {
-        alert(struct.error || "Could not build course structure");
+        alert(!struct.success ? struct.error : "Could not build course structure");
         return;
       }
 

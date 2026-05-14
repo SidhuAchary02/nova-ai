@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react"; // Assuming lucide-react is used, or I can just use a simple icon/text
 
 type Props = {
   intent: string;

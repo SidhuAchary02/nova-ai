@@ -43,6 +43,9 @@ export const userLearningContextSchema = z.object({
   timePerDayHours: z.number().min(0.25).max(12),
   preferredLearningStyle: learningStyleSchema,
   topicsToFocus: z.array(z.string().min(1)).min(1),
+  topicsToAvoid: z.array(z.string().min(1)).optional(),
+  pacingStyle: z.enum(["easy", "balanced", "fast"]).optional(),
+  goalCustomNote: z.string().min(1).max(500).optional(),
   featuresRequired: z
     .array(
       z.enum([
@@ -141,9 +144,20 @@ export const sourceItemSchema = z.object({
   description: z.string().min(1),
 });
 
+/** MDX-based lesson content: simple structure with title + MDX string */
+export const mdxLessonSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1), // Raw MDX string
+});
+
+/** Wrapper for MDX chapter content bundle */
 export const chapterContentBundleSchema = z.object({
-  sections: z.array(subtopicLessonSchema).min(1),
-  sources: z.array(sourceItemSchema).min(1),
+  content: z.array(
+    z.object({
+      title: z.string().min(1),
+      content: z.string().min(1), // MDX string for the lesson
+    })
+  ).min(1),
 });
 
 export type SubtopicLesson = z.infer<typeof subtopicLessonSchema>;

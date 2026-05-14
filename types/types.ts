@@ -11,6 +11,8 @@ export type UserLearningProfileInput = {
   timePerDayHours: number;
   preferredLearningStyle: "video" | "text" | "hands-on" | "mixed";
   topicsToFocus: string[];
+  topicsToAvoid?: string[];
+  pacingStyle?: PacingStyle;
   featuresRequired: Array<
     "quiz" | "videos" | "code_sandbox" | "sources" | "reading" | "projects"
   >;
@@ -19,6 +21,8 @@ export type UserLearningProfileInput = {
 export type PacingStyle = "easy" | "balanced" | "fast";
 
 export type UserInputType = {
+  intent?: string;
+  goal?: LearningGoal;
   category?: string;
   difficulty?: string;
   duration?: string;
@@ -40,6 +44,132 @@ export type ChapterType = {
   chapterName: string;
   description: string;
   duration: string | { value: number; unit: string };
+  subtopics?: string[];
+};
+
+export type LessonBlockType =
+  | {
+      type: "hero";
+      title: string;
+      subtitle?: string;
+      estimatedMinutes?: string;
+      difficulty?: string;
+      note?: string;
+    }
+  | {
+      type: "insight";
+      title?: string;
+      content: string;
+      accent?: "gold" | "emerald" | "violet" | "cyan";
+    }
+  | {
+      type: "text";
+      title?: string;
+      body: string;
+      emphasis?: string[];
+    }
+  | {
+      type: "video";
+      title?: string;
+      url?: string;
+      videoId?: string;
+      summary?: string;
+      whyItMatters?: string;
+    }
+  | {
+      type: "diagram";
+      title?: string;
+      description?: string;
+      nodes?: string[];
+      edges?: Array<{ from: string; to: string }>;
+    }
+  | {
+      type: "table";
+      title?: string;
+      headers: string[];
+      rows: string[][];
+    }
+  | {
+      type: "chart";
+      title?: string;
+      chartType: "bar" | "pie" | "line";
+      labels: string[];
+      values: number[];
+      description?: string;
+    }
+  | {
+      type: "code";
+      title?: string;
+      language: string;
+      initialCode: string;
+      solution?: string;
+      explanation?: string;
+    }
+  | {
+      type: "example";
+      title?: string;
+      scenario: string;
+      takeaway?: string;
+    }
+  | {
+      type: "analogy";
+      title?: string;
+      analogy: string;
+      explanation?: string;
+    }
+  | {
+      type: "quiz";
+      title?: string;
+      questions: Array<{
+        question: string;
+        options: string[];
+        correctAnswer?: number;
+        explanation?: string;
+      }>;
+      note?: string;
+    }
+  | {
+      type: "accordion";
+      title?: string;
+      items: Array<{ label: string; content: string }>;
+    }
+  | {
+      type: "image";
+      title?: string;
+      src?: string;
+      prompt?: string;
+      caption?: string;
+    }
+  | {
+      type: "practice";
+      title?: string;
+      tasks: string[];
+      note?: string;
+    }
+  | {
+      type: "summary";
+      title?: string;
+      takeaways: string[];
+      revisionNotes?: string;
+    };
+
+export type LessonSectionType = {
+  title: string;
+  blocks?: LessonBlockType[];
+  lesson_plan_scratchpad?: string;
+  learning_overview?: string;
+  deep_explanation?: string;
+  code_sandbox?: {
+    language: string;
+    initial_code: string;
+    solution?: string;
+  };
+  mini_challenge?: {
+    challenge: string;
+    hint?: string;
+  };
+  interview_relevance?: string;
+  summary_cheat_sheet?: string | string[];
 };
 
 export type courseOutputType = {
@@ -76,6 +206,15 @@ export type CourseType = {
   /** Snapshot of learner context when using the new pipeline */
   learningContext?: unknown;
   learningStrategyId?: number | null;
+  learningGoal?: string | null;
+  learningCurrentLevel?: string | null;
+  learningTimePerDayHours?: number | null;
+  learningPreferredLearningStyle?: string | null;
+  learningTopicsToFocus?: string[] | null;
+  learningTopicsToAvoid?: string[] | null;
+  learningFeaturesRequired?: string[] | null;
+  learningPacingStyle?: string | null;
+  learningGoalCustomNote?: string | null;
 };
 
 export type CodeExampleType = {
@@ -98,7 +237,7 @@ export type ChapterContentType = {
   id: number;
   chapterId: number;
   courseId: string;
-  content: ChapterSectionType[];
+  content: LessonSectionType[];
   videoId: string;
   sources?: SourceType[];
 };

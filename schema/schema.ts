@@ -3,8 +3,10 @@ import {
   serial,
   varchar,
   json,
+  jsonb,
   boolean,
   integer,
+  real,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -13,6 +15,15 @@ export const userProfiles = pgTable("user_profiles", {
   id: serial("id").primaryKey(),
   email: varchar("email").notNull().unique(),
   profile: json("profile").notNull(),
+  profileGoal: varchar("profileGoal"),
+  profileCurrentLevel: varchar("profileCurrentLevel"),
+  profileTimePerDayHours: real("profileTimePerDayHours"),
+  profilePreferredLearningStyle: varchar("profilePreferredLearningStyle"),
+  profileTopicsToFocus: jsonb("profileTopicsToFocus").default([]),
+  profileTopicsToAvoid: jsonb("profileTopicsToAvoid").default([]),
+  profileFeaturesRequired: jsonb("profileFeaturesRequired").default([]),
+  profilePacingStyle: varchar("profilePacingStyle"),
+  profileGoalCustomNote: varchar("profileGoalCustomNote"),
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
@@ -46,6 +57,16 @@ export const CourseList = pgTable("courseList", {
   learningContext: json("learningContext"),
   /** FK to learning_strategies.id when pipeline was used */
   learningStrategyId: integer("learningStrategyId"),
+  /** Dedicated analytics columns mirrored from learningContext */
+  learningGoal: varchar("learningGoal"),
+  learningCurrentLevel: varchar("learningCurrentLevel"),
+  learningTimePerDayHours: real("learningTimePerDayHours"),
+  learningPreferredLearningStyle: varchar("learningPreferredLearningStyle"),
+  learningTopicsToFocus: jsonb("learningTopicsToFocus").default([]),
+  learningTopicsToAvoid: jsonb("learningTopicsToAvoid").default([]),
+  learningFeaturesRequired: jsonb("learningFeaturesRequired").default([]),
+  learningPacingStyle: varchar("learningPacingStyle"),
+  learningGoalCustomNote: varchar("learningGoalCustomNote"),
 });
 
 export const CourseChapters = pgTable(

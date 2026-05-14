@@ -38,7 +38,6 @@ export const generateCourseContent = async (
     console.log(`🚀 Generating ${subtopicsToGenerate.length} deep subtopic lessons...`);
 
     const generatedLessons: any[] = [];
-    const generatedSources: any[] = [];
 
     // Process subtopics in batches
     for (let i = 0; i < subtopicsToGenerate.length; i += CONCURRENT_REQUESTS) {
@@ -71,31 +70,29 @@ export const generateCourseContent = async (
       batchResults.forEach(res => {
         if (res) {
           generatedLessons.push(res);
-          if (res.sources) generatedSources.push(...res.sources);
         }
       });
     }
 
     // Group results by chapterIndex
-    const groupedByChapter = new Map<number, { chapterName: string, lessons: any[], sources: any[] }>();
+    const groupedByChapter = new Map<number, { chapterName: string, lessons: any[] }>();
     
     generatedLessons.forEach(res => {
       if (!groupedByChapter.has(res.chapterIndex)) {
-        groupedByChapter.set(res.chapterIndex, { chapterName: res.chapterName, lessons: [], sources: [] });
+        groupedByChapter.set(res.chapterIndex, { chapterName: res.chapterName, lessons: [] });
       }
       const group = groupedByChapter.get(res.chapterIndex)!;
       group.lessons.push(res.lesson);
     });
 
     // Save each chapter group to the database
-    for (const [chapterIndex, group] of groupedByChapter.entries()) {
+    for (const [chapterIndex, group] of Array.from(groupedByChapter.entries())) {
       await saveGroupedChapterLessons(
         course.courseId,
         course.courseName,
         group.chapterName,
         chapterIndex,
-        group.lessons,
-        generatedSources // Attach sources to the chapter
+        group.lessons
       );
     }
 

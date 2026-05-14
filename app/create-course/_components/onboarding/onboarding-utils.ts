@@ -118,6 +118,8 @@ export function buildFullUserInputFromOnboarding(
         : intent
           ? [intent.slice(0, 80)]
           : ["General focus"],
+    topicsToAvoid: draft.topicsToAvoid,
+    pacingStyle: draft.pacingStyle,
     featuresRequired: features,
   };
 

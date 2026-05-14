@@ -1,6 +1,6 @@
 "use server";
 
-import { generateChapterContentBundle } from "@/configs/ai-models";
+import { generateChapterContentMDX } from "@/configs/ai-models";
 import { getYoutubeVideos } from "@/configs/service";
 import { db } from "@/configs/db";
 import { CourseChapters } from "@/schema/schema";
@@ -42,64 +42,70 @@ export async function generateSingleSubtopicLesson(
   subtopicName: string
 ) {
   try {
-    const PROMPT = `You are an elite instructional designer and senior technical educator. Create highly engaging, comprehensive educational content.
+    const PROMPT = `You are teaching a course. Generate lesson content as pure markdown.
 
-Chapter: "${chapterName}"
-Course: "${courseName}"
-Specific Subtopic to cover: "${subtopicName}"
+Topic: "${subtopicName}"
 
-**GOAL:**
-Produce a deep, beginner-friendly but technically accurate lesson specifically for the subtopic: "${subtopicName}".
+OUTPUT ONLY RAW MARKDOWN. ABSOLUTELY NO JSON. NO CODE BLOCKS. NO BACKTICKS. JUST PLAIN MARKDOWN TEXT.
 
-**REQUIREMENTS:**
-1. Generate EXACTLY ONE section. The "title" MUST exactly match "${subtopicName}".
-2. Follow the GOLD STANDARD pedagogy guidelines provided in your system instructions (overview, deep explanation, markdown tables, callouts, etc.).
-3. If applicable, provide a "code_sandbox" object with language, initial_code, and solution.
-4. Include a "mini_challenge" and a "summary_cheat_sheet".
-5. Provide 2-3 highly credible sources for further reading.
+Start with a heading:
+# ${subtopicName}
 
-**JSON OUTPUT FORMAT:**
-Produce valid JSON strictly matching the shape:
-{
-  "sections": [
-    { 
-      "title": "${subtopicName}", 
-      "lesson_plan_scratchpad": "string",
-      "learning_overview": "string",
-      "deep_explanation": "string (with rich markdown)",
-      "code_sandbox": { "language": "string", "initial_code": "string", "solution": "string" },
-      "mini_challenge": { "challenge": "string", "hint": "string" },
-      "interview_relevance": "string",
-      "summary_cheat_sheet": "string"
-    }
-  ],
-  "sources": [
-    { "title": "string", "url": "https://...", "description": "string" }
-  ]
-}`;
+Then write the complete lesson using:
+- ## for major sections
+- ### for subsections  
+- Regular paragraphs for explanation
+- Markdown tables for comparisons
+- \`code\` for inline code (no language specified)
+- Bullet lists with - 
+- Numbered lists with 1. 2. 3.
+- > for blockquotes and callouts
+
+Write a complete, detailed, professional course lesson. Include overview, concepts, examples, and summary.
+
+CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do NOT output any { or } or any structured format. Just markdown.`;
 
     const result = await retryWithBackoff(async () => {
-      return await generateChapterContentBundle(PROMPT);
+      return await generateChapterContentMDX(PROMPT);
     });
 
     try {
-      const cleaned = result?.replace(/```json/g, "").replace(/```/g, "").trim() ?? "";
-      const parsedUnknown = JSON.parse(cleaned);
-      const bundleResult = chapterContentBundleSchema.safeParse(parsedUnknown);
-
-      if (!bundleResult.success) {
-        console.error("❌ Lesson validation failed:", bundleResult.error.flatten(), result);
-        return { success: false, error: "Validation failed" };
+      // MDX content from AI is raw markdown/MDX text
+      let mdxContent = result?.trim() ?? "";
+      
+      // Safety check: if JSON was returned instead of markdown, try to extract content
+      if (mdxContent.startsWith("{")) {
+        try {
+          const parsed = JSON.parse(mdxContent);
+          // If it's the old structure with sections
+          if (parsed.sections && Array.isArray(parsed.sections) && parsed.sections[0]) {
+            mdxContent = parsed.sections[0].deep_explanation || mdxContent;
+          }
+          // If it has a content field
+          else if (parsed.content && typeof parsed.content === "string") {
+            mdxContent = parsed.content;
+          }
+        } catch {
+          // If JSON parse fails, use the original response
+        }
+      }
+      
+      // Basic validation: should have some content
+      if (!mdxContent || mdxContent.length < 20) {
+        console.error("❌ MDX content too short or empty:", mdxContent);
+        return { success: false, error: "Content generation failed" };
       }
 
       return {
         success: true,
-        lesson: bundleResult.data.sections[0],
-        sources: bundleResult.data.sources,
+        lesson: {
+          title: subtopicName,
+          content: mdxContent,
+        },
       };
     } catch (error) {
-      console.error("❌ Lesson parse failed:", error, result);
-      return { success: false, error: "Parse failed" };
+      console.error("❌ MDX processing failed:", error, result);
+      return { success: false, error: "Processing failed" };
     }
   } catch (error: unknown) {
     const err = error as { message?: string };
@@ -113,8 +119,7 @@ export async function saveGroupedChapterLessons(
   courseName: string,
   chapterName: string,
   chapterIndex: number,
-  lessons: any[],
-  sources: any[]
+  lessons: any[]
 ) {
   try {
     const query = `${chapterName} tutorial ${courseName} practical example`;
@@ -126,11 +131,6 @@ export async function saveGroupedChapterLessons(
 
     console.log(`📺 Video for chapter ${chapterIndex}:`, chapterName, videoId);
 
-    // Deduplicate sources by URL
-    const uniqueSourcesMap = new Map();
-    sources.forEach(s => uniqueSourcesMap.set(s.url, s));
-    const uniqueSources = Array.from(uniqueSourcesMap.values());
-
     await db
       .insert(CourseChapters)
       .values({
@@ -138,14 +138,12 @@ export async function saveGroupedChapterLessons(
         courseId: courseId,
         content: { content: lessons },
         videoId: videoId,
-        sources: uniqueSources,
       })
       .onConflictDoUpdate({
         target: [CourseChapters.courseId, CourseChapters.chapterId],
         set: {
           content: { content: lessons },
           videoId: videoId,
-          sources: uniqueSources,
         },
       });
 

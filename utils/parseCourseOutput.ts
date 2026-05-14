@@ -207,6 +207,7 @@ function normalizeChapter(chapter: any): any {
       chapterName: "Untitled Chapter",
       description: "",
       duration: "",
+      subtopics: [],
     };
   }
 
@@ -228,6 +229,7 @@ function normalizeChapter(chapter: any): any {
       chapter.chapter_description || 
       "",
     duration: normalizeDuration(rawDuration),
+    subtopics: Array.isArray(chapter.subtopics) ? chapter.subtopics : [],
   };
 }
 

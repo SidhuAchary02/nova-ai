@@ -7,7 +7,7 @@ interface SandpackRendererProps {
 
 export default function SandpackRenderer({ language, initialCode }: SandpackRendererProps) {
   // Map common languages to Sandpack templates
-  let template: "react" | "vanilla" | "node" | "python" | "react-ts" = "vanilla";
+  let template: "react" | "vanilla" | "node" | "react-ts" = "vanilla";
   
   const langLower = language.toLowerCase();
   if (langLower.includes("react")) {
@@ -15,14 +15,15 @@ export default function SandpackRenderer({ language, initialCode }: SandpackRend
   } else if (langLower.includes("node") || langLower.includes("js") || langLower.includes("javascript")) {
     template = "node";
   } else if (langLower.includes("python")) {
-    template = "python";
+    // Sandpack does not provide a first-class Python runtime template.
+    // Fall back to a generic editor preview.
+    template = "vanilla";
   }
 
   // Determine the primary file based on the template
   let mainFile = "/index.js";
   if (template === "react") mainFile = "/App.js";
   if (template === "react-ts") mainFile = "/App.tsx";
-  if (template === "python") mainFile = "/main.py";
 
   return (
     <div className="my-8 overflow-hidden rounded-xl border border-white/10 shadow-2xl">

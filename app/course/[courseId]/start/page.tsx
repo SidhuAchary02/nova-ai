@@ -151,7 +151,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   // Check if course content has been generated
   if (!course.isPublished) {
     if (typeof window !== "undefined") {
-      router.replace(`/create-course/${course.courseId}`);
+        router.replace(`/course/${course.courseId}`);
     }
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -297,6 +297,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   const courseOutput = parseCourseOutput(course?.courseOutput);
+
+  const isLastChapter =
+    !!course &&
+    !!courseOutput?.chapters?.length &&
+    selectedChapterIndex >= courseOutput.chapters.length - 1;
 
   // Pre-calculate global subtopic offsets for freemium lock
   const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {

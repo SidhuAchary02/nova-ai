@@ -17,6 +17,9 @@ export function buildLearningContextFromInput(
     timePerDayHours: p.timePerDayHours,
     preferredLearningStyle: p.preferredLearningStyle,
     topicsToFocus: p.topicsToFocus,
+    topicsToAvoid: p.topicsToAvoid ?? userInput.topicsToAvoid ?? [],
+    pacingStyle: p.pacingStyle ?? userInput.pacingStyle,
+    goalCustomNote: userInput.goalCustomNote,
     featuresRequired: p.featuresRequired,
   };
 }

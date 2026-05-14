@@ -81,6 +81,31 @@ export async function generateGroqJsonObject(
   return stripJsonFences(raw);
 }
 
+/**
+ * Groq chat for plain text/MDX — no JSON format requirement
+ */
+export async function generateGroqPlainText(
+  systemPrompt: string,
+  userPrompt: string,
+  temperature = 0.65
+): Promise<string> {
+  const completion = await groq.chat.completions.create({
+    model: GROQ_MODEL,
+    temperature,
+    // No response_format requirement - allows plain text/MDX output
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw || typeof raw !== "string") {
+    throw new Error("Empty or invalid response from Groq");
+  }
+  return raw.trim();
+}
+
 /** Course outline JSON — used by legacy create flow and generateCourseLayoutAction */
 export async function generateCourseLayout(prompt: string) {
   return generateGroqJsonObject(
@@ -93,6 +118,24 @@ export async function generateCourseLayout(prompt: string) {
 /** Chapter body + sources in one structured call */
 export async function generateChapterContentBundle(prompt: string) {
   return generateGroqJsonObject(SYSTEM_PROMPTS.chapterBundle, prompt, 0.65);
+}
+
+/** MDX chapter content — plain text markdown, no JSON */
+export async function generateChapterContentMDX(prompt: string) {
+  const systemPrompt = `You are a world-class course instructor. Your ONLY job is to output raw markdown text for course lessons.
+
+ABSOLUTELY NO JSON. NO CURLY BRACES. NO STRUCTURE MARKERS.
+
+Just pure markdown:
+- Headings with #
+- Paragraphs
+- Lists
+- Tables
+- Blockquotes
+- Code with backticks
+
+Nothing else. Not even code fences with triple backticks unless it's for a code example inside the lesson.`;
+  return generateGroqPlainText(systemPrompt, prompt, 0.65);
 }
 
 export async function generateQuizStructured(userPrompt: string) {
