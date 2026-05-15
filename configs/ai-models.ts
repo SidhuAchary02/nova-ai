@@ -124,7 +124,7 @@ export async function generateChapterContentBundle(prompt: string) {
 export async function generateChapterContentMDX(prompt: string) {
   const systemPrompt = `You are a world-class course instructor. Your ONLY job is to output raw markdown text for course lessons.
 
-ABSOLUTELY NO JSON. NO CURLY BRACES. NO STRUCTURE MARKERS.
+ABSOLUTELY NO JSON. Do not wrap the entire answer in a markdown code fence.
 
 Just pure markdown:
 - Headings with #
@@ -132,9 +132,10 @@ Just pure markdown:
 - Lists
 - Tables
 - Blockquotes
-- Code with backticks
+- Inline code with single backticks
+- Fenced code blocks with a language tag when an actual runnable example helps
 
-Nothing else. Not even code fences with triple backticks unless it's for a code example inside the lesson.`;
+Never output placeholder-only code blocks such as \`\`\`code\`\`\`, \`\`\`example\`\`\`, or a block containing only the word "code". If you use a code block, include real code.`;
   return generateGroqPlainText(systemPrompt, prompt, 0.65);
 }
 

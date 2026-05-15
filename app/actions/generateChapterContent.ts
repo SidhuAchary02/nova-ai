@@ -50,6 +50,10 @@ function cleanMermaidOutput(raw: string): string {
   return cleaned.trim();
 }
 
+function hasPlaceholderOnlyCodeBlock(content: string): boolean {
+  return /(^|\n)[ \t]*```(?:code|example)?[ \t]*\n[ \t]*(code|example)[ \t]*\n[ \t]*```(?=\n|$)/i.test(content);
+}
+
 export async function generateSingleSubtopicLesson(
   courseName: string,
   chapterName: string,
@@ -60,7 +64,7 @@ export async function generateSingleSubtopicLesson(
 
 Topic: "${subtopicName}"
 
-OUTPUT ONLY RAW MARKDOWN. ABSOLUTELY NO JSON. NO CODE BLOCKS. NO BACKTICKS. JUST PLAIN MARKDOWN TEXT.
+OUTPUT ONLY RAW MARKDOWN. ABSOLUTELY NO JSON AND NO MARKDOWN FENCES AROUND THE WHOLE RESPONSE.
 
 Start with a heading:
 # ${subtopicName}
@@ -70,18 +74,34 @@ Then write the complete lesson using:
 - ### for subsections  
 - Regular paragraphs for explanation
 - Markdown tables for comparisons
-- \`code\` for inline code (no language specified)
+- Inline code with single backticks, like \`props\` or \`useState\`
+- Real fenced code examples when helpful, using a language tag like \`\`\`jsx or \`\`\`tsx
 - Bullet lists with - 
 - Numbered lists with 1. 2. 3.
 - > for blockquotes and callouts
 
+If you include a code block, it MUST contain complete, useful example code related to "${subtopicName}".
+Never output placeholder-only code blocks such as \`\`\`code\`\`\`, \`\`\`example\`\`\`, or a block containing only the word "code".
+
 Write a complete, detailed, professional course lesson. Include overview, concepts, examples, and summary.
 
-CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do NOT output any { or } or any structured format. Just markdown.`;
+CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do not wrap the full answer in a code block.`;
 
-    const lessonResult = await retryWithBackoff(async () => {
+    let lessonResult = await retryWithBackoff(async () => {
       return await generateChapterContentMDX(PROMPT);
     });
+
+    if (hasPlaceholderOnlyCodeBlock(lessonResult)) {
+      lessonResult = await retryWithBackoff(async () => {
+        return await generateChapterContentMDX(
+          `${PROMPT}
+
+Your previous response used placeholder code. Regenerate the lesson.
+Every code block must contain complete, real ${courseName} example code for "${subtopicName}".
+Do not include a code block unless it has useful code inside it.`
+        );
+      });
+    }
 
     const MERMAID_PROMPT = `Generate a flowchart diagram for this lesson topic:
 

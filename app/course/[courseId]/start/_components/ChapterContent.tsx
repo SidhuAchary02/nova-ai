@@ -5,8 +5,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
 import { formatDuration } from "@/utils/formatDuration";
 import ReactMarkdown from "react-markdown";
-import { MDXRemote } from "next-mdx-remote";
-import { serialize } from "next-mdx-remote/serialize";
 import remarkGfm from "remark-gfm";
 import MermaidBlock from "@/components/MermaidBlock";
 import { saveChapterAnnotationAction } from "@/app/actions/saveChapterAnnotation";
@@ -54,19 +52,27 @@ const getLessonRawContent = (lesson: unknown) => {
   return "";
 };
 
+const cleanupPlaceholderCodeBlocks = (content: string) =>
+  content.replace(
+    /(^|\n)([ \t]*)```(?:code)?[ \t]*\n[ \t]*code[ \t]*\n[ \t]*```(?=\n|$)/gi,
+    "$1$2`code`"
+  );
+
 const normalizeMarkdownContent = (rawContent: string) => {
   const trimmed = rawContent.trim();
 
   if (trimmed.startsWith("{")) {
     try {
       const parsed = JSON.parse(trimmed);
-      return parsed.sections?.[0]?.deep_explanation || parsed.content || rawContent;
+      return cleanupPlaceholderCodeBlocks(
+        parsed.sections?.[0]?.deep_explanation || parsed.content || rawContent
+      );
     } catch {
-      return rawContent;
+      return cleanupPlaceholderCodeBlocks(rawContent);
     }
   }
 
-  return rawContent;
+  return cleanupPlaceholderCodeBlocks(rawContent);
 };
 
 const ChapterContent = ({
@@ -84,7 +90,6 @@ const ChapterContent = ({
   const [draftTitle, setDraftTitle] = useState("");
   const [draftBody, setDraftBody] = useState("");
   const [savingAnnotation, setSavingAnnotation] = useState(false);
-  const [serializedLessons, setSerializedLessons] = useState<Record<number, any>>({});
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     event.target.pauseVideo();
@@ -108,10 +113,12 @@ const ChapterContent = ({
     return Array.isArray(contentData) ? contentData : [];
   }, [content?.content]);
 
-  // 👇 DEBUG LOGS
-  console.log("🔍 DEBUG content prop:", content);
-  console.log("🔍 DEBUG lessons array:", lessons);
-  console.log("🔍 DEBUG lessons.length:", lessons.length);
+  const selectedLessonIndex =
+    lessons.length > 0 && lessons[subtopicIndex] ? subtopicIndex : 0;
+  const visibleLessons =
+    lessons.length > 0
+      ? [{ lesson: lessons[selectedLessonIndex], lessonIndex: selectedLessonIndex }]
+      : [];
 
   useEffect(() => {
     setAnnotations((content?.annotations ?? []) as LessonAnnotation[]);
@@ -119,52 +126,7 @@ const ChapterContent = ({
     setDraftType("bookmark");
     setDraftTitle("");
     setDraftBody("");
-  }, [content?.annotations]);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    setSerializedLessons({});
-
-    const serializeLessons = async () => {
-      const results: Record<number, any> = {};
-
-      for (let index = 0; index < lessons.length; index += 1) {
-        const lesson = lessons[index];
-        const rawContent = getLessonRawContent(lesson);
-        const normalizedContent = rawContent ? normalizeMarkdownContent(rawContent) : "";
-
-        if (!normalizedContent) continue;
-
-        try {
-          results[index] = await serialize(normalizedContent, {
-            mdxOptions: {
-              remarkPlugins: [remarkGfm],
-              rehypePlugins: [],
-            },
-          });
-        } catch (error) {
-          console.warn(`Failed to serialize lesson ${index}:`, error);
-          results[index] = null;
-        }
-      }
-
-      if (isMounted) {
-        setSerializedLessons(results);
-      }
-    };
-
-    if (lessons.length === 0) {
-      setSerializedLessons({});
-      return;
-    }
-
-    void serializeLessons();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [lessons]);
+  }, [content?.annotations, subtopicIndex]);
 
   const beginAnnotation = (lessonIndex: number, type: AnnotationType) => {
     setActiveLessonIndex(lessonIndex);
@@ -453,7 +415,7 @@ const ChapterContent = ({
         )}
 
         <div className="space-y-6">
-          {lessons.length === 0 ? (
+          {visibleLessons.length === 0 ? (
             <div className="rounded-2xl border border-amber-300/20 bg-amber-500/10 p-8 text-center">
               <p className="text-slate-300">
                 No content available for this subtopic yet. Please generate the
@@ -461,7 +423,7 @@ const ChapterContent = ({
               </p>
             </div>
           ) : (
-            lessons.map((lesson: any, lessonIndex: number) => {
+            visibleLessons.map(({ lesson, lessonIndex }) => {
               const rawContent = getLessonRawContent(lesson);
               const markdownContent = rawContent ? normalizeMarkdownContent(rawContent) : "";
 
@@ -473,9 +435,7 @@ const ChapterContent = ({
                   id={`subtopic-${chapterId ?? 0}-${lessonIndex}`}
                   className="prose prose-invert max-w-none space-y-6 scroll-mt-24"
                 >
-                  {serializedLessons[lessonIndex] ? (
-                    <MDXRemote {...serializedLessons[lessonIndex]} components={mdxComponents} />
-                  ) : markdownContent ? (
+                  {markdownContent ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdxComponents as any}>
                       {markdownContent}
                     </ReactMarkdown>

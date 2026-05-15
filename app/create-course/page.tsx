@@ -17,8 +17,6 @@ import { FaChevronLeft } from "react-icons/fa";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import { generateCourseStructureAction } from "@/app/actions/generateCourseStructureAction";
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
-import { generateCourseContent } from "./[courseId]/_utils/generateCourseContent";
-import { updateCoursePublishStatusAction } from "@/app/actions/updateCoursePublishStatus";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
 
@@ -181,29 +179,12 @@ in JSON format.`;
       
       console.log("==> DB Save Complete");
 
-      // Generate the freemium content limit immediately
-      console.log("==> Generating Freemium Content Limit...");
-      const fullCourseObj = {
-        courseId: id,
-        courseName: courseInput.topic,
-        category: courseInput.category,
-        courseOutput: struct.courseOutput
-      } as any;
-      
-      const contentResult = await generateCourseContent(fullCourseObj, setLoading);
-      
-      if (contentResult.success) {
-        await updateCoursePublishStatusAction(id);
-      } else {
-        console.warn("==> Content generation had issues:", contentResult.error);
-      }
-
       // Clear localStorage on success
       if (typeof window !== "undefined") {
         window.localStorage.removeItem("nova_onboarding_progress");
       }
 
-      router.replace(`/course/${id}/start`);
+      router.replace(`/course/${id}`);
     } catch (e: any) {
       console.error("==> Caught exception during Course Generation:", e);
       alert(e?.message || "Failed to create course");

@@ -152,8 +152,8 @@ function buildMermaidInkUrl(code: string) {
   const utf8Bytes = new TextEncoder().encode(normalizedCode);
   let binary = "";
 
-  for (const byte of utf8Bytes) {
-    binary += String.fromCharCode(byte);
+  for (let index = 0; index < utf8Bytes.length; index += 1) {
+    binary += String.fromCharCode(utf8Bytes[index]);
   }
 
   const base64 = btoa(binary);

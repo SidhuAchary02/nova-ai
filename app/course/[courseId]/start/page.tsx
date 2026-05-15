@@ -9,6 +9,7 @@ import CertificateModal from "./_components/CertificateModal";
 import ScrollProgress from "@/components/ui/scroll-progress";
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { getChapterContentAction } from "@/app/actions/getChapterContent";
+import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
 import { markCourseAsCompletedAction } from "@/app/actions/courseEnhancements";
 import { toggleChapterCompletionAction } from "@/app/actions/toggleChapterCompletion";
 import { generateQuizAction, QuizQuestion } from "@/app/actions/generateQuiz";
@@ -21,9 +22,19 @@ import { FaCheckCircle, FaRegCircle, FaChevronLeft, FaChevronRight, FaBars, FaTi
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 import CourseCover from "@/components/common/CourseCover";
 import Link from "next/link";
+import { generateCourseContent } from "@/app/create-course/[courseId]/_utils/generateCourseContent";
 
 type CourseStartProps = {
-  params: { courseId: string };
+  params: {
+    courseId: string;
+    chapterIndex?: string;
+    subtopicIndex?: string;
+  };
+};
+
+const parseRouteIndex = (value: string | undefined, fallback = 0) => {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 };
 
 const CourseStart = ({ params }: CourseStartProps) => {
@@ -46,7 +57,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateData, setCertificateData] = useState<any>(null);
   const [showPremiumCTA, setShowPremiumCTA] = useState(false);
-  const [generatedChapterCount, setGeneratedChapterCount] = useState(0);
+  const [generatedChapterIds, setGeneratedChapterIds] = useState<number[]>([]);
+  const [generatingChapter, setGeneratingChapter] = useState(false);
   
   // Accordion state for sidebar
   const [expandedSidebarChapters, setExpandedSidebarChapters] = useState<number[]>([0]);
@@ -87,28 +99,52 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
       if (currentCourse.isPublished) {
         const parsed = parseCourseOutput(currentCourse.courseOutput);
-        const unlockedCount = parsed?.chapters?.length || 0;
+        const totalCourseChapters = parsed?.chapters?.length || 0;
+        const generatedProgress = await getGeneratedChapterIdsAction(currentCourse.courseId);
+        const currentGeneratedChapterIds = generatedProgress.success
+          ? generatedProgress.chapterIds
+          : [];
 
-        setGeneratedChapterCount(unlockedCount);
+        setGeneratedChapterIds(currentGeneratedChapterIds);
         
-        // Check for URL parameters
-        const searchParams = new URLSearchParams(window.location.search);
-        const chapterParam = searchParams.get('chapter');
-        const subtopicParam = searchParams.get('subtopic');
-        
-        const initialChapterIdx = chapterParam ? parseInt(chapterParam) : 0;
-        const initialSubtopicIdx = subtopicParam ? parseInt(subtopicParam) : 0;
+        const legacySearchParams = new URLSearchParams(window.location.search);
+        const legacyChapterParam = legacySearchParams.get("chapter");
+        const legacySubtopicParam = legacySearchParams.get("subtopic");
+        const initialChapterIdx = Math.min(
+          parseRouteIndex(params.chapterIndex ?? legacyChapterParam ?? undefined),
+          Math.max(0, totalCourseChapters - 1)
+        );
+        const initialSubtopicIdx = parseRouteIndex(
+          params.subtopicIndex ?? legacySubtopicParam ?? undefined
+        );
         
         setExpandedSidebarChapters([initialChapterIdx]);
         
         const initialChapter = parsed?.chapters?.[initialChapterIdx];
 
         if (initialChapter) {
+          const initialSubtopicsCount = initialChapter.subtopics?.length || 1;
+          const safeInitialSubtopicIdx = Math.min(
+            initialSubtopicIdx,
+            Math.max(0, initialSubtopicsCount - 1)
+          );
+          const canonicalPath = `/course/${currentCourse.courseId}/start/${initialChapterIdx}/${safeInitialSubtopicIdx}`;
+
+          if (window.location.pathname !== canonicalPath || window.location.search) {
+            router.replace(canonicalPath);
+            return;
+          }
+
           setSelectedChapter(initialChapter);
           setSelectedChapterIndex(initialChapterIdx);
-          setSelectedSubtopicIndex(initialSubtopicIdx);
+          setSelectedSubtopicIndex(safeInitialSubtopicIdx);
           setQuizPassed(passedChapters.includes(initialChapterIdx));
-          await getChapterContent(initialChapterIdx, currentCourse);
+          if (currentGeneratedChapterIds.includes(initialChapterIdx)) {
+            await getChapterContent(initialChapterIdx, currentCourse);
+          } else {
+            setChapterContent(null);
+            setShowPremiumCTA(true);
+          }
         }
       }
     } catch (e) {
@@ -117,34 +153,15 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   useEffect(() => {
-    params && getCourse();
+    getCourse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params]);
+  }, [params.courseId, params.chapterIndex, params.subtopicIndex]);
 
   useEffect(() => {
     if (course && !course.isPublished) {
       router.replace(`/course/${course.courseId}`);
     }
   }, [course, router]);
-
-  useEffect(() => {
-    if (!selectedChapter || !chapterContent || showPremiumCTA) return;
-
-    const targetId = `subtopic-${selectedChapterIndex}-${selectedSubtopicIndex}`;
-
-    const scrollToTarget = () => {
-      const targetElement = document.getElementById(targetId);
-      if (targetElement) {
-        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    };
-
-    const firstFrame = window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(scrollToTarget);
-    });
-
-    return () => window.cancelAnimationFrame(firstFrame);
-  }, [chapterContent, selectedChapter, selectedChapterIndex, selectedSubtopicIndex, showPremiumCTA]);
 
   if (!course) return (
     <div className="min-h-screen">
@@ -264,20 +281,61 @@ const CourseStart = ({ params }: CourseStartProps) => {
     }
   };
 
+  const refreshGeneratedChapterIds = async () => {
+    if (!course) return [];
+    const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
+    const nextGeneratedChapterIds = generatedProgress.success
+      ? generatedProgress.chapterIds
+      : [];
+    setGeneratedChapterIds(nextGeneratedChapterIds);
+    return nextGeneratedChapterIds;
+  };
+
+  const handleGenerateSelectedChapter = async () => {
+    if (!course || !selectedChapter) return;
+
+    setGeneratingChapter(true);
+    try {
+      const result = await generateCourseContent(course, setGeneratingChapter, {
+        chapterIndex: selectedChapterIndex,
+      });
+
+      if (!result.success) {
+        alert(result.error || "Failed to generate this chapter");
+        return;
+      }
+
+      await refreshGeneratedChapterIds();
+      await getChapterContent(selectedChapterIndex, course);
+      setShowPremiumCTA(false);
+    } catch (error) {
+      console.error("Failed to generate selected chapter:", error);
+      alert("Failed to generate this chapter");
+    } finally {
+      setGeneratingChapter(false);
+    }
+  };
+
   const navigateToLesson = (cIdx: number, sIdx: number) => {
-    if (!courseOutput?.chapters) return;
+    if (!course || !courseOutput?.chapters) return;
     const targetChapter = courseOutput.chapters[cIdx];
     if (!targetChapter) return;
+    const isGenerated = generatedChapterIds.includes(cIdx);
 
     setSelectedChapterIndex(cIdx);
     setSelectedChapter(targetChapter);
     setSelectedSubtopicIndex(sIdx);
+    setShowPremiumCTA(!isGenerated);
+    if (!isGenerated) {
+      setChapterContent(null);
+      setShowQuiz(false);
+      setQuizQuestions([]);
+    }
     
-    // Update URL without reloading
-    window.history.pushState(null, '', `?chapter=${cIdx}&subtopic=${sIdx}`);
+    router.push(`/course/${course.courseId}/start/${cIdx}/${sIdx}`);
     
     // Only fetch content if changing chapters
-    if (cIdx !== selectedChapterIndex) {
+    if (isGenerated && cIdx !== selectedChapterIndex) {
       getChapterContent(cIdx);
     }
   };
@@ -309,12 +367,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   const courseOutput = parseCourseOutput(course?.courseOutput);
   const totalChapters = courseOutput?.chapters?.length || 0;
-  const generatedUnlockedChapters = Math.min(generatedChapterCount || 0, totalChapters);
+  const generatedChapterSet = new Set(generatedChapterIds);
+  const generatedUnlockedChapters = Math.min(generatedChapterIds.length, totalChapters);
 
   const isLastChapter =
     !!course &&
     !!courseOutput?.chapters?.length &&
-    selectedChapterIndex >= generatedUnlockedChapters - 1;
+    generatedChapterIds.length === totalChapters &&
+    selectedChapterIndex >= totalChapters - 1;
 
   // Pre-calculate global subtopic offsets for progress tracking
   const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {
@@ -379,13 +439,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
             {selectedChapter && (
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <span className="font-medium text-slate-300">
-                  Chapter {Math.min(selectedChapterIndex + 1, generatedUnlockedChapters || 1)}/{generatedUnlockedChapters || 1}
+                  Chapter {selectedChapterIndex + 1}/{totalChapters || 1}
                 </span>
                 <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-700">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
-                      width: `${generatedUnlockedChapters > 0 ? (Math.min(selectedChapterIndex + 1, generatedUnlockedChapters) / generatedUnlockedChapters) * 100 : 0}%`,
+                      width: `${totalChapters > 0 ? ((selectedChapterIndex + 1) / totalChapters) * 100 : 0}%`,
                     }}
                   ></div>
                 </div>
@@ -450,7 +510,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
           {courseOutput?.chapters?.map((chapter: any, index: number) => {
             const isSelectedChapter = selectedChapter?.chapterName === chapter.chapterName;
             const isExpanded = expandedSidebarChapters.includes(index);
-            const isChapterFullyLocked = index >= generatedUnlockedChapters;
+            const isChapterGenerated = generatedChapterSet.has(index);
 
             return (
               <div key={index} className="border-b border-white/5 last:border-0 bg-slate-950">
@@ -459,7 +519,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                   className={`cursor-pointer transition-all duration-200 flex items-center justify-between p-3 group ${
                     isSelectedChapter
                       ? "border-l-4 border-primary bg-primary/5"
-                      : isChapterFullyLocked
+                      : !isChapterGenerated
                       ? "border-l-4 border-transparent hover:bg-slate-900/50 opacity-60"
                       : "border-l-4 border-transparent hover:bg-slate-900/50"
                   }`}
@@ -470,19 +530,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     );
                     
                     // Auto-select chapter if not locked
-                    if (!isChapterFullyLocked && !isSelectedChapter) {
-                      setSelectedChapter(chapter);
-                      setSelectedChapterIndex(index);
-                      setSelectedSubtopicIndex(0); // Reset to first subtopic when chapter clicked
-                      getChapterContent(index);
-                    } else if (isChapterFullyLocked) {
-                      setShowPremiumCTA(true);
+                    if (!isSelectedChapter) {
+                      navigateToLesson(index, 0);
                     }
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="transition-all duration-200">
-                      {isChapterFullyLocked ? (
+                      {!isChapterGenerated ? (
                         <FaLock className="text-amber-500/70" size={14} />
                       ) : isLessonCompleted(getGlobalSubtopicIndex(index, 0)) ? (
                         <FaCheckCircle className="text-green-500" size={16} />
@@ -509,7 +564,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     {chapter.subtopics.map((subtopic: string, sIdx: number) => {
                       const isSelectedSubtopic = isSelectedChapter && selectedSubtopicIndex === sIdx;
                       const globalSubtopicIdx = getGlobalSubtopicIndex(index, sIdx);
-                      const isSubtopicLocked = isChapterFullyLocked;
+                      const isSubtopicLocked = !isChapterGenerated;
                       
                       return (
                         <div
@@ -523,13 +578,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            if (isSubtopicLocked) {
-                              setShowPremiumCTA(true);
-                              // We don't want to actually change the lesson if locked
-                              return;
-                            }
                             navigateToLesson(index, sIdx);
-                            setShowPremiumCTA(false);
                             if (window.innerWidth < 1024) setSidebarOpen(false);
                           }}
                         >
@@ -570,16 +619,20 @@ const CourseStart = ({ params }: CourseStartProps) => {
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
                 <FaLock className="h-8 w-8 text-amber-500" />
               </div>
-              <h2 className="mb-4 text-3xl font-bold text-slate-100">Next Chapters Are Locked</h2>
+              <h2 className="mb-4 text-3xl font-bold text-slate-100">
+                Generate this chapter
+              </h2>
               <p className="mb-8 mx-auto max-w-lg text-lg text-slate-300">
-                This course is generated in batches. Finish the chapters that are already available, then go back to the course builder to generate the next 25% of the course.
+                The roadmap for this chapter is ready, but its lesson content has not been generated yet. Generate only this chapter when you are ready.
               </p>
-              <Link
-                href={`/create-course/${course?.courseId}`}
-                className="inline-flex rounded-lg bg-amber-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+              <Button
+                type="button"
+                onClick={handleGenerateSelectedChapter}
+                disabled={generatingChapter}
+                className="bg-amber-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
               >
-                Generate Next Chapters
-              </Link>
+                {generatingChapter ? "Generating chapter..." : "Generate This Chapter"}
+              </Button>
             </div>
           </div>
         ) : selectedChapter ? (

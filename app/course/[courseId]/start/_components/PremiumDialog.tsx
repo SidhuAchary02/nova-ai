@@ -25,7 +25,7 @@ export default function PremiumDialog({ open, onOpenChange }: PremiumDialogProps
             Unlock the Full Course
           </DialogTitle>
           <DialogDescription className="text-slate-300 text-center mt-4 text-base leading-relaxed">
-            You've reached the end of the free preview! Upgrade to Premium to unlock the remaining deep-dive lessons, interactive coding environments, and your completion certificate.
+            You&apos;ve reached the end of the free preview! Upgrade to Premium to unlock the remaining deep-dive lessons, interactive coding environments, and your completion certificate.
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 p-4 pt-2">

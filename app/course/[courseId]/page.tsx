@@ -152,7 +152,7 @@ export default function CoursePage({ params }: CourseParams) {
 
     setLoading(true);
     try {
-      const result = await generateCourseContent(course, setLoading);
+      const result = await generateCourseContent(course, setLoading, { initialCount: 3 });
       if (!result.success) {
         alert(result.error || "Failed to generate course content");
         return;
@@ -331,7 +331,7 @@ export default function CoursePage({ params }: CourseParams) {
                 disabled={loading}
                 className="bg-primary px-8 text-base font-semibold text-slate-950 hover:bg-primary/90"
               >
-                {loading ? "Creating your course…" : "Create my course"}
+                {loading ? "Generating first 3 chapters..." : "Start Course Generation"}
               </Button>
             )}
           </div>

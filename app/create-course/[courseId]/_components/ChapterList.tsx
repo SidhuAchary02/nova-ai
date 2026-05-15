@@ -144,7 +144,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                         return (
                           <SubtopicWrapper
                             key={sIdx}
-                            href={!edit && !isLocked ? `/course/${course.courseId}/start?chapter=${index}&subtopic=${sIdx}` : ""}
+                            href={!edit && !isLocked ? `/course/${course.courseId}/start/${index}/${sIdx}` : ""}
                             onClick={() => {
                               if (!edit && isLocked) setShowPremiumCTA(true);
                             }}

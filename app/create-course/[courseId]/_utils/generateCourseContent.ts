@@ -6,9 +6,15 @@ import { parseCourseOutput } from "@/utils/parseCourseOutput";
 // limit how many AI calls run at once
 const CONCURRENT_REQUESTS = 3;
 
+type GenerateCourseContentOptions = {
+  initialCount?: number;
+  chapterIndex?: number;
+};
+
 export const generateCourseContent = async (
   course: CourseType,
-  setLoading: (loading: boolean) => void
+  setLoading: (loading: boolean) => void,
+  options: GenerateCourseContentOptions = {}
 ) => {
   setLoading(true);
 
@@ -22,18 +28,52 @@ export const generateCourseContent = async (
 
     const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
     const generatedChapterIds = generatedProgress.success ? generatedProgress.chapterIds : [];
-    const startIndex = generatedProgress.success ? generatedProgress.contiguousGeneratedCount : 0;
-    const chaptersToGenerate = allChapters.slice(startIndex);
-    const batchSize = chaptersToGenerate.length;
+    const generatedChapterIdSet = new Set(generatedChapterIds);
+    const requestedChapterIndex =
+      typeof options.chapterIndex === "number" && options.chapterIndex >= 0
+        ? options.chapterIndex
+        : undefined;
 
-    if (chaptersToGenerate.length === 0) {
+    let chapterJobs: { chapter: any; chapterIndex: number }[] = [];
+
+    if (requestedChapterIndex !== undefined) {
+      const chapter = allChapters[requestedChapterIndex];
+      if (!chapter) {
+        return { success: false, error: "Chapter not found" };
+      }
+
+      if (generatedChapterIdSet.has(requestedChapterIndex)) {
+        return {
+          success: true,
+          successCount: 0,
+          totalChapters: allChapters.length,
+          generatedChapters: 0,
+          generatedChapterIds: [] as number[],
+          skipped: true,
+          chapterIndex: requestedChapterIndex,
+        };
+      }
+
+      chapterJobs = [{ chapter, chapterIndex: requestedChapterIndex }];
+    } else {
+      const initialCount =
+        typeof options.initialCount === "number" && options.initialCount > 0
+          ? options.initialCount
+          : allChapters.length;
+
+      chapterJobs = allChapters
+        .slice(0, initialCount)
+        .map((chapter: any, chapterIndex: number) => ({ chapter, chapterIndex }))
+        .filter(({ chapterIndex }) => !generatedChapterIdSet.has(chapterIndex));
+    }
+
+    if (chapterJobs.length === 0) {
       return { success: true, successCount: 0, totalChapters: allChapters.length };
     }
 
     // Flatten the selected chapter batch into subtopic jobs
     const flattenedSubtopics: { chapterIndex: number; chapterName: string; subtopicName: string; }[] = [];
-    chaptersToGenerate.forEach((chapter: any, offset: number) => {
-      const chapterIndex = startIndex + offset;
+    chapterJobs.forEach(({ chapter, chapterIndex }) => {
       const subtopics = chapter.subtopics || [];
       subtopics.forEach((subtopicName: string) => {
         flattenedSubtopics.push({ chapterIndex, chapterName: chapter.chapterName, subtopicName });
@@ -48,7 +88,7 @@ export const generateCourseContent = async (
     const subtopicsToGenerate = flattenedSubtopics;
 
     console.log(
-      `🚀 Generating ${subtopicsToGenerate.length} deep subtopic lessons across ${chaptersToGenerate.length} chapters...`
+      `Generating ${subtopicsToGenerate.length} deep subtopic lessons across ${chapterJobs.length} chapters...`
     );
 
     const generatedLessons: any[] = [];
@@ -116,9 +156,8 @@ export const generateCourseContent = async (
       success: true,
       successCount,
       totalChapters: allChapters.length,
-      generatedChapters: chaptersToGenerate.length,
-      startIndex,
-      batchSize,
+      generatedChapters: chapterJobs.length,
+      generatedChapterIds: chapterJobs.map(({ chapterIndex }) => chapterIndex),
     };
   } catch (e: unknown) {
     console.error("❌ generateCourseContent crashed:", e);
