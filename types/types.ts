@@ -227,6 +227,15 @@ export type SourceType = {
   description: string;
 };
 
+export type ChapterAnnotationType = {
+  id: string;
+  type: "bookmark" | "tag" | "sticky-note";
+  title: string;
+  body: string;
+  createdAt: string;
+  lessonIndex: number;
+};
+
 export type ChapterSectionType = {
   title: string;
   explanation: string;
@@ -240,6 +249,7 @@ export type ChapterContentType = {
   content: LessonSectionType[];
   videoId: string;
   sources?: SourceType[];
+  annotations?: ChapterAnnotationType[];
 };
 
 export type QuizQuestionType = {

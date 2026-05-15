@@ -3,8 +3,10 @@
 import { generateChapterContentMDX } from "@/configs/ai-models";
 import { getYoutubeVideos } from "@/configs/service";
 import { db } from "@/configs/db";
-import { CourseChapters } from "@/schema/schema";
+import { CourseChapters, CourseList } from "@/schema/schema";
 import { chapterContentBundleSchema } from "@/lib/validation/learningSchemas";
+import { eq } from "drizzle-orm";
+import { generateQuizAction } from "@/app/actions/generateQuiz";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -124,9 +126,69 @@ export async function saveGroupedChapterLessons(
   try {
     const query = `${chapterName} tutorial ${courseName} practical example`;
     const resp = await getYoutubeVideos(query);
-    let videoId = "";
-    if (resp?.length > 0 && resp[0]?.id?.videoId) {
-      videoId = resp[0].id.videoId;
+    const videoId = resp?.id?.videoId ?? "";
+
+    // Determine user learning goal for this course (if available)
+    let learningGoal: string | null = null;
+    try {
+      const rows = await db
+        .select({ learningGoal: CourseList.learningGoal })
+        .from(CourseList)
+        .where(eq(CourseList.courseId, courseId));
+      learningGoal = rows[0]?.learningGoal ?? null;
+    } catch (e) {
+      console.warn("Could not load course learningGoal:", e);
+    }
+
+    // Normalize goal for checks
+    const goalNorm = (learningGoal || "").toLowerCase();
+
+    // Optionally inject a quiz block for goals like 'get a job' or 'crack an exam'
+    const shouldAddQuiz = /job|interview|exam|cert/i.test(goalNorm);
+    const shouldAddPractice = /build|project/i.test(goalNorm);
+
+    // Helper: combine lesson markdown into plain text for quiz generation
+    const lessonText = lessons
+      .map((l: any) => {
+        if (typeof l === "string") return l;
+        if (typeof l === "object") return (l.title || "") + "\n" + (l.content || "");
+        return String(l);
+      })
+      .join("\n\n");
+
+    if (shouldAddQuiz) {
+      try {
+        const questions = await generateQuizAction(chapterName, courseName, lessonText.slice(0, 3000));
+        if (questions && questions.length > 0) {
+          const quizBlock = {
+            type: "quiz",
+            title: `Chapter Quiz: ${chapterName}`,
+            questions,
+          };
+          // insert quiz after a random topic index
+          const insertAt = Math.min(lessons.length, Math.max(1, Math.floor(Math.random() * (lessons.length + 1))));
+          lessons.splice(insertAt, 0, { title: `Quiz — ${chapterName}`, blocks: [quizBlock] });
+        }
+      } catch (e) {
+        console.warn("Quiz generation failed, continuing without quiz:", e);
+      }
+    }
+
+    if (shouldAddPractice) {
+      try {
+        // Create a simple practice task using chapter name
+        const taskText = `Build a small project that applies the core ideas from \"${chapterName}\". Deliver a minimal working example (code or short app) demonstrating the main concept. Suggested scope: 1–3 files, ~1–3 hours.`;
+        const practiceBlock = {
+          type: "practice",
+          title: `Mini task: apply ${chapterName}`,
+          tasks: [taskText],
+          note: "Small, hands-on exercise to reinforce the chapter concept.",
+        };
+        const insertAt = Math.min(lessons.length, Math.max(1, Math.floor(Math.random() * (lessons.length + 1))));
+        lessons.splice(insertAt, 0, { title: `Practice — ${chapterName}`, blocks: [practiceBlock] });
+      } catch (e) {
+        console.warn("Practice task generation failed:", e);
+      }
     }
 
     console.log(`📺 Video for chapter ${chapterIndex}:`, chapterName, videoId);

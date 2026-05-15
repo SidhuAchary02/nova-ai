@@ -1,5 +1,6 @@
 import { CourseType } from "@/types/types";
 import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
+import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 // limit how many AI calls run at once
@@ -19,9 +20,20 @@ export const generateCourseContent = async (
       return { success: false, error: "No chapters found" };
     }
 
-    // Flatten all subtopics into a 1D array
+    const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
+    const generatedChapterIds = generatedProgress.success ? generatedProgress.chapterIds : [];
+    const startIndex = generatedProgress.success ? generatedProgress.contiguousGeneratedCount : 0;
+    const batchSize = Math.max(1, Math.ceil(allChapters.length * 0.25));
+    const chaptersToGenerate = allChapters.slice(startIndex, startIndex + batchSize);
+
+    if (chaptersToGenerate.length === 0) {
+      return { success: true, successCount: 0, totalChapters: allChapters.length };
+    }
+
+    // Flatten the selected chapter batch into subtopic jobs
     const flattenedSubtopics: { chapterIndex: number; chapterName: string; subtopicName: string; }[] = [];
-    allChapters.forEach((chapter: any, chapterIndex: number) => {
+    chaptersToGenerate.forEach((chapter: any, offset: number) => {
+      const chapterIndex = startIndex + offset;
       const subtopics = chapter.subtopics || [];
       subtopics.forEach((subtopicName: string) => {
         flattenedSubtopics.push({ chapterIndex, chapterName: chapter.chapterName, subtopicName });
@@ -32,10 +44,12 @@ export const generateCourseContent = async (
       return { success: false, error: "No subtopics found to generate" };
     }
 
-    // Generate content for ALL subtopics
+    // Generate content for the next chapter batch only
     const subtopicsToGenerate = flattenedSubtopics;
 
-    console.log(`🚀 Generating ${subtopicsToGenerate.length} deep subtopic lessons...`);
+    console.log(
+      `🚀 Generating ${subtopicsToGenerate.length} deep subtopic lessons across ${chaptersToGenerate.length} chapters...`
+    );
 
     const generatedLessons: any[] = [];
 
@@ -96,7 +110,16 @@ export const generateCourseContent = async (
       );
     }
 
-    return { success: true };
+    const successCount = generatedLessons.length;
+
+    return {
+      success: true,
+      successCount,
+      totalChapters: allChapters.length,
+      generatedChapters: chaptersToGenerate.length,
+      startIndex,
+      batchSize,
+    };
   } catch (e: unknown) {
     console.error("❌ generateCourseContent crashed:", e);
     return { success: false, error: String(e) };

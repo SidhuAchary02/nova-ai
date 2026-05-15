@@ -9,6 +9,7 @@ import CertificateModal from "./_components/CertificateModal";
 import ScrollProgress from "@/components/ui/scroll-progress";
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { getChapterContentAction } from "@/app/actions/getChapterContent";
+import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
 import { markCourseAsCompletedAction } from "@/app/actions/courseEnhancements";
 import { toggleChapterCompletionAction } from "@/app/actions/toggleChapterCompletion";
 import { generateQuizAction, QuizQuestion } from "@/app/actions/generateQuiz";
@@ -46,6 +47,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [showCertificate, setShowCertificate] = useState(false);
   const [certificateData, setCertificateData] = useState<any>(null);
   const [showPremiumCTA, setShowPremiumCTA] = useState(false);
+  const [generatedChapterCount, setGeneratedChapterCount] = useState(0);
   
   // Accordion state for sidebar
   const [expandedSidebarChapters, setExpandedSidebarChapters] = useState<number[]>([0]);
@@ -59,7 +61,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
     const resolvedCourse = activeCourse ?? course;
     if (!resolvedCourse) return;
 
-    if (chapterId > 4) {
+    if (chapterId >= generatedChapterCount) {
       setShowPremiumCTA(true);
       return;
     }
@@ -88,6 +90,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
       // Load quiz passed chapters from database
       const passedChapters = await getQuizPassedChaptersAction(params.courseId);
       setQuizPassedChapters(passedChapters);
+
+      const generatedProgress = await getGeneratedChapterIdsAction(params.courseId);
+      const unlockedCount = generatedProgress.success ? generatedProgress.contiguousGeneratedCount : 0;
+      setGeneratedChapterCount(unlockedCount);
       
       if (currentCourse.isPublished) {
         const parsed = parseCourseOutput(currentCourse.courseOutput);
@@ -109,7 +115,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
           setSelectedChapterIndex(initialChapterIdx);
           setSelectedSubtopicIndex(initialSubtopicIdx);
           setQuizPassed(passedChapters.includes(initialChapterIdx));
-          await getChapterContent(initialChapterIdx, currentCourse);
+          if (initialChapterIdx >= unlockedCount) {
+            setShowPremiumCTA(true);
+          } else {
+            await getChapterContent(initialChapterIdx, currentCourse);
+          }
         }
       }
     } catch (e) {
@@ -121,6 +131,31 @@ const CourseStart = ({ params }: CourseStartProps) => {
     params && getCourse();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params]);
+
+  useEffect(() => {
+    if (course && !course.isPublished) {
+      router.replace(`/course/${course.courseId}`);
+    }
+  }, [course, router]);
+
+  useEffect(() => {
+    if (!selectedChapter || !chapterContent || showPremiumCTA) return;
+
+    const targetId = `subtopic-${selectedChapterIndex}-${selectedSubtopicIndex}`;
+
+    const scrollToTarget = () => {
+      const targetElement = document.getElementById(targetId);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+
+    const firstFrame = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(scrollToTarget);
+    });
+
+    return () => window.cancelAnimationFrame(firstFrame);
+  }, [chapterContent, selectedChapter, selectedChapterIndex, selectedSubtopicIndex, showPremiumCTA]);
 
   if (!course) return (
     <div className="min-h-screen">
@@ -150,9 +185,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   // Check if course content has been generated
   if (!course.isPublished) {
-    if (typeof window !== "undefined") {
-        router.replace(`/course/${course.courseId}`);
-    }
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-slate-400">Redirecting to course layout...</p>
@@ -281,14 +313,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
     if (selectedSubtopicIndex < subtopicsCount - 1) {
       const nextGlobalIdx = getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex + 1);
-      if (nextGlobalIdx > 4) {
+      if (selectedChapterIndex >= generatedChapterCount) {
         setShowPremiumCTA(true);
         return;
       }
       navigateToLesson(selectedChapterIndex, selectedSubtopicIndex + 1);
     } else if (selectedChapterIndex < courseOutput.chapters.length - 1) {
-      const nextGlobalIdx = getGlobalSubtopicIndex(selectedChapterIndex + 1, 0);
-      if (nextGlobalIdx > 4) {
+      if (selectedChapterIndex + 1 >= generatedChapterCount) {
         setShowPremiumCTA(true);
         return;
       }
@@ -297,11 +328,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   const courseOutput = parseCourseOutput(course?.courseOutput);
+  const totalChapters = courseOutput?.chapters?.length || 0;
+  const generatedUnlockedChapters = Math.min(generatedChapterCount || 0, totalChapters);
 
   const isLastChapter =
     !!course &&
     !!courseOutput?.chapters?.length &&
-    selectedChapterIndex >= courseOutput.chapters.length - 1;
+    selectedChapterIndex >= generatedUnlockedChapters - 1;
 
   // Pre-calculate global subtopic offsets for freemium lock
   const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {
@@ -377,13 +410,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
             {selectedChapter && (
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <span className="font-medium text-slate-300">
-                  Chapter {Math.min(selectedChapterIndex + 1, 5)}/{Math.min(courseOutput?.chapters?.length || 0, 5)}
+                  Chapter {Math.min(selectedChapterIndex + 1, generatedUnlockedChapters || 1)}/{generatedUnlockedChapters || 1}
                 </span>
                 <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-700">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
-                      width: `${((Math.min(selectedChapterIndex + 1, 5)) / (Math.min(courseOutput?.chapters?.length || 1, 5))) * 100}%`,
+                      width: `${generatedUnlockedChapters > 0 ? (Math.min(selectedChapterIndex + 1, generatedUnlockedChapters) / generatedUnlockedChapters) * 100 : 0}%`,
                     }}
                   ></div>
                 </div>
@@ -434,12 +467,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
         {/* Progress Bar */}
         <div className="border-b border-white/10 bg-slate-900/50 p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-slate-200">Free Tier Progress</span>
+            <span className="text-sm font-semibold text-slate-200">Generated Chapters Progress</span>
             <span className="text-sm font-bold text-primary">{calculateProgress()}%</span>
           </div>
           <Progress value={calculateProgress()} className="h-2" />
           <p className="mt-2 text-xs text-slate-400">
-            {completedChapters.filter(c => c <= 4).length} of {Math.min(courseOutput?.chapters?.length || 0, 5)} free chapters
+            {completedChapters.filter(c => c < generatedUnlockedChapters).length} of {generatedUnlockedChapters} generated chapters completed
           </p>
         </div>
         
@@ -448,10 +481,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
           {courseOutput?.chapters?.map((chapter: any, index: number) => {
             const isSelectedChapter = selectedChapter?.chapterName === chapter.chapterName;
             const isExpanded = expandedSidebarChapters.includes(index);
-            
-            // A chapter is locked if its FIRST subtopic is locked
-            const firstSubtopicGlobalIndex = getGlobalSubtopicIndex(index, 0);
-            const isChapterFullyLocked = firstSubtopicGlobalIndex > 4;
+            const isChapterFullyLocked = index >= generatedUnlockedChapters;
 
             return (
               <div key={index} className="border-b border-white/5 last:border-0 bg-slate-950">
@@ -476,6 +506,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
                       setSelectedChapterIndex(index);
                       setSelectedSubtopicIndex(0); // Reset to first subtopic when chapter clicked
                       getChapterContent(index);
+                    } else if (isChapterFullyLocked) {
+                      setShowPremiumCTA(true);
                     }
                   }}
                 >
@@ -483,7 +515,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     <div className="transition-all duration-200">
                       {isChapterFullyLocked ? (
                         <FaLock className="text-amber-500/70" size={14} />
-                      ) : isLessonCompleted(firstSubtopicGlobalIndex) ? (
+                      ) : isLessonCompleted(getGlobalSubtopicIndex(index, 0)) ? (
                         <FaCheckCircle className="text-green-500" size={16} />
                       ) : (
                         <div className={`w-2 h-2 rounded-full transition-colors ${
@@ -508,7 +540,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     {chapter.subtopics.map((subtopic: string, sIdx: number) => {
                       const isSelectedSubtopic = isSelectedChapter && selectedSubtopicIndex === sIdx;
                       const globalSubtopicIdx = getGlobalSubtopicIndex(index, sIdx);
-                      const isSubtopicLocked = globalSubtopicIdx > 4;
+                      const isSubtopicLocked = isChapterFullyLocked;
                       
                       return (
                         <div
@@ -569,13 +601,16 @@ const CourseStart = ({ params }: CourseStartProps) => {
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
                 <FaLock className="h-8 w-8 text-amber-500" />
               </div>
-              <h2 className="mb-4 text-3xl font-bold text-slate-100">Unlock the Full Course</h2>
+              <h2 className="mb-4 text-3xl font-bold text-slate-100">Next Chapters Are Locked</h2>
               <p className="mb-8 mx-auto max-w-lg text-lg text-slate-300">
-                You've reached the end of the free preview! Upgrade to Premium to unlock the remaining chapters, advanced practical examples, and your completion certificate.
+                This course is generated in batches. Finish the chapters that are already available, then go back to the course builder to generate the next 25% of the course.
               </p>
-              <Button className="bg-amber-500 text-slate-950 hover:bg-amber-400 px-8 py-6 text-lg font-bold shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]">
-                Upgrade to Premium
-              </Button>
+              <Link
+                href={`/create-course/${course?.courseId}`}
+                className="inline-flex rounded-lg bg-amber-500 px-8 py-4 text-lg font-bold text-slate-950 shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+              >
+                Generate Next Chapters
+              </Link>
             </div>
           </div>
         ) : selectedChapter ? (
@@ -676,22 +711,41 @@ const CourseStart = ({ params }: CourseStartProps) => {
               </div>
             )}
             
-            {/* Show "Mark Course as Complete" button on last chapter */}
+            {/* End of generated batch / full completion */}
             {isLastChapter && quizPassed && (
               <div className="mx-auto mb-10 flex max-w-4xl flex-col items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/80 to-slate-800/70 px-4 py-8">
-                <h2 className="mb-4 text-2xl font-bold text-slate-100">
-                  🎉 Congratulations!
-                </h2>
-                <p className="mb-6 max-w-md text-center text-slate-300">
-                  You&apos;ve reached the end of this course. Mark it as completed to track your progress!
-                </p>
-                <Button
-                  onClick={handleMarkAsComplete}
-                  disabled={completingCourse}
-                  className="bg-primary px-8 py-3 text-lg text-slate-950 hover:bg-primary/90"
-                >
-                  {completingCourse ? "Completing..." : "✓ Mark Course as Complete"}
-                </Button>
+                {generatedUnlockedChapters < totalChapters ? (
+                  <>
+                    <h2 className="mb-4 text-2xl font-bold text-slate-100">
+                      Ready for the Next Batch
+                    </h2>
+                    <p className="mb-6 max-w-md text-center text-slate-300">
+                      You finished everything that is currently generated. Go back to the course builder and generate the next set of chapters.
+                    </p>
+                    <Link
+                      href={`/create-course/${course?.courseId}`}
+                      className="rounded-lg bg-primary px-8 py-3 text-lg font-semibold text-slate-950 hover:bg-primary/90"
+                    >
+                      Generate Next Chapters
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="mb-4 text-2xl font-bold text-slate-100">
+                      🎉 Congratulations!
+                    </h2>
+                    <p className="mb-6 max-w-md text-center text-slate-300">
+                      You&apos;ve reached the end of this course. Mark it as completed to track your progress!
+                    </p>
+                    <Button
+                      onClick={handleMarkAsComplete}
+                      disabled={completingCourse}
+                      className="bg-primary px-8 py-3 text-lg text-slate-950 hover:bg-primary/90"
+                    >
+                      {completingCourse ? "Completing..." : "✓ Mark Course as Complete"}
+                    </Button>
+                  </>
+                )}
               </div>
             )}
             

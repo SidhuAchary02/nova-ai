@@ -60,6 +60,20 @@ export async function getChapterContentAction(chapterId: number, courseId: strin
       if (!plainObj.sources || !Array.isArray(plainObj.sources)) {
         plainObj.sources = [];
       }
+
+      // Ensure annotations is always an array
+      if (typeof plainObj.annotations === "string") {
+        try {
+          plainObj.annotations = JSON.parse(plainObj.annotations);
+        } catch (e) {
+          console.error("Failed to parse annotations field:", e);
+          plainObj.annotations = [];
+        }
+      }
+
+      if (!plainObj.annotations || !Array.isArray(plainObj.annotations)) {
+        plainObj.annotations = [];
+      }
       
       console.log("📖 Final object being returned:", { 
         hasSources: !!plainObj.sources, 

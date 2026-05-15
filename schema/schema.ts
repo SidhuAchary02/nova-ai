@@ -78,6 +78,7 @@ export const CourseChapters = pgTable(
     content: json("content").notNull(),
     videoId: varchar("videoId").notNull(),
     sources: json("sources").default([]), // Array of {title, url, description}
+    annotations: jsonb("annotations").default([]), // Array of chapter note objects
   },
   (table) => ({
     courseChapterUniq: uniqueIndex("course_chapters_course_chapter_uidx").on(
