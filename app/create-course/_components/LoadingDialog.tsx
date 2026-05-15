@@ -48,9 +48,9 @@ const LoadingDialog = ({ loading, variant = "roadmap" }: { loading: boolean; var
 
   return (
     <AlertDialog open={loading}>
-      <AlertDialogContent className="border-white/10 bg-slate-900/95 max-w-md overflow-hidden">
+      <AlertDialogContent className="border-black/5 bg-white/95 max-w-md overflow-hidden">
         <AlertDialogHeader className="flex flex-col items-center p-8 space-y-6">
-          <AlertDialogTitle className="text-center text-slate-100 sr-only">
+          <AlertDialogTitle className="text-center text-nova-heading sr-only">
             {variant === "course" ? "Creating your course" : "Generating roadmap"}
           </AlertDialogTitle>
           <AlertDialogDescription className="flex flex-col items-center space-y-8 w-full">
@@ -73,13 +73,13 @@ const LoadingDialog = ({ loading, variant = "roadmap" }: { loading: boolean; var
             
             <div className="w-full space-y-4">
               <div className="h-8 flex items-center justify-center">
-                <p className="text-base font-medium text-slate-200 animate-fade-in-out transition-all duration-300 text-center">
+                <p className="text-base font-medium text-nova-heading animate-fade-in-out transition-all duration-300 text-center">
                   {messages[messageIndex]}
                 </p>
               </div>
               
               {variant === "course" && (
-                <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div className="w-full bg-gray-50 rounded-full h-1.5 overflow-hidden">
                   <div 
                     className="bg-primary h-1.5 rounded-full transition-all ease-linear"
                     style={{ 

@@ -20,7 +20,7 @@ const UserToolTip = ({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <p className="flex items-center justify-center gap-2 text-slate-300">
+          <p className="flex items-center justify-center gap-2 text-nova-body">
             Course by
             <NameChip name={username} maxLength={14} />
           </p>

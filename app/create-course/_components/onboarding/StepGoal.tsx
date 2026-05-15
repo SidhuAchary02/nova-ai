@@ -66,10 +66,10 @@ export function StepGoal({ selected, customNote, onSelect, onCustomChange }: Pro
       </div>
 
       <div>
-        <h2 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-nova-heading sm:text-4xl">
           Why are you learning this?
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-nova-body">
           This helps us prioritize depth, pace, and what to emphasize in your roadmap.
         </p>
       </div>
@@ -85,31 +85,31 @@ export function StepGoal({ selected, customNote, onSelect, onCustomChange }: Pro
               onClick={() => onSelect(c.goal)}
               className={`flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${
                 active
-                  ? "border-primary bg-gradient-to-br from-primary/20 via-slate-900/80 to-slate-950 shadow-[0_0_32px_rgba(250,204,21,0.08)]"
-                  : "border-white/10 bg-slate-900/50 hover:border-white/20 hover:bg-slate-900/70"
+                  ? "border-nova-primary bg-nova-primary/10 shadow-sm"
+                  : "border-black/5 bg-white hover:border-black/10 hover:bg-gray-50"
               }`}
             >
               <Icon
-                className={`mb-3 h-8 w-8 ${active ? "text-primary" : "text-slate-500"}`}
+                className={`mb-3 h-8 w-8 ${active ? "text-nova-primary" : "text-gray-400"}`}
               />
-              <span className="text-lg font-semibold text-slate-100">{c.title}</span>
-              <span className="mt-1 text-sm text-slate-400">{c.subtitle}</span>
+              <span className="text-lg font-bold text-nova-heading">{c.title}</span>
+              <span className="mt-1 text-sm text-nova-body">{c.subtitle}</span>
             </button>
           );
         })}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-white/15 bg-slate-950/40 p-5">
-        <label className="text-sm font-medium text-slate-300">
+      <div className="rounded-2xl border border-dashed border-black/10 bg-nova-bg/40 p-5">
+        <label className="text-sm font-medium text-nova-body">
           Something more specific? (optional)
         </label>
         <Input
           value={customNote}
           onChange={(e) => onCustomChange(e.target.value)}
           placeholder='e.g. "FAANG interviews" or "AWS Solutions Architect"'
-          className="mt-2 h-11 border-white/15 bg-slate-900/80 text-slate-100"
+          className="mt-2 h-11 border-black/10 bg-white/80 text-nova-heading"
         />
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-gray-400">
           We&apos;ll weave this into your course description for the AI.
         </p>
       </div>

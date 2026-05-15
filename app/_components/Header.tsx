@@ -20,23 +20,23 @@ const Header = () => {
 
   return (
     <header className="section-shell pt-4">
-      <div className="glass-panel flex items-center justify-between rounded-2xl px-4 py-3 sm:px-6">
+      <div className="bg-white border border-black/5 shadow-soft flex items-center justify-between rounded-2xl px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-3">
-          <div className="rounded-lg border border-white/20 bg-slate-900/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
+          <div className="rounded-lg border border-black/10 bg-white/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
             NOVA
           </div>
           <div>
-            <p className="text-sm font-semibold tracking-wide text-slate-100">
+            <p className="text-sm font-semibold tracking-wide text-nova-heading">
               Nova AI Studio
             </p>
-            <p className="text-xs text-slate-400">Build smart courses faster</p>
+            <p className="text-xs text-nova-body">Build smart courses faster</p>
           </div>
         </Link>
 
         {!user ? (
           <div className="flex items-center gap-2">
             <Link href="/sign-in">
-              <Button variant="ghost" className="text-slate-200 hover:bg-white/10 hover:text-white">
+              <Button variant="ghost" className="text-nova-heading hover:bg-black/5 hover:text-nova-primary">
                 Sign in
               </Button>
             </Link>
@@ -46,7 +46,7 @@ const Header = () => {
           </div>
         ) : (
           <Link href="/dashboard">
-            <Button className="bg-primary text-slate-950 hover:bg-primary/90">Dashboard</Button>
+            <Button className="bg-primary text-white hover:bg-primary/90">Dashboard</Button>
           </Link>
         )}
       </div>

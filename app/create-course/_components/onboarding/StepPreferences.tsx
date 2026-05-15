@@ -24,10 +24,10 @@ export function StepPreferences({ selected, onToggle }: Props) {
       </div>
 
       <div>
-        <h2 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-nova-heading sm:text-4xl">
           How do you like to learn?
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-nova-body">
           Pick everything that sounds good — we&apos;ll blend formats so it never feels one-note.
         </p>
       </div>
@@ -43,22 +43,22 @@ export function StepPreferences({ selected, onToggle }: Props) {
               className={`relative flex flex-col rounded-2xl border p-5 text-left transition-all ${
                 on
                   ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                  : "border-white/10 bg-slate-900/50 hover:border-white/20"
+                  : "border-black/5 bg-white/50 hover:border-black/10"
               }`}
             >
               {on && (
-                <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-slate-950">
+                <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-white">
                   <FaCheck className="h-3.5 w-3.5" />
                 </span>
               )}
-              <span className="text-lg font-semibold text-slate-100">{card.label}</span>
-              <span className="mt-2 text-sm text-slate-400">{card.helper}</span>
+              <span className="text-lg font-semibold text-nova-heading">{card.label}</span>
+              <span className="mt-2 text-sm text-nova-body">{card.helper}</span>
             </button>
           );
         })}
       </div>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-gray-400">
         Default: all selected — tap to narrow your mix.
       </p>
     </motion.div>

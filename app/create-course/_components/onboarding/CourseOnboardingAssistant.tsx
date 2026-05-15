@@ -241,24 +241,24 @@ export function CourseOnboardingAssistant({
   return (
     <div className="mx-auto flex min-h-[58vh] w-full max-w-3xl flex-col">
       <header className="mb-8 text-center">
-        <h1 className="text-balance text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
+        <h1 className="text-balance text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
           Create Your Personalized AI Course
         </h1>
-        <p className="mx-auto mt-3 max-w-lg text-base text-slate-400">
+        <p className="mx-auto mt-3 max-w-lg text-base text-nova-body">
           Answer a few questions — we&apos;ll shape your roadmap and course structure for you.
         </p>
       </header>
 
       <div className="mb-8 space-y-3">
         <div className="flex items-center justify-between gap-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
             Your AI learning assistant
           </p>
-          <span className="text-xs tabular-nums text-slate-400">
+          <span className="text-xs tabular-nums text-nova-body">
             {step + 1} / {stepperOptions.length}
           </span>
         </div>
-        <Progress value={progressValue} className="h-1.5 bg-slate-800" />
+        <Progress value={progressValue} className="h-1.5 bg-gray-50" />
         <div className="flex justify-between gap-1 overflow-x-auto pb-1">
           {stepperOptions.map((opt, i) => (
             <div
@@ -270,15 +270,15 @@ export function CourseOnboardingAssistant({
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-full text-xs ${
                   i === step
-                    ? "bg-primary text-slate-950"
+                    ? "bg-primary text-white"
                     : i < step
                       ? "bg-primary/30 text-primary"
-                      : "bg-slate-800 text-slate-500"
+                      : "bg-gray-50 text-gray-400"
                 }`}
               >
                 <opt.icon className="h-3.5 w-3.5" />
               </div>
-              <span className="mt-1 hidden truncate text-[10px] text-slate-500 sm:block">
+              <span className="mt-1 hidden truncate text-[10px] text-gray-400 sm:block">
                 {opt.shortLabel}
               </span>
             </div>
@@ -360,14 +360,14 @@ export function CourseOnboardingAssistant({
 
       <motion.div
         initial={false}
-        className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between"
+        className="mt-10 flex flex-col gap-3 border-t border-black/5 pt-8 sm:flex-row sm:items-center sm:justify-between"
       >
         <Button
           type="button"
           variant="outline"
           onClick={handleBack}
           disabled={step === 0 || loading}
-          className="border-white/20 bg-slate-900/50 text-slate-200"
+          className="border-black/10 bg-white/50 text-nova-heading"
         >
           Back
         </Button>
@@ -383,7 +383,7 @@ export function CourseOnboardingAssistant({
                 onLegacyGenerate(merged);
               }}
               disabled={loading}
-              className="border-white/20 text-slate-300"
+              className="border-black/10 text-nova-body"
             >
               Legacy: one-shot layout
             </Button>
@@ -394,7 +394,7 @@ export function CourseOnboardingAssistant({
               type="button"
               onClick={handleNext}
               disabled={!allowNext() || loading}
-              className="bg-primary text-slate-950 hover:bg-primary/90"
+              className="bg-primary text-white hover:bg-primary/90"
             >
               Continue
             </Button>
@@ -403,7 +403,7 @@ export function CourseOnboardingAssistant({
               type="button"
               onClick={handleGenerate}
               disabled={loading}
-              className="gap-2 bg-primary text-slate-950 hover:bg-primary/90"
+              className="gap-2 bg-primary text-white hover:bg-primary/90"
             >
               <FaWandMagicSparkles />
               Generate roadmap

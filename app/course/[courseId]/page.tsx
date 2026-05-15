@@ -42,17 +42,17 @@ function ChapterRoadmapCard({
 
   return (
     <section className="relative pl-10 sm:pl-12">
-      <div className="absolute left-0 top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-slate-950 sm:h-8 sm:w-8">
+      <div className="absolute left-0 top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-nova-bg sm:h-8 sm:w-8">
         <span className="text-xs font-bold text-primary">{index + 1}</span>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-slate-900/50 p-5 sm:p-6">
+      <div className="rounded-2xl border border-black/5 bg-white/50 p-5 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h3 className="text-xl font-semibold text-slate-100">
+            <h3 className="text-xl font-semibold text-nova-heading">
               {chapter.chapterName}
             </h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-gray-400">
               {chapter.duration ? formatDuration(chapter.duration) : "—"}
               {hasSubtopics ? ` · ${subtopics.length} lessons` : " · 0 lessons"}
             </p>
@@ -60,8 +60,8 @@ function ChapterRoadmapCard({
           <button
             type="button"
             onClick={() => hasSubtopics && setExpanded((prev) => !prev)}
-            className={`inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-slate-950/80 px-3 py-1 text-xs font-medium text-slate-300 ${
-              hasSubtopics ? "hover:border-primary/30 hover:text-slate-100" : "opacity-70"
+            className={`inline-flex w-fit items-center gap-2 rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body ${
+              hasSubtopics ? "hover:border-primary/30 hover:text-nova-heading" : "opacity-70"
             }`}
           >
             {hasSubtopics ? (
@@ -88,13 +88,13 @@ function ChapterRoadmapCard({
                 {subtopics.map((subtopic, subIndex) => (
                   <div
                     key={`${subtopic}-${subIndex}`}
-                    className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-950/60 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-black/5 bg-nova-bg/60 px-4 py-3"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/10 text-[10px] font-semibold text-slate-400">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-black/5 text-[10px] font-semibold text-nova-body">
                         {subIndex + 1}
                       </div>
-                      <span className="truncate text-sm text-slate-200">
+                      <span className="truncate text-sm text-nova-heading">
                         {subtopic}
                       </span>
                     </div>
@@ -170,46 +170,46 @@ export default function CoursePage({ params }: CourseParams) {
 
   if (!course) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
+      <div className="flex min-h-screen items-center justify-center bg-nova-bg text-nova-body">
         Loading course...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 pb-16">
-      <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+    <div className="min-h-screen bg-nova-bg pb-16">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => router.push("/")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading"
             >
               Home
             </button>
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading"
             >
               Dashboard
             </button>
             <button
               type="button"
               onClick={() => router.push("/create-course")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-slate-800"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
             >
               Create Course
             </button>
           </div>
           <div className="flex items-center gap-3">
             {isPublished ? (
-              <span className="rounded-full border border-emerald-300/20 bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-200 md:text-sm">
+              <span className="rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 shadow-sm md:text-sm">
                 Published ✓
               </span>
             ) : (
-              <span className="rounded-full border border-amber-300/20 bg-amber-500/20 px-3 py-1 text-xs font-medium text-amber-200 md:text-sm">
+              <span className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 shadow-sm md:text-sm">
                 Roadmap ready
               </span>
             )}
@@ -220,58 +220,58 @@ export default function CoursePage({ params }: CourseParams) {
       <div className="section-shell mt-20">
         <LoadingDialog loading={loading} />
 
-        <div className="space-y-10 rounded-[28px] border border-white/10 bg-[#060816] px-6 py-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:px-10 sm:py-10">
+        <div className="space-y-10 rounded-[28px] border border-black/5 bg-white px-6 py-8 shadow-soft sm:px-10 sm:py-10">
           <header className="text-center sm:text-left">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
               Your personalized plan
             </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
               Learning roadmap
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+            <p className="mt-2 max-w-2xl text-sm text-nova-body">
               A structured path from where you are today to the outcomes you chose — optimized for your time and goals.
             </p>
           </header>
 
-          <div className="grid gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/90 via-slate-950/80 to-slate-950 p-6 sm:grid-cols-5 sm:p-8">
+          <div className="grid gap-4 rounded-2xl border border-black/5 bg-nova-bg shadow-sm p-6 sm:grid-cols-5 sm:p-8">
             <div className="text-center sm:text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Skill Level
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-50">
+              <p className="mt-2 text-2xl font-bold tabular-nums text-nova-heading">
                 {normalizeLevel(course.learningCurrentLevel || course.level)}
               </p>
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Duration
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-50">
+              <p className="mt-2 text-2xl font-bold tabular-nums text-nova-heading">
                 {durationLabel}
               </p>
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Daily effort
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-50">
+              <p className="mt-2 text-2xl font-bold tabular-nums text-nova-heading">
                 {formatHours(dailyHours)}
                 <span className="ml-1 text-base font-semibold text-primary">hrs/day</span>
               </p>
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Chapters
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-50">
+              <p className="mt-2 text-2xl font-bold tabular-nums text-nova-heading">
                 {chapterCount}
               </p>
             </div>
             <div className="text-center sm:text-left">
-              <p className="text-xs font-medium uppercase tracking-wider text-slate-500">
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Video Included
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-50">
+              <p className="mt-2 text-2xl font-bold tabular-nums text-nova-heading">
                 {typeof course.isVideo === "string"
                   ? course.isVideo
                   : typeof course.isVideo === "object" && course.isVideo?.value
@@ -281,7 +281,7 @@ export default function CoursePage({ params }: CourseParams) {
             </div>
           </div>
 
-          <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-center text-sm text-slate-300">
+          <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-center text-sm text-nova-body">
             <span className="font-medium text-primary">Note:</span> This plan is optimized based on your goals and time availability.
           </p>
 
@@ -295,23 +295,23 @@ export default function CoursePage({ params }: CourseParams) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5 sm:p-6">
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-slate-400">
+          <div className="rounded-2xl border border-black/5 bg-white/40 p-5 sm:p-6">
+            <h4 className="text-sm font-semibold uppercase tracking-wider text-nova-body">
               Why this roadmap?
             </h4>
-            <p className="mt-4 text-sm leading-relaxed text-slate-300">
+            <p className="mt-4 text-sm leading-relaxed text-nova-body">
               This roadmap is derived from the course inputs you provided earlier. Daily effort is taken from your onboarding profile, while chapter count and duration come from the generated course structure.
             </p>
           </div>
 
-          <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
+          <div className="flex flex-col-reverse gap-3 border-t border-black/5 pt-8 sm:flex-row sm:justify-between">
             {!isPublished && (
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => router.push("/create-course")}
                 disabled={loading}
-                className="border-white/20 bg-transparent text-slate-200 hover:bg-white/5"
+                className="border-black/10 bg-transparent text-nova-heading hover:bg-white/5"
               >
                 Modify plan
               </Button>
@@ -320,7 +320,7 @@ export default function CoursePage({ params }: CourseParams) {
               <Button
                 type="button"
                 onClick={() => router.push(`/course/${params.courseId}/start`)}
-                className="bg-primary px-8 text-base font-semibold text-slate-950 hover:bg-primary/90"
+                className="bg-primary px-8 text-base font-semibold text-white hover:bg-primary/90"
               >
                 Start course
               </Button>
@@ -329,7 +329,7 @@ export default function CoursePage({ params }: CourseParams) {
                 type="button"
                 onClick={handleGenerateCourseContent}
                 disabled={loading}
-                className="bg-primary px-8 text-base font-semibold text-slate-950 hover:bg-primary/90"
+                className="bg-primary px-8 text-base font-semibold text-white hover:bg-primary/90"
               >
                 {loading ? "Generating first 3 chapters..." : "Start Course Generation"}
               </Button>

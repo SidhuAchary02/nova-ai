@@ -50,12 +50,12 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
     );
   };
 
-  if (!course) return <p className="text-slate-300">No course available.</p>;
+  if (!course) return <p className="text-nova-body">No course available.</p>;
 
   const courseOutput = parseCourseOutput(course.courseOutput);
 
   if (!courseOutput?.chapters?.length) {
-    return <p className="text-slate-300">No chapters available.</p>;
+    return <p className="text-nova-body">No chapters available.</p>;
   }
 
   const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {
@@ -69,7 +69,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
   return (
     <div className="mt-8">
       <PremiumDialog open={showPremiumCTA} onOpenChange={setShowPremiumCTA} />
-      <h2 className="text-2xl font-semibold text-slate-100 mb-6">Course Lessons</h2>
+      <h2 className="text-2xl font-semibold text-nova-heading mb-6">Course Lessons</h2>
 
       <div className="space-y-4">
         {courseOutput.chapters.map((chapter: any, index: number) => {
@@ -79,7 +79,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
             <div
               key={index}
               className={`rounded-xl border transition-all duration-300 ${
-                isExpanded ? "border-primary/30 bg-slate-900/60" : "border-white/10 bg-slate-900/40 hover:bg-slate-900/60 hover:border-white/20"
+                isExpanded ? "border-primary/30 bg-white/60" : "border-black/5 bg-white/40 hover:bg-white/60 hover:border-black/10"
               }`}
             >
               {/* Header */}
@@ -89,16 +89,16 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
               >
                 <div className="flex gap-4 items-center min-w-0">
                   <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-full font-bold text-lg border transition-colors ${
-                    isExpanded ? "bg-primary/20 text-primary border-primary/30" : "bg-slate-800 text-slate-300 border-white/10"
+                    isExpanded ? "bg-primary/20 text-primary border-primary/30" : "bg-gray-50 text-nova-body border-black/5"
                   }`}>
                     {index + 1}
                   </div>
                   <div className="min-w-0">
-                    <h3 className={`text-lg font-bold leading-tight truncate ${isExpanded ? "text-slate-100" : "text-slate-300"}`}>
+                    <h3 className={`text-lg font-bold leading-tight truncate ${isExpanded ? "text-nova-heading" : "text-nova-body"}`}>
                       {chapter.chapterName}
                     </h3>
                     {chapter.duration && (
-                      <div className="flex items-center gap-1.5 mt-1 text-xs font-medium text-slate-500">
+                      <div className="flex items-center gap-1.5 mt-1 text-xs font-medium text-gray-400">
                         <LuTimer /> {formatDuration(chapter.duration)} • {chapter.subtopics?.length || 0} Lessons
                       </div>
                     )}
@@ -115,7 +115,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                       />
                     </div>
                   )}
-                  <div className={`p-2 rounded-full transition-colors ${isExpanded ? "bg-primary/10 text-primary" : "bg-slate-800 text-slate-400"}`}>
+                  <div className={`p-2 rounded-full transition-colors ${isExpanded ? "bg-primary/10 text-primary" : "bg-gray-50 text-nova-body"}`}>
                     {isExpanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
                   </div>
                 </div>
@@ -124,7 +124,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
               {/* Expandable Content */}
               {isExpanded && (
                 <div className="px-5 pb-6 sm:px-6 sm:pb-6 pt-2 animate-in slide-in-from-top-2 fade-in duration-200">
-                  <p className="text-sm text-slate-400 leading-relaxed max-w-3xl mb-6 pl-14">
+                  <p className="text-sm text-nova-body leading-relaxed max-w-3xl mb-6 pl-14">
                     {chapter.description}
                   </p>
 
@@ -150,8 +150,8 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                             }}
                             className={`flex items-center justify-between p-3.5 rounded-xl border ${
                               isLocked 
-                                ? "bg-slate-950/50 border-white/5 opacity-75 cursor-pointer hover:bg-slate-900/50" 
-                                : "bg-slate-800/40 border-white/5 hover:bg-slate-800/80 hover:border-primary/30 transition-all cursor-pointer group"
+                                ? "bg-nova-bg/50 border-black/5 opacity-75 cursor-pointer hover:bg-white/50" 
+                                : "bg-gray-50/40 border-black/5 hover:bg-gray-50/80 hover:border-primary/30 transition-all cursor-pointer group"
                             }`}
                           >
                             <div className="flex items-center gap-3.5 min-w-0">
@@ -165,8 +165,8 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                                 )}
                               </div>
                               <div className="flex items-center gap-3 min-w-0">
-                                <LessonIcon className={`flex-none ${isLocked ? 'text-slate-600' : 'text-slate-400 group-hover:text-primary/70'} transition-colors`} size={16} />
-                                <span className={`text-sm font-medium truncate ${isLocked ? "text-slate-500" : "text-slate-200 group-hover:text-white"}`}>
+                                <LessonIcon className={`flex-none ${isLocked ? 'text-gray-400' : 'text-nova-body group-hover:text-primary/70'} transition-colors`} size={16} />
+                                <span className={`text-sm font-medium truncate ${isLocked ? "text-gray-400" : "text-nova-heading group-hover:text-primary"}`}>
                                   {subtopic}
                                 </span>
                               </div>
@@ -174,7 +174,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
 
                             {!edit && !isLocked && (
                               <div className="flex items-center gap-4 flex-none ml-4">
-                                <span className="hidden sm:flex text-xs font-medium text-slate-500">
+                                <span className="hidden sm:flex text-xs font-medium text-gray-400">
                                   ~ {Math.floor(Math.random() * 10) + 5} min
                                 </span>
                                 <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">

@@ -20,7 +20,7 @@ const NameChip = ({ name, maxLength = 14, className }: NameChipProps) => {
     <span className="group relative inline-flex max-w-full items-center">
       <span
         className={ny(
-          "inline-flex max-w-full items-center rounded-full border border-white/15 bg-slate-900/70 px-2.5 py-1 text-xs font-medium text-slate-100",
+          "inline-flex max-w-full items-center rounded-full border border-black/5 bg-nova-bg px-2.5 py-1 text-xs font-semibold text-nova-heading shadow-sm",
           className
         )}
       >
@@ -28,7 +28,7 @@ const NameChip = ({ name, maxLength = 14, className }: NameChipProps) => {
       </span>
 
       {isLong && (
-        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-white/20 bg-slate-950/95 px-2.5 py-1 text-xs text-slate-200 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-20 -translate-x-1/2 whitespace-nowrap rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs text-nova-heading shadow-soft opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           {safeName}
         </span>
       )}

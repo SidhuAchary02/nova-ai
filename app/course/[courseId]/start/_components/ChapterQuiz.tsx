@@ -53,10 +53,13 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
   const answeredAll = selectedAnswers.every((ans) => ans !== null);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-8">
-      <h2 className="mb-2 text-3xl font-bold text-slate-100">Chapter Quiz</h2>
-      <p className="mb-8 text-slate-300">
-        Test your understanding of &quot;{chapterName}&quot; (5 questions • 70% to pass)
+    <div className="rounded-[28px] border border-black/5 bg-white shadow-soft p-8 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-nova-primary to-nova-accent"></div>
+      <h2 className="mb-2 text-3xl font-bold tracking-tight text-nova-heading flex items-center gap-2">
+        <span className="text-nova-primary">🧠</span> Knowledge Check
+      </h2>
+      <p className="mb-8 text-nova-body text-base">
+        Test your understanding of &quot;<span className="font-semibold text-nova-heading">{chapterName}</span>&quot; (5 questions • 70% to pass)
       </p>
 
       {!quizSubmitted ? (
@@ -64,14 +67,14 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-slate-300">
+              <span className="text-sm font-medium text-nova-body">
                 Question {currentQuestion + 1} of {questions.length}
               </span>
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-nova-body">
                 {selectedAnswers.filter((a) => a !== null).length} answered
               </span>
             </div>
-            <div className="h-2 w-full rounded-full bg-slate-700">
+            <div className="h-2 w-full rounded-full bg-gray-100">
               <div
                 className="h-2 rounded-full bg-primary transition-all duration-300"
                 style={{
@@ -83,35 +86,35 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
 
           {/* Question */}
           <div className="mb-8">
-            <h3 className="mb-6 text-xl font-semibold text-slate-100">
+            <h3 className="mb-6 text-xl font-semibold text-nova-heading">
               {questions[currentQuestion].question}
             </h3>
 
             {/* Options */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               {questions[currentQuestion].options.map((option, idx) => (
                 <button
                   key={idx}
                   onClick={() => handleAnswerSelect(idx)}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                  className={`group w-full p-5 text-left rounded-xl border-2 transition-all duration-300 ${
                     selectedAnswers[currentQuestion] === idx
-                      ? "border-primary bg-primary/10"
-                      : "border-white/10 bg-slate-900/70 hover:border-white/20"
+                      ? "border-nova-primary bg-nova-primary/5 shadow-sm translate-x-1"
+                      : "border-black/5 bg-white hover:border-nova-primary/30 hover:bg-nova-primary/5 hover:shadow-sm hover:translate-x-1"
                   }`}
                 >
                   <div className="flex items-center">
                     <div
-                      className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                      className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-colors ${
                         selectedAnswers[currentQuestion] === idx
-                          ? "border-primary bg-primary"
-                          : "border-slate-500"
+                          ? "border-nova-primary bg-nova-primary"
+                          : "border-black/20 group-hover:border-nova-primary/50"
                       }`}
                     >
                       {selectedAnswers[currentQuestion] === idx && (
-                        <div className="h-2 w-2 rounded-full bg-slate-950"></div>
+                        <div className="h-2 w-2 rounded-full bg-white shadow-sm"></div>
                       )}
                     </div>
-                    <span className="text-slate-200">{option}</span>
+                    <span className={`text-base transition-colors ${selectedAnswers[currentQuestion] === idx ? "font-semibold text-nova-primary" : "text-nova-heading"}`}>{option}</span>
                   </div>
                 </button>
               ))}
@@ -134,7 +137,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setCurrentQuestion(Math.min(questions.length - 1, currentQuestion + 1))
                 }
                 variant="outline"
-                className="flex items-center gap-2 border-white/20 bg-slate-900/50 text-slate-200"
+                className="flex items-center gap-2 border-black/10 bg-white/50 text-nova-heading"
               >
                 Next <FaArrowRight size={14} />
               </Button>
@@ -142,7 +145,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
               <Button
                 onClick={handleSubmitQuiz}
                 disabled={!answeredAll}
-                className="bg-primary text-slate-950 hover:bg-primary/90"
+                className="bg-primary text-white hover:bg-primary/90"
               >
                 {answeredAll ? "Submit Quiz" : "Answer All Questions"}
               </Button>
@@ -169,7 +172,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
               {passed ? "Quiz Passed! 🎉" : "Quiz Failed ❌"}
             </h3>
 
-            <p className="mb-2 text-lg text-slate-200">
+            <p className="mb-2 text-lg text-nova-heading">
               You scored <span className="font-bold text-2xl">{score}%</span>
             </p>
 
@@ -184,7 +187,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
 
           {/* Answer Review */}
           <div className="mb-8">
-            <h4 className="mb-4 text-lg font-semibold text-slate-100">Answer Review:</h4>
+            <h4 className="mb-4 text-lg font-semibold text-nova-heading">Answer Review:</h4>
             <div className="space-y-4 max-h-80 overflow-y-auto">
               {questions.map((q, idx) => {
                 const isCorrect = selectedAnswers[idx] === q.correctAnswer;
@@ -204,16 +207,16 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                         <FaTimesCircle className="text-red-600 mt-1" />
                       )}
                       <div className="flex-1">
-                        <p className="font-medium text-slate-200">{q.question}</p>
-                        <p className="mt-2 text-sm text-slate-300">
+                        <p className="font-medium text-nova-heading">{q.question}</p>
+                        <p className="mt-2 text-sm text-nova-body">
                           Your answer: <span className="font-semibold">{q.options[selectedAnswers[idx]!]}</span>
                         </p>
                         {!isCorrect && (
-                          <p className="text-sm text-slate-300">
+                          <p className="text-sm text-nova-body">
                             Correct answer: <span className="font-semibold text-green-700">{q.options[q.correctAnswer]}</span>
                           </p>
                         )}
-                        <p className="mt-2 text-xs italic text-slate-400">{q.explanation}</p>
+                        <p className="mt-2 text-xs italic text-nova-body">{q.explanation}</p>
                       </div>
                     </div>
                   </div>
@@ -232,7 +235,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setSelectedAnswers(new Array(questions.length).fill(null));
                 }}
                 variant="outline"
-                className="flex-1 border-white/20 bg-slate-900/50 text-slate-200"
+                className="flex-1 border-black/10 bg-white/50 text-nova-heading"
               >
                 Retry Quiz
               </Button>
@@ -240,7 +243,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
             {passed && (
               <Button
                 onClick={() => onQuizComplete(true, score)}
-                className="flex-1 bg-primary text-slate-950 hover:bg-primary/90"
+                className="flex-1 bg-primary text-white hover:bg-primary/90"
               >
                 Continue to Chapter Completion
               </Button>

@@ -47,23 +47,23 @@ export const HowItWorks = () => {
             Minutes
           </span>
         </h2>
-        <p className="mx-auto mt-4 max-w-3xl text-base text-slate-300 sm:text-lg">
+        <p className="mx-auto mt-4 max-w-3xl text-base text-nova-body sm:text-lg">
           Move from idea to publish-ready content with a guided, production-ready workflow.
         </p>
       </div>
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {features.map(({ icon, title, description }: FeatureProps) => (
-          <Card key={title} className="glass-panel h-full border-white/10 bg-slate-900/60">
+          <Card key={title} className="bg-white border border-black/5 shadow-soft h-full border-black/5 bg-white/60">
             <CardHeader>
-              <CardTitle className="grid place-items-center gap-4 text-slate-100">
+              <CardTitle className="grid place-items-center gap-4 text-nova-heading">
                 <div className="rounded-2xl border border-primary/35 bg-primary/10 p-3 text-primary">
                   {React.createElement(icon, { size: 30 })}
                 </div>
                 {title}
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm text-slate-300">{description}</CardContent>
+            <CardContent className="text-sm text-nova-body">{description}</CardContent>
           </Card>
         ))}
       </div>

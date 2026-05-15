@@ -69,7 +69,7 @@ export function StepIntent({
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-white">
+      <h2 className="text-xl font-semibold text-nova-heading">
         What do you want to learn?
       </h2>
 
@@ -78,13 +78,13 @@ export function StepIntent({
         onChange={(e) => onIntentChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
         placeholder="e.g. Learn React to build real-world projects"
-        className="w-full rounded-lg bg-slate-900 p-3 text-white focus:outline-none focus:ring-2 focus:ring-primary"
+        className="w-full rounded-lg bg-white border border-black/10 p-3 text-nova-heading shadow-sm focus:outline-none focus:ring-2 focus:ring-nova-primary"
         rows={3}
       />
 
       {suggestions.length > 0 && (
-        <div className="rounded-lg bg-slate-800/80 p-2 border border-slate-700/50 shadow-sm mt-2 transition-all">
-          <div className="text-xs font-semibold text-slate-400 mb-2 px-2 uppercase tracking-wider">
+        <div className="rounded-lg bg-white p-2 border border-black/5 shadow-sm mt-2 transition-all">
+          <div className="text-xs font-semibold text-nova-body mb-2 px-2 uppercase tracking-wider">
             Suggestions
           </div>
           <div className="flex flex-col gap-1">
@@ -95,7 +95,7 @@ export function StepIntent({
                   onIntentChange(s);
                   setIsFocused(false);
                 }}
-                className="cursor-pointer rounded-md px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 hover:text-white transition-colors"
+                className="cursor-pointer rounded-md px-3 py-2 text-sm text-nova-body hover:bg-nova-primary/10 hover:text-nova-primary font-medium transition-colors"
               >
                 {s}
               </div>

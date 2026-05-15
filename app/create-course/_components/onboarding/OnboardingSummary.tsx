@@ -69,15 +69,15 @@ export function OnboardingSummary({
       </div>
 
       <div>
-        <h2 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-nova-heading sm:text-4xl">
           Here&apos;s your learning profile
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-nova-body">
           Quick sanity check before we draft your personalized roadmap. Tap edit to jump back.
         </p>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-white/10 bg-slate-950/60 p-6">
+      <div className="space-y-3 rounded-2xl border border-black/5 bg-nova-bg/60 p-6">
         <SummaryRow
           title="Learning intent"
           value={intent || "—"}
@@ -140,19 +140,19 @@ function SummaryRow({
   onEdit: () => void;
 }) {
   return (
-    <div className="flex gap-4 border-b border-white/5 pb-4 last:border-0 last:pb-0">
+    <div className="flex gap-4 border-b border-black/5 pb-4 last:border-0 last:pb-0">
       <div className="min-w-0 flex-1">
-        <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
+        <div className="text-xs font-medium uppercase tracking-wide text-gray-400">
           {title}
         </div>
-        <p className="mt-1 text-slate-100">{value}</p>
-        {sub && <p className="mt-1 text-sm text-slate-500">{sub}</p>}
+        <p className="mt-1 text-nova-heading">{value}</p>
+        {sub && <p className="mt-1 text-sm text-gray-400">{sub}</p>}
       </div>
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="shrink-0 gap-1 text-slate-400 hover:text-primary"
+        className="shrink-0 gap-1 text-nova-body hover:text-primary"
         onClick={onEdit}
       >
         <FaPenToSquare className="h-3.5 w-3.5" />

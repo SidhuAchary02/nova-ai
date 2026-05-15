@@ -3,6 +3,7 @@
 import { supabase } from "@/configs/supabase";
 import { useEffect, useState } from "react";
 import NameChip from "@/components/common/NameChip";
+import Link from "next/link";
 
 const Header = () => {
   const [user, setUser] = useState<any>(null);
@@ -24,42 +25,42 @@ const Header = () => {
     (user?.email ? user.email.split("@")[0] : "Creator");
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-slate-950/70 backdrop-blur-xl">
-      <div className="section-shell flex items-center justify-between py-3">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg border border-white/20 bg-slate-900/80 px-2.5 py-1 text-xs font-semibold tracking-[0.2em] text-amber-200">
-              NOVA
-            </div>
-            <div className="hidden md:block">
-              <h2 className="text-sm font-semibold text-slate-100">Nova AI Studio</h2>
-              <p className="text-xs text-slate-400">
-                Welcome back, <NameChip name={userName} maxLength={14} className="bg-transparent border-transparent px-0 py-0 text-slate-300" />
-              </p>
-            </div>
+    <header className="sticky top-0 z-40 bg-[#FDFCFB]/80 backdrop-blur-[16px] border-b border-black/5">
+      <div className="flex items-center justify-between px-4 md:px-8 py-4">
+        <div className="md:hidden flex items-center gap-2">
+          <div className="w-8 h-8 bg-nova-primary rounded-lg flex items-center justify-center text-white shadow-sm">
+            <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
           </div>
-
-          <div className="flex items-center gap-2 border-l border-white/10 pl-6">
-            <a href="/" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
-              Home
-            </a>
-            <a href="/dashboard" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
-              Dashboard
-            </a>
-            <a href="/create-course" className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium">
-              Create Course
-            </a>
-          </div>
+          <span className="font-bold text-nova-heading tracking-tight">Nova</span>
+        </div>
+        
+        <div className="hidden md:flex items-center gap-2 text-sm text-nova-body">
+          <span className="material-symbols-outlined text-[18px] text-nova-primary">space_dashboard</span>
+          <span className="font-medium">Dashboard Overview</span>
         </div>
 
-        {user && (
-          <button
-            onClick={logout}
-            className="rounded-xl border border-white/15 bg-slate-900 px-4 py-2 text-sm font-medium text-slate-200 transition hover:bg-slate-800 hover:text-white"
-          >
-            Logout
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          <Link href="/create-course" className="hidden md:flex items-center gap-2 bg-nova-primary/10 text-nova-primary px-4 py-2 rounded-lg font-medium text-sm hover:bg-nova-primary/20 transition-colors">
+            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            New Course
+          </Link>
+
+          {user && (
+            <div className="flex items-center gap-4 border-l border-black/5 pl-4">
+              <div className="hidden md:block text-right">
+                <p className="text-xs text-nova-body">Signed in as</p>
+                <p className="text-sm font-semibold text-nova-heading"><NameChip name={userName} maxLength={14} className="bg-transparent border-transparent px-0 py-0 text-nova-heading" /></p>
+              </div>
+              <button
+                onClick={logout}
+                className="rounded-lg border border-black/10 bg-white px-4 py-2 text-sm font-medium text-nova-heading transition hover:bg-gray-50 shadow-sm flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

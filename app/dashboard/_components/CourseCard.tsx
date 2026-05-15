@@ -34,17 +34,17 @@ const CourseCard = ({
   };
 
   return (
-    <div className="group relative flex h-full flex-col rounded-2xl border border-white/10 bg-slate-900/70 p-2 shadow-[0_10px_28px_rgba(2,6,23,0.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_35px_rgba(2,6,23,0.5)]">
+    <div className="group relative flex h-full flex-col rounded-2xl border border-black/5 bg-white p-3 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-soft">
       {/* Completed Badge */}
       {course.isCompleted && (
-        <div className="absolute right-4 top-4 z-10 rounded-full border border-emerald-300/30 bg-emerald-500/90 px-3 py-1 text-xs font-semibold text-white shadow-lg">
+        <div className="absolute right-5 top-5 z-10 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700 shadow-sm">
           ✓ Completed
         </div>
       )}
 
       {/* Course Image */}
       <Link href={`/course/${course.courseId}`}>
-        <div className="h-[190px] overflow-hidden rounded-xl">
+        <div className="h-[180px] overflow-hidden rounded-xl border border-black/5">
           <CourseCover
             title={courseOutput?.topic || course.courseName}
             category={course.category}
@@ -57,41 +57,41 @@ const CourseCard = ({
       </Link>
 
       {/* Course Info */}
-      <div className="flex flex-1 flex-col p-3">
-        <h2 className="flex items-start justify-between gap-2 text-lg font-semibold text-slate-100">
+      <div className="flex flex-1 flex-col p-2 pt-4">
+        <h2 className="flex items-start justify-between gap-2 text-lg font-bold text-nova-heading leading-tight">
           <span className="line-clamp-2">{courseOutput?.topic ?? "Untitled Course"}</span>
 
           {!displayUser && (
             <DropDownOptions handleDeleteCourse={() => handleOnDelete()}>
               <HiOutlineDotsVertical
                 size={20}
-                className="cursor-pointer rounded-md bg-slate-800 p-1 text-slate-300 text-sm"
+                className="cursor-pointer rounded-md bg-gray-50 hover:bg-gray-100 p-1 text-nova-body transition-colors"
               />
             </DropDownOptions>
           )}
         </h2>
 
-        <p className="my-1 line-clamp-1 text-sm text-slate-400">{course.category}</p>
+        <p className="my-2 line-clamp-1 text-sm text-nova-body font-medium">{course.category}</p>
 
         {/* Chapter Count + Level */}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-          <h2 className="flex items-center gap-2 rounded-md bg-primary/15 px-2 py-1 text-sm text-primary">
-            <MdMenuBook />
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-black/5">
+          <h2 className="flex items-center gap-1.5 rounded-lg bg-nova-bg border border-black/5 px-2.5 py-1.5 text-xs font-semibold text-nova-heading shadow-sm">
+            <span className="material-symbols-outlined text-[14px] text-nova-primary">menu_book</span>
             {courseOutput?.chapters?.length ?? 0} Chapters
           </h2>
 
-          <h2 className="rounded-md bg-amber-500/15 px-2 py-1 text-sm text-amber-200">
-            {course.level} Level
+          <h2 className="rounded-lg bg-nova-accent/10 border border-nova-primary/10 px-2.5 py-1.5 text-xs font-bold text-nova-primary shadow-sm">
+            {course.level}
           </h2>
         </div>
 
         {/* User Info */}
         {displayUser && (
-          <div className="mt-3 flex items-center gap-2">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-slate-800 text-sm font-semibold text-amber-200">
+          <div className="mt-4 flex items-center gap-2 pt-3 border-t border-black/5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/5 bg-nova-bg text-sm font-bold text-nova-primary">
               {(course?.username || "U").charAt(0).toUpperCase()}
             </span>
-            <NameChip name={course.username || "Creator"} maxLength={14} />
+            <NameChip name={course.username || "Creator"} maxLength={14} className="text-nova-heading font-medium" />
           </div>
         )}
       </div>

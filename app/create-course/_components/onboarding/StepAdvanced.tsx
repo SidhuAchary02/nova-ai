@@ -46,15 +46,15 @@ function TagInput({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-slate-200">{label}</label>
-      <p className="text-xs text-slate-500">{helper}</p>
-      <div className="flex flex-wrap gap-2 rounded-xl border border-white/10 bg-slate-950/60 p-2">
+      <label className="text-sm font-medium text-nova-heading">{label}</label>
+      <p className="text-xs text-gray-400">{helper}</p>
+      <div className="flex flex-wrap gap-2 rounded-xl border border-black/5 bg-nova-bg/60 p-2">
         {tags.map((tag) => (
           <button
             key={tag}
             type="button"
             onClick={() => onChange(tags.filter((x) => x !== tag))}
-            className="rounded-full bg-slate-800 px-3 py-1 text-xs font-medium text-slate-200 hover:bg-slate-700"
+            className="rounded-full bg-gray-50 px-3 py-1 text-xs font-medium text-nova-heading hover:bg-gray-100"
           >
             {tag} ×
           </button>
@@ -65,7 +65,7 @@ function TagInput({
           onKeyDown={onKeyDown}
           onBlur={commit}
           placeholder={placeholder}
-          className="min-w-[160px] flex-1 border-0 bg-transparent text-sm text-slate-100 placeholder:text-slate-600 focus-visible:ring-0"
+          className="min-w-[160px] flex-1 border-0 bg-transparent text-sm text-nova-heading placeholder:text-gray-400 focus-visible:ring-0"
         />
       </div>
     </div>
@@ -102,10 +102,10 @@ export function StepAdvanced({
       </div>
 
       <div>
-        <h2 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-nova-heading sm:text-4xl">
           Fine-tune (optional)
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-nova-body">
           Optional tweaks — skip if you want us to decide everything.
         </p>
       </div>
@@ -113,11 +113,11 @@ export function StepAdvanced({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-slate-900/60 px-5 py-4 text-left transition hover:bg-slate-900/80"
+        className="flex w-full items-center justify-between rounded-2xl border border-black/5 bg-white/60 px-5 py-4 text-left transition hover:bg-white/80"
       >
-        <span className="font-medium text-slate-200">Advanced customization</span>
+        <span className="font-medium text-nova-heading">Advanced customization</span>
         <FaChevronDown
-          className={`h-4 w-4 text-slate-400 transition ${open ? "rotate-180" : ""}`}
+          className={`h-4 w-4 text-nova-body transition ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -127,7 +127,7 @@ export function StepAdvanced({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="space-y-8 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/40 p-5 sm:p-6"
+            className="space-y-8 overflow-hidden rounded-2xl border border-black/5 bg-nova-bg/40 p-5 sm:p-6"
           >
             <TagInput
               label="Topics to focus"
@@ -146,10 +146,10 @@ export function StepAdvanced({
             />
 
             <div>
-              <label className="text-sm font-medium text-slate-200">
+              <label className="text-sm font-medium text-nova-heading">
                 Preferred difficulty style
               </label>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-gray-400">
                 Influences course difficulty labels and density — not your intelligence.
               </p>
               <div className="mt-3 grid gap-2 sm:grid-cols-3">
@@ -160,12 +160,12 @@ export function StepAdvanced({
                     onClick={() => onPacingChange(p.id)}
                     className={`rounded-xl border px-3 py-3 text-left text-sm transition ${
                       pacingStyle === p.id
-                        ? "border-primary bg-primary/10 text-slate-50"
-                        : "border-white/10 bg-slate-900/50 text-slate-300 hover:border-white/20"
+                        ? "border-primary bg-primary/10 text-nova-heading"
+                        : "border-black/5 bg-white/50 text-nova-body hover:border-black/10"
                     }`}
                   >
                     <div className="font-semibold">{p.title}</div>
-                    <div className="mt-1 text-xs text-slate-500">{p.hint}</div>
+                    <div className="mt-1 text-xs text-gray-400">{p.hint}</div>
                   </button>
                 ))}
               </div>

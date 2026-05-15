@@ -210,32 +210,32 @@ in JSON format.`;
   if (phase === "roadmap" && learningStrategy) {
     return (
       <div className="pb-12">
-        <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+        <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
           <div className="section-shell flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => handleNavigationClick("/")}
-                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+                className="rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading text-sm font-medium"
               >
                 Home
               </button>
               <button
                 type="button"
                 onClick={() => handleNavigationClick("/dashboard")}
-                className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+                className="rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading text-sm font-medium"
               >
                 Dashboard
               </button>
               <button
                 type="button"
                 onClick={() => handleNavigationClick("/create-course")}
-                className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-slate-800 text-sm font-medium"
+                className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-gray-50 text-sm font-medium"
               >
                 Create Course
               </button>
             </div>
-            <h1 className="text-lg font-semibold text-slate-100">Learning roadmap</h1>
+            <h1 className="text-lg font-semibold text-nova-heading">Learning roadmap</h1>
             <div className="w-20" />
           </div>
         </div>
@@ -262,27 +262,27 @@ in JSON format.`;
 
   return (
     <div className="min-h-screen pb-16">
-      <div className="fixed left-0 right-0 top-0 z-30 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => handleNavigationClick("/")}
-              className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              className="rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading text-sm font-medium"
             >
               Home
             </button>
             <button
               type="button"
               onClick={() => handleNavigationClick("/dashboard")}
-              className="rounded-lg px-3 py-2 text-slate-300 transition-colors hover:bg-slate-800 hover:text-slate-100 text-sm font-medium"
+              className="rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading text-sm font-medium"
             >
               Dashboard
             </button>
             <button
               type="button"
               onClick={() => handleNavigationClick("/create-course")}
-              className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-slate-800 text-sm font-medium"
+              className="rounded-lg px-3 py-2 text-primary transition-colors hover:bg-gray-50 text-sm font-medium"
             >
               Create Course
             </button>

@@ -42,16 +42,18 @@ const UserCourseList = () => {
 
   if (courses?.length === 0)
     return (
-      <div className="mt-14 rounded-2xl border border-dashed border-white/20 bg-slate-900/55 p-14 text-center text-slate-300">
+      <div className="mt-14 rounded-2xl border border-dashed border-black/10 bg-white p-14 text-center text-nova-body shadow-sm">
         No courses found. Create your first course to get started.
       </div>
     );
 
   return (
-    <div className="mt-8">
-      <h2 className="text-xl font-semibold text-slate-100">My AI Courses</h2>
+    <div className="mt-10">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-nova-heading tracking-tight">My AI Courses</h2>
+      </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {courses ? (
           courses.map((course, index) => (
             <CourseCard

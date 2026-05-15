@@ -52,6 +52,21 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        "nova-bg": "#FDFCFB",
+        "nova-card": "#FFFFFF",
+        "nova-heading": "#111827",
+        "nova-body": "#4B5563",
+        "nova-primary": "#FF8C42",
+        "nova-accent": "#FFA07A",
+      },
+      boxShadow: {
+        "soft": "0 10px 30px rgba(17, 24, 39, 0.03)"
+      },
+      spacing: {
+        "section": "80px"
+      },
+      fontFamily: {
+        sans: ['Geist', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

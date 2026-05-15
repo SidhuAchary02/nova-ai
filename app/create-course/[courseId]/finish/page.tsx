@@ -54,9 +54,9 @@ const FinsihScreen = ({ params }: { params: ParamsType }) => {
         onRefresh={() => console.log("Refreshing")}
       />
 
-      <h2 className="mt-5 text-slate-200">Course URL</h2>
+      <h2 className="mt-5 text-nova-heading">Course URL</h2>
 
-      <h2 className="mt-2 flex items-center gap-5 rounded-lg border border-white/10 bg-slate-900/70 p-2 text-center font-bold text-slate-300">
+      <h2 className="mt-2 flex items-center gap-5 rounded-lg border border-black/5 bg-white/70 p-2 text-center font-bold text-nova-body">
         <Link
           href={COURSE_LINK}
           className="cursor-pointer transition-all hover:text-primary"

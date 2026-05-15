@@ -1,68 +1,97 @@
 @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-500-normal.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-600-normal.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
 
   @layer base {
     :root {
-      --background: 221 39% 7%;
-      --foreground: 210 40% 98%;
+      --background: 30 50% 98%; /* #FDFCFB equivalent */
+      --foreground: 222 47% 11%;
 
-      --card: 221 35% 11%;
-      --card-foreground: 210 40% 96%;
+      --card: 0 0% 100%;
+      --card-foreground: 222 47% 11%;
 
-      --popover: 223 32% 10%;
-      --popover-foreground: 210 40% 96%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222 47% 11%;
 
-      --primary: 273 88% 72%;
-      --primary-foreground: 224 71% 4%;
+      --primary: 15 100% 63%; /* nova-primary */
+      --primary-foreground: 0 0% 100%;
 
-      --secondary: 217 31% 17%;
-      --secondary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222 47% 11%;
 
-      --muted: 217 33% 16%;
-      --muted-foreground: 215 20% 72%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
 
-      --accent: 36 90% 62%;
-      --accent-foreground: 224 71% 4%;
+      --accent: 33 100% 70%; /* nova-accent */
+      --accent-foreground: 222 47% 11%;
 
       --destructive: 0 84.2% 60.2%;
-      --destructive-foreground: 250 100% 97.6%;
+      --destructive-foreground: 210 40% 98%;
 
-      --border: 217 23% 24%;
-      --input: 217 23% 24%;
-      --ring: 273 88% 72%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 15 100% 63%;
 
       --radius: 0.5rem;
     }
 
     .dark {
-      --background: 221 39% 7%;
-      --foreground: 210 40% 98%;
+      --background: 30 50% 98%;
+      --foreground: 222 47% 11%;
 
-      --card: 221 35% 11%;
-      --card-foreground: 210 40% 96%;
+      --card: 0 0% 100%;
+      --card-foreground: 222 47% 11%;
 
-      --popover: 223 32% 10%;
-      --popover-foreground: 210 40% 96%;
+      --popover: 0 0% 100%;
+      --popover-foreground: 222 47% 11%;
 
-      --primary: 273 88% 72%;
-      --primary-foreground: 224 71% 4%;
+      --primary: 15 100% 63%;
+      --primary-foreground: 0 0% 100%;
 
-      --secondary: 217 31% 17%;
-      --secondary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222 47% 11%;
 
-      --muted: 217 33% 16%;
-      --muted-foreground: 215 20% 72%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
 
-      --accent: 36 90% 62%;
-      --accent-foreground: 224 71% 4%;
+      --accent: 33 100% 70%;
+      --accent-foreground: 222 47% 11%;
 
-      --destructive: 0 62.8% 30.6%;
-      --destructive-foreground: 250 100% 97.6%;
+      --destructive: 0 84.2% 60.2%;
+      --destructive-foreground: 210 40% 98%;
 
-      --border: 217 23% 24%;
-      --input: 217 23% 24%;
-      --ring: 273 88% 72%;
+      --border: 214.3 31.8% 91.4%;
+      --input: 214.3 31.8% 91.4%;
+      --ring: 15 100% 63%;
     }
   }
 
@@ -72,37 +101,36 @@
     }
     body {
       @apply bg-background text-foreground;
-      background-image: radial-gradient(circle at 20% -10%, rgba(168, 85, 247, 0.22) 0%, transparent 35%),
-        radial-gradient(circle at 90% 0%, rgba(245, 158, 11, 0.1) 0%, transparent 30%),
-        linear-gradient(160deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 1) 60%);
-      background-attachment: fixed;
+      background-color: #FDFCFB;
     }
 
     ::selection {
-      background: rgba(168, 85, 247, 0.5);
-      color: #f8fafc;
+      background: rgba(255, 140, 66, 0.2);
+      color: #FF8C42;
     }
 
     ::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
     }
 
     ::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.8);
+      background: #FDFCFB;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: linear-gradient(to bottom, rgba(168, 85, 247, 0.75), rgba(245, 158, 11, 0.65));
+      background: rgba(0, 0, 0, 0.1);
       border-radius: 9999px;
-      border: 2px solid rgba(15, 23, 42, 0.8);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.2);
     }
   }
 
   @layer components {
     .glass-panel {
-      @apply border border-white/10 bg-slate-900/55 backdrop-blur-xl;
-      box-shadow: 0 14px 60px rgba(3, 7, 18, 0.45);
+      @apply bg-white border border-black/5 shadow-soft;
     }
 
     .section-shell {

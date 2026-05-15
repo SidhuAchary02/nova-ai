@@ -96,80 +96,92 @@ print("✅ Code executed successfully")`;
   };
 
   return (
-    <div className="my-4 rounded-lg border border-white/10 bg-slate-900/60 p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-slate-200">Code Sandbox</span>
-          <span className="rounded-full bg-primary/15 px-2 py-1 text-xs font-medium text-primary">
-            {language.toUpperCase()}
-          </span>
+    <div className="my-8 rounded-[24px] border border-black/5 bg-white shadow-soft p-2 overflow-hidden group">
+      <div className="rounded-[20px] bg-[#0A0A0A] overflow-hidden shadow-inner border border-black/10">
+        {/* Terminal Header */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#111]">
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+              <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
+              <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
+              <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
+            </div>
+            <span className="text-[11px] font-medium text-white/40 font-mono tracking-wider uppercase ml-2">
+              {language === "python" ? "main.py" : "index.js"}
+            </span>
+          </div>
+          <button
+            onClick={copyCode}
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+          >
+            {copied ? (
+              <>
+                <FaCheck size={12} className="text-[#27C93F]" />
+                <span className="text-[#27C93F]">Copied</span>
+              </>
+            ) : (
+              <>
+                <FaCopy size={12} />
+                Copy
+              </>
+            )}
+          </button>
         </div>
-        <button
-          onClick={copyCode}
-          className="flex items-center gap-2 rounded px-3 py-1 text-sm text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
-        >
-          {copied ? (
-            <>
-              <FaCheck size={14} className="text-green-600" />
-              <span className="text-green-600">Copied</span>
-            </>
-          ) : (
-            <>
-              <FaCopy size={14} />
-              Copy Code
-            </>
+
+        {/* Code Editor Area */}
+        <div className="text-gray-300 p-5 font-mono text-sm overflow-x-auto max-h-[300px] overflow-y-auto leading-relaxed custom-scrollbar">
+          <pre>{code}</pre>
+        </div>
+      </div>
+
+      <div className="mt-4 px-2 pb-2">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={executeCode}
+              disabled={loading}
+              className="flex items-center gap-2 bg-nova-primary text-white hover:bg-nova-primary/90 hover:shadow-md transition-all active:scale-95 rounded-xl px-5 h-10"
+            >
+              {loading ? (
+                <>
+                  <FaSpinner className="animate-spin" size={14} />
+                  Running...
+                </>
+              ) : (
+                <>
+                  <FaPlay size={12} />
+                  Run Code
+                </>
+              )}
+            </Button>
+            <span className="text-xs font-medium text-nova-body bg-black/5 px-3 py-1.5 rounded-lg border border-black/5">
+              {language === "python" ? "🐍 Python 3.10" : "🟨 Node.js 18"}
+            </span>
+          </div>
+        </div>
+
+        {/* Output Area */}
+        <div className="overflow-hidden transition-all duration-300 ease-in-out">
+          {(output || error) && (
+            <div className={`rounded-xl p-5 font-mono text-sm max-h-48 overflow-y-auto shadow-inner border ${
+              error
+                ? "bg-red-50/50 border-red-200 text-red-800"
+                : "bg-green-50/50 border-green-200 text-green-800"
+            }`}>
+              <p className="font-semibold mb-3 flex items-center gap-2 text-xs uppercase tracking-wider">
+                {error ? "❌ Error Output:" : "✅ Program Output:"}
+              </p>
+              <p className="whitespace-pre-wrap break-words leading-relaxed">{output || error}</p>
+            </div>
           )}
-        </button>
-      </div>
 
-      {/* Code Editor Area */}
-      <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm mb-4 overflow-x-auto max-h-64 overflow-y-auto">
-        <pre>{code}</pre>
-      </div>
-
-      {/* Run Button */}
-      <div className="flex gap-2 mb-4">
-        <Button
-          onClick={executeCode}
-          disabled={loading}
-          className="flex items-center gap-2 bg-primary text-slate-950 hover:bg-primary/90"
-        >
-          {loading ? (
-            <>
-              <FaSpinner className="animate-spin" size={16} />
-              Running...
-            </>
-          ) : (
-            <>
-              <FaPlay size={14} />
-              Run Code
-            </>
+          {!output && !error && !loading && (
+            <div className="rounded-xl border border-black/5 bg-nova-bg/50 p-5 text-center text-sm text-nova-body font-medium">
+              Click &quot;Run Code&quot; to execute this snippet
+            </div>
           )}
-        </Button>
-        <span className="pt-2 text-xs text-slate-400">
-          {language === "python" ? "🐍 Python 3.10" : "🟨 JavaScript (Node.js 18)"}
-        </span>
+        </div>
       </div>
-
-      {/* Output Area */}
-      {(output || error) && (
-        <div className={`rounded-lg p-4 font-mono text-sm max-h-48 overflow-y-auto ${
-          error
-            ? "bg-red-50 border border-red-200 text-red-700"
-            : "bg-green-50 border border-green-200 text-green-800"
-        }`}>
-          <p className="font-semibold mb-2">
-            {error ? "❌ Error Output:" : "✅ Program Output:"}
-          </p>
-          <p className="whitespace-pre-wrap break-words">{output || error}</p>
-        </div>
-      )}
-
-      {!output && !error && !loading && (
-        <div className="rounded-lg border border-white/10 bg-slate-950 p-4 text-center text-sm text-slate-400">
-          Click &quot;Run Code&quot; to execute this code
-        </div>
-      )}
     </div>
   );
 };

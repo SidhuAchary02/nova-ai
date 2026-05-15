@@ -74,10 +74,10 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
       </div>
 
       <div>
-        <h2 className="text-3xl font-semibold tracking-tight text-slate-50 sm:text-4xl">
+        <h2 className="text-3xl font-semibold tracking-tight text-nova-heading sm:text-4xl">
           Where are you starting from?
         </h2>
-        <p className="mt-3 text-base text-slate-400">
+        <p className="mt-3 text-base text-nova-body">
           Honest answers help us avoid content that&apos;s too easy or overwhelming.
         </p>
       </div>
@@ -91,15 +91,15 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
             className={`flex w-full items-center justify-between rounded-2xl border px-5 py-4 text-left transition-all ${
               level === L.id
                 ? "border-primary bg-primary/10"
-                : "border-white/10 bg-slate-900/50 hover:border-white/20"
+                : "border-black/5 bg-white/50 hover:border-black/10"
             }`}
           >
             <div>
-              <div className="font-semibold text-slate-100">{L.label}</div>
-              <div className="text-sm text-slate-500">{L.hint}</div>
+              <div className="font-semibold text-nova-heading">{L.label}</div>
+              <div className="text-sm text-gray-400">{L.hint}</div>
             </div>
             <FaGraduationCap
-              className={`h-6 w-6 shrink-0 ${level === L.id ? "text-primary" : "text-slate-600"}`}
+              className={`h-6 w-6 shrink-0 ${level === L.id ? "text-primary" : "text-gray-400"}`}
             />
           </button>
         ))}
@@ -110,18 +110,18 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
           className={`flex w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left transition-all ${
             level === "not_sure"
               ? "border-amber-400/50 bg-amber-500/10"
-              : "border-white/10 bg-slate-900/50 hover:border-white/20"
+              : "border-black/5 bg-white/50 hover:border-black/10"
           }`}
         >
           <FaCircleQuestion className="h-6 w-6 text-amber-400" />
           <div>
-            <div className="font-semibold text-slate-100">
+            <div className="font-semibold text-nova-heading">
               Not sure{" "}
               <span className="ml-2 rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-normal text-amber-200">
                 recommended
               </span>
             </div>
-            <div className="text-sm text-slate-500">
+            <div className="text-sm text-gray-400">
               We&apos;ll suggest a quick check-in below — no grades, just a guide.
             </div>
           </div>
@@ -134,20 +134,20 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 p-5"
+            className="overflow-hidden rounded-2xl border border-black/5 bg-nova-bg/60 p-5"
           >
-            <p className="text-sm text-slate-300">
+            <p className="text-sm text-nova-body">
               Optional: take a quick 5-question check-in (UI preview — results stay on your device).
             </p>
             <Button
               type="button"
               variant="outline"
-              className="mt-3 border-primary/40 text-slate-100 hover:bg-primary/10"
+              className="mt-3 border-primary/40 text-nova-heading hover:bg-primary/10"
               onClick={startAssessment}
             >
               Take a quick 5-question assessment
             </Button>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-gray-400">
               Or continue — we&apos;ll treat you as intermediate until you refine later.
             </p>
           </motion.div>
@@ -160,12 +160,12 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="rounded-2xl border border-primary/30 bg-slate-950/90 p-6"
+            className="rounded-2xl border border-primary/30 bg-nova-bg/90 p-6"
           >
             <p className="text-xs font-medium text-primary">
               Question {aq + 1} / {MOCK_QUESTIONS.length}
             </p>
-            <p className="mt-2 text-lg font-medium text-slate-100">
+            <p className="mt-2 text-lg font-medium text-nova-heading">
               {MOCK_QUESTIONS[aq].q}
             </p>
             <div className="mt-4 flex flex-col gap-2">
@@ -174,7 +174,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
                   key={opt}
                   type="button"
                   onClick={() => pickOption(idx)}
-                  className="rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-left text-sm text-slate-200 hover:border-primary/40 hover:bg-slate-800"
+                  className="rounded-xl border border-black/5 bg-white/80 px-4 py-3 text-left text-sm text-nova-heading hover:border-primary/40 hover:bg-gray-50"
                 >
                   {opt}
                 </button>
@@ -183,7 +183,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
             <Button
               type="button"
               variant="ghost"
-              className="mt-4 text-slate-500"
+              className="mt-4 text-gray-400"
               onClick={() => setShowAssessment(false)}
             >
               Cancel check-in

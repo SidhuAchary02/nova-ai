@@ -66,13 +66,13 @@ const GenerateMissingSources = ({
   return (
     <div className="mt-4 rounded-lg border border-primary/20 bg-primary/10 p-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-200">
+        <p className="text-sm text-nova-heading">
           <strong>📚 Generate Sources:</strong> Click below to add reliable sources for this chapter.
         </p>
         <Button
           onClick={handleGenerateSources}
           disabled={loading}
-          className="ml-4 bg-primary text-slate-950 hover:bg-primary/90"
+          className="ml-4 bg-primary text-white hover:bg-primary/90"
         >
           {loading ? "Generating..." : "Generate Sources"}
         </Button>

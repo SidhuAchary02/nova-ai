@@ -29,7 +29,7 @@ const Hero = () => {
   return (
     <section className="section-shell">
       <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl items-center justify-center py-10 sm:py-14">
-        <div className="glass-panel w-full rounded-3xl px-6 py-14 text-center sm:px-12">
+        <div className="bg-white border border-black/5 shadow-soft w-full rounded-3xl px-6 py-14 text-center sm:px-12">
           <div className="mx-auto max-w-3xl">
             <GradientTextAnimation title="Introducing Nova AI Course Studio" />
 
@@ -38,7 +38,7 @@ const Hero = () => {
               words="Design Better Courses with AI"
             />
 
-            <p className="mx-auto mt-6 max-w-2xl text-base text-slate-300 sm:text-lg">
+            <p className="mx-auto mt-6 max-w-2xl text-base text-nova-body sm:text-lg">
               Create complete learning experiences with guided structure, chapter content,
               quizzes, and curated videos. Publish polished courses in minutes.
             </p>
@@ -63,7 +63,7 @@ const Hero = () => {
               )}
 
               <Link href="/dashboard/explore">
-                <Button variant="outline" className="border-white/20 bg-slate-900/70 text-slate-100 hover:bg-slate-800">
+                <Button variant="outline" className="border-black/10 bg-white/70 text-nova-heading hover:bg-gray-50">
                   Explore Courses
                 </Button>
               </Link>
