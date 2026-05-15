@@ -8,6 +8,28 @@ const YOUTUBE_VIDEOS_BASE_URL = "https://www.googleapis.com/youtube/v3/videos";
 const MIN_VIDEO_DURATION_SECONDS = 10 * 60;
 const MIN_VIDEO_VIEWS = 10_000;
 
+function normalizeYoutubeQuery(query: string) {
+  return query
+    .replace(/&/g, " and ")
+    .replace(/[\"'`.,!?()[\]{}:;]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildYoutubeQueryCandidates(query: string) {
+  const normalizedQuery = normalizeYoutubeQuery(query);
+  const reducedQuery = normalizedQuery
+    .replace(/\b(introduction to|introduction|tutorial|practical example|example|guide|overview|basics?)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const candidates = [normalizedQuery, reducedQuery].filter(
+    (value, index, values) => Boolean(value) && values.indexOf(value) === index
+  );
+
+  return candidates.length > 0 ? candidates : [query];
+}
+
 function parseIsoDurationToSeconds(duration: string) {
   const matches = duration.match(
     /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/
@@ -24,30 +46,46 @@ function parseIsoDurationToSeconds(duration: string) {
 
 export const getYoutubeVideos = async (query: string) => {
   try {
-    const param = {
-      part: "snippet",
-      q: query,
-      maxResults: 10,
-      type: "video",
-      key: env.YOUTUBE_API_KEY,
-      videoEmbeddable: "true", // Only return embeddable videos
-      order: "viewCount",
-    };
+    const queryCandidates = buildYoutubeQueryCandidates(query);
 
-    const response = await axios.get(YOUTUBE_BASE_URL, { params: param });
-    
-    if (!response.data.items || response.data.items.length === 0) {
+    let searchItems: any[] = [];
+    let usedQuery = query;
+
+    for (const candidate of queryCandidates) {
+      usedQuery = candidate;
+
+      const param = {
+        part: "snippet",
+        q: candidate,
+        maxResults: 25,
+        type: "video",
+        key: env.YOUTUBE_API_KEY,
+        videoEmbeddable: "true", // Only return embeddable videos
+        safeSearch: "none",
+        relevanceLanguage: "en",
+        order: "relevance",
+      };
+
+      const response = await axios.get(YOUTUBE_BASE_URL, { params: param });
+
+      if (response.data.items && response.data.items.length > 0) {
+        searchItems = response.data.items;
+        break;
+      }
+    }
+
+    if (searchItems.length === 0) {
       console.warn(`No YouTube videos found for query: ${query}`);
+      console.warn(`Tried candidate queries: ${queryCandidates.join(" | ")}`);
       return null;
     }
 
-    const searchItems = response.data.items;
     const videoIds = searchItems
       .map((item: any) => item?.id?.videoId)
       .filter(Boolean);
 
     if (videoIds.length === 0) {
-      console.warn(`No YouTube video ids found for query: ${query}`);
+      console.warn(`No YouTube video ids found for query: ${usedQuery}`);
       return null;
     }
 

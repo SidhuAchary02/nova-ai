@@ -271,14 +271,38 @@ const ChapterContent = ({
     li: ({ node, ...props }: any) => (
       <li className="text-slate-300 leading-relaxed text-base" {...props} />
     ),
-    code: (props: any) => (
-      <code
-        className="rounded bg-slate-900 px-2 py-1 font-mono text-sm text-cyan-300 border border-cyan-900/30 whitespace-nowrap"
-        {...props}
-      />
-    ),
+    code: ({ inline, className, children, ...props }: any) => {
+      const code = String(children ?? "").replace(/\n$/, "");
+      const isMermaid = className?.includes("language-mermaid") || className?.includes("mermaid");
+
+      if (!inline && isMermaid) {
+        return <MermaidBlock code={code} />;
+      }
+
+      if (!inline) {
+        return (
+          <pre className="overflow-x-auto rounded-lg bg-slate-900 p-5 text-sm text-slate-200 mb-6 border border-white/10 font-mono leading-6">
+            <code className={className} {...props}>
+              {children}
+            </code>
+          </pre>
+        );
+      }
+
+      return (
+        <code
+          className="rounded bg-slate-900 px-2 py-1 font-mono text-sm text-cyan-300 border border-cyan-900/30 whitespace-nowrap"
+          {...props}
+        >
+          {children}
+        </code>
+      );
+    },
     pre: ({ node, children, ...props }: any) => {
       const child = children as any;
+      if (child?.type === MermaidBlock) {
+        return child;
+      }
       const isMermaid =
         child?.props?.className?.includes("language-mermaid") ||
         child?.props?.className?.includes("mermaid");
