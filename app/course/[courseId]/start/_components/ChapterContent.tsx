@@ -40,6 +40,35 @@ const videoOpts = {
   },
 };
 
+const getLessonRawContent = (lesson: unknown) => {
+  if (typeof lesson === "string") return lesson;
+  if (!lesson || typeof lesson !== "object") return "";
+
+  const record = lesson as Record<string, unknown>;
+
+  if (typeof record.content === "string") return record.content;
+  if (typeof record.body === "string") return record.body;
+  if (typeof record.deep_explanation === "string") return record.deep_explanation;
+  if (typeof record.explanation === "string") return record.explanation;
+
+  return "";
+};
+
+const normalizeMarkdownContent = (rawContent: string) => {
+  const trimmed = rawContent.trim();
+
+  if (trimmed.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return parsed.sections?.[0]?.deep_explanation || parsed.content || rawContent;
+    } catch {
+      return rawContent;
+    }
+  }
+
+  return rawContent;
+};
+
 const ChapterContent = ({
   chapter,
   content,
@@ -95,23 +124,20 @@ const ChapterContent = ({
   useEffect(() => {
     let isMounted = true;
 
+    setSerializedLessons({});
+
     const serializeLessons = async () => {
       const results: Record<number, any> = {};
 
       for (let index = 0; index < lessons.length; index += 1) {
         const lesson = lessons[index];
-        const lessonRecord = lesson as Record<string, unknown>;
-        const rawContent =
-          typeof lesson === "string"
-            ? lesson
-            : (typeof lessonRecord.content === "string" && lessonRecord.content) ||
-              (typeof lessonRecord.body === "string" && lessonRecord.body) ||
-              "";
+        const rawContent = getLessonRawContent(lesson);
+        const normalizedContent = rawContent ? normalizeMarkdownContent(rawContent) : "";
 
-        if (!rawContent) continue;
+        if (!normalizedContent) continue;
 
         try {
-          results[index] = await serialize(rawContent, {
+          results[index] = await serialize(normalizedContent, {
             mdxOptions: {
               remarkPlugins: [remarkGfm],
               rehypePlugins: [],
@@ -436,21 +462,8 @@ const ChapterContent = ({
             </div>
           ) : (
             lessons.map((lesson: any, lessonIndex: number) => {
-              // Extract markdown content, handling both string and object formats
-              let markdownContent = "";
-              if (typeof lesson.content === "string") {
-                // If it starts with {, it might be JSON - extract the actual markdown
-                if (lesson.content.trim().startsWith("{")) {
-                  try {
-                    const parsed = JSON.parse(lesson.content);
-                    markdownContent = parsed.sections?.[0]?.deep_explanation || parsed.content || "";
-                  } catch {
-                    markdownContent = lesson.content;
-                  }
-                } else {
-                  markdownContent = lesson.content;
-                }
-              }
+              const rawContent = getLessonRawContent(lesson);
+              const markdownContent = rawContent ? normalizeMarkdownContent(rawContent) : "";
 
               if (!markdownContent) return null;
 

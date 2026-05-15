@@ -305,15 +305,17 @@ export default function CoursePage({ params }: CourseParams) {
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-white/10 pt-8 sm:flex-row sm:justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/create-course")}
-              disabled={loading}
-              className="border-white/20 bg-transparent text-slate-200 hover:bg-white/5"
-            >
-              Modify plan
-            </Button>
+            {!isPublished && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/create-course")}
+                disabled={loading}
+                className="border-white/20 bg-transparent text-slate-200 hover:bg-white/5"
+              >
+                Modify plan
+              </Button>
+            )}
             {isPublished ? (
               <Button
                 type="button"

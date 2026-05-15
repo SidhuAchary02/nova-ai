@@ -23,8 +23,8 @@ export const generateCourseContent = async (
     const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
     const generatedChapterIds = generatedProgress.success ? generatedProgress.chapterIds : [];
     const startIndex = generatedProgress.success ? generatedProgress.contiguousGeneratedCount : 0;
-    const batchSize = Math.max(1, Math.ceil(allChapters.length * 0.25));
-    const chaptersToGenerate = allChapters.slice(startIndex, startIndex + batchSize);
+    const chaptersToGenerate = allChapters.slice(startIndex);
+    const batchSize = chaptersToGenerate.length;
 
     if (chaptersToGenerate.length === 0) {
       return { success: true, successCount: 0, totalChapters: allChapters.length };

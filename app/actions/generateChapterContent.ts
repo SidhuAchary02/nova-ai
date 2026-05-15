@@ -109,6 +109,12 @@ Output ONLY raw mermaid syntax starting with: flowchart TD`;
       console.warn("⚠️ Mermaid generation failed, continuing without diagram:", mermaidError);
     }
 
+    if (!mermaidBlock) {
+      const safeLabel = subtopicName.replace(/[\[\]"]+/g, "").trim() || "Lesson topic";
+      const fallbackMermaid = `flowchart TD\n  A[${safeLabel}] --> B[Key idea]\n  B --> C[Next step]`;
+      mermaidBlock = `\n\n## Visual Overview\n\n\`\`\`mermaid\n${fallbackMermaid}\n\`\`\`\n`;
+    }
+
     try {
       // MDX content from AI is raw markdown/MDX text
       let mdxContent = lessonResult?.trim() ?? "";
