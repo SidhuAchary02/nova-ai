@@ -1,12 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { LuPuzzle } from "react-icons/lu";
 import { Button } from "@/components/ui/button";
 import EditCourseBasicInfo from "./_edit/EditCourseBasicInfo";
-import { Input } from "@/components/ui/input";
-import { useEffect, useState } from "react";
-import { uploadFilesToFirebase } from "../_utils/uploadFilesToFirebase";
 import { CourseType } from "@/types/types";
 import Link from "next/link";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
@@ -23,20 +19,7 @@ const CourseBasicInfo = ({
   onRefresh,
   edit = true,
 }: CourseBasicInfoProps) => {
-  const [selectedImage, setSelectedImage] = useState<string | null | undefined>(
-    null
-  );
   const courseOutput = parseCourseOutput(courseInfo?.courseOutput);
-
-  useEffect(() => {
-    setSelectedImage(courseInfo?.courseBanner);
-  }, [courseInfo]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.item(0) as Blob;
-    setSelectedImage(URL.createObjectURL(file));
-    uploadFilesToFirebase(file, courseInfo!);
-  };
 
   // console.log("Course Info", courseInfo);
 
@@ -67,23 +50,12 @@ const CourseBasicInfo = ({
           )}
         </div>
         <div className="relative h-[250px] overflow-hidden rounded-xl">
-          <label htmlFor="image-upload">
-            <CourseCover
-              title={courseOutput?.topic || courseInfo?.courseName}
-              category={courseInfo?.category}
-              imageUrl={selectedImage || courseInfo?.courseBanner}
-              className={`h-full w-full ${edit ? "cursor-pointer" : ""}`}
-            />
-          </label>
-          {edit && (
-            <Input
-              type="file"
-              accept="image/*"
-              id="image-upload"
-              className="opacity-0"
-              onChange={handleImageUpload}
-            />
-          )}
+          <CourseCover
+            title={courseOutput?.topic || courseInfo?.courseName}
+            category={courseInfo?.category}
+            imageUrl={courseInfo?.courseBanner}
+            className="h-full w-full"
+          />
         </div>
       </div>
     </div>

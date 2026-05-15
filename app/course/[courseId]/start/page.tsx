@@ -9,7 +9,6 @@ import CertificateModal from "./_components/CertificateModal";
 import ScrollProgress from "@/components/ui/scroll-progress";
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { getChapterContentAction } from "@/app/actions/getChapterContent";
-import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
 import { markCourseAsCompletedAction } from "@/app/actions/courseEnhancements";
 import { toggleChapterCompletionAction } from "@/app/actions/toggleChapterCompletion";
 import { generateQuizAction, QuizQuestion } from "@/app/actions/generateQuiz";
@@ -61,11 +60,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
     const resolvedCourse = activeCourse ?? course;
     if (!resolvedCourse) return;
 
-    if (chapterId >= generatedChapterCount) {
-      setShowPremiumCTA(true);
-      return;
-    }
-    
     setShowPremiumCTA(false);
     setShowQuiz(false);
     setQuizQuestions([]);
@@ -91,12 +85,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
       const passedChapters = await getQuizPassedChaptersAction(params.courseId);
       setQuizPassedChapters(passedChapters);
 
-      const generatedProgress = await getGeneratedChapterIdsAction(params.courseId);
-      const unlockedCount = generatedProgress.success ? generatedProgress.contiguousGeneratedCount : 0;
-      setGeneratedChapterCount(unlockedCount);
-      
       if (currentCourse.isPublished) {
         const parsed = parseCourseOutput(currentCourse.courseOutput);
+        const unlockedCount = parsed?.chapters?.length || 0;
+
+        setGeneratedChapterCount(unlockedCount);
         
         // Check for URL parameters
         const searchParams = new URLSearchParams(window.location.search);
@@ -115,11 +108,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
           setSelectedChapterIndex(initialChapterIdx);
           setSelectedSubtopicIndex(initialSubtopicIdx);
           setQuizPassed(passedChapters.includes(initialChapterIdx));
-          if (initialChapterIdx >= unlockedCount) {
-            setShowPremiumCTA(true);
-          } else {
-            await getChapterContent(initialChapterIdx, currentCourse);
-          }
+          await getChapterContent(initialChapterIdx, currentCourse);
         }
       }
     } catch (e) {
@@ -312,17 +301,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
     const subtopicsCount = currentChapter?.subtopics?.length || 1;
 
     if (selectedSubtopicIndex < subtopicsCount - 1) {
-      const nextGlobalIdx = getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex + 1);
-      if (selectedChapterIndex >= generatedChapterCount) {
-        setShowPremiumCTA(true);
-        return;
-      }
       navigateToLesson(selectedChapterIndex, selectedSubtopicIndex + 1);
     } else if (selectedChapterIndex < courseOutput.chapters.length - 1) {
-      if (selectedChapterIndex + 1 >= generatedChapterCount) {
-        setShowPremiumCTA(true);
-        return;
-      }
       navigateToLesson(selectedChapterIndex + 1, 0);
     }
   };
@@ -336,7 +316,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
     !!courseOutput?.chapters?.length &&
     selectedChapterIndex >= generatedUnlockedChapters - 1;
 
-  // Pre-calculate global subtopic offsets for freemium lock
+  // Pre-calculate global subtopic offsets for progress tracking
   const getGlobalSubtopicIndex = (cIdx: number, sIdx: number) => {
     let globalIdx = 0;
     if (!courseOutput?.chapters) return 0;
@@ -346,22 +326,16 @@ const CourseStart = ({ params }: CourseStartProps) => {
     return globalIdx + sIdx;
   };
 
+  const totalSubtopics =
+    courseOutput?.chapters?.reduce(
+      (sum, chapter) => sum + (chapter.subtopics?.length || 0),
+      0
+    ) || 0;
+  const completedSubtopics = completedChapters.filter(idx => idx < totalSubtopics).length;
+
   const calculateProgress = () => {
-    if (!courseOutput?.chapters) return 0;
-    
-    // Total free subtopics (max 5)
-    let totalFreeSubtopics = 0;
-    for (let i = 0; i < courseOutput.chapters.length; i++) {
-      const subs = courseOutput.chapters[i].subtopics || [];
-      for (let j = 0; j < subs.length; j++) {
-        if (getGlobalSubtopicIndex(i, j) < 5) {
-          totalFreeSubtopics++;
-        }
-      }
-    }
-    
-    const completedFree = completedChapters.filter(idx => idx < 5).length;
-    return totalFreeSubtopics > 0 ? Math.round((completedFree / totalFreeSubtopics) * 100) : 0;
+    if (!totalSubtopics) return 0;
+    return Math.round((completedSubtopics / totalSubtopics) * 100);
   };
 
   const isLessonCompleted = (globalIndex: number) => {
@@ -372,15 +346,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
     if (!selectedChapter || !courseOutput) return false;
     if (!courseOutput?.chapters || courseOutput.chapters.length === 0) return false;
     
-    // Find the last available subtopic (either the absolute last, or index 4 if freemium)
+    // Find the last available subtopic
     let lastChapterIdx = courseOutput.chapters.length - 1;
     let lastSubtopicIdx = (courseOutput.chapters[lastChapterIdx].subtopics?.length || 1) - 1;
-    
-    // If freemium, max global index is 4
-    if (getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex) === 4) {
-      return true;
-    }
-    
+
     return selectedChapterIndex === lastChapterIdx && selectedSubtopicIndex === lastSubtopicIdx;
   })();
 
@@ -467,12 +436,12 @@ const CourseStart = ({ params }: CourseStartProps) => {
         {/* Progress Bar */}
         <div className="border-b border-white/10 bg-slate-900/50 p-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-semibold text-slate-200">Generated Chapters Progress</span>
+            <span className="text-sm font-semibold text-slate-200">Course Progress</span>
             <span className="text-sm font-bold text-primary">{calculateProgress()}%</span>
           </div>
           <Progress value={calculateProgress()} className="h-2" />
           <p className="mt-2 text-xs text-slate-400">
-            {completedChapters.filter(c => c < generatedUnlockedChapters).length} of {generatedUnlockedChapters} generated chapters completed
+            {completedSubtopics} of {totalSubtopics} lessons completed
           </p>
         </div>
         

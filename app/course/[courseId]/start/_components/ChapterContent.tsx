@@ -5,6 +5,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import YouTube, { YouTubeProps } from "react-youtube";
 import { formatDuration } from "@/utils/formatDuration";
 import ReactMarkdown from "react-markdown";
+import { MDXRemote } from "next-mdx-remote";
+import { serialize } from "next-mdx-remote/serialize";
+import remarkGfm from "remark-gfm";
+import MermaidBlock from "@/components/MermaidBlock";
 import { saveChapterAnnotationAction } from "@/app/actions/saveChapterAnnotation";
 
 type AnnotationType = "bookmark" | "tag" | "sticky-note";
@@ -51,6 +55,7 @@ const ChapterContent = ({
   const [draftTitle, setDraftTitle] = useState("");
   const [draftBody, setDraftBody] = useState("");
   const [savingAnnotation, setSavingAnnotation] = useState(false);
+  const [serializedLessons, setSerializedLessons] = useState<Record<number, any>>({});
 
   const onPlayerReady: YouTubeProps["onReady"] = (event) => {
     event.target.pauseVideo();
@@ -74,6 +79,11 @@ const ChapterContent = ({
     return Array.isArray(contentData) ? contentData : [];
   }, [content?.content]);
 
+  // 👇 DEBUG LOGS
+  console.log("🔍 DEBUG content prop:", content);
+  console.log("🔍 DEBUG lessons array:", lessons);
+  console.log("🔍 DEBUG lessons.length:", lessons.length);
+
   useEffect(() => {
     setAnnotations((content?.annotations ?? []) as LessonAnnotation[]);
     setActiveLessonIndex(null);
@@ -81,6 +91,54 @@ const ChapterContent = ({
     setDraftTitle("");
     setDraftBody("");
   }, [content?.annotations]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const serializeLessons = async () => {
+      const results: Record<number, any> = {};
+
+      for (let index = 0; index < lessons.length; index += 1) {
+        const lesson = lessons[index];
+        const lessonRecord = lesson as Record<string, unknown>;
+        const rawContent =
+          typeof lesson === "string"
+            ? lesson
+            : (typeof lessonRecord.content === "string" && lessonRecord.content) ||
+              (typeof lessonRecord.body === "string" && lessonRecord.body) ||
+              "";
+
+        if (!rawContent) continue;
+
+        try {
+          results[index] = await serialize(rawContent, {
+            mdxOptions: {
+              remarkPlugins: [remarkGfm],
+              rehypePlugins: [],
+            },
+          });
+        } catch (error) {
+          console.warn(`Failed to serialize lesson ${index}:`, error);
+          results[index] = null;
+        }
+      }
+
+      if (isMounted) {
+        setSerializedLessons(results);
+      }
+    };
+
+    if (lessons.length === 0) {
+      setSerializedLessons({});
+      return;
+    }
+
+    void serializeLessons();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [lessons]);
 
   const beginAnnotation = (lessonIndex: number, type: AnnotationType) => {
     setActiveLessonIndex(lessonIndex);
@@ -174,6 +232,95 @@ const ChapterContent = ({
       accent: "bg-amber-400",
       preview: "from-amber-100 via-[#f7e7b4] to-[#f3d96f]",
     },
+  };
+
+  const mdxComponents = {
+    h1: ({ node, ...props }: any) => (
+      <h1 className="text-5xl font-bold text-slate-50 mt-0 mb-8 leading-tight" {...props} />
+    ),
+    h2: ({ node, ...props }: any) => (
+      <h2 className="text-3xl font-bold text-slate-100 mt-12 mb-6 pb-3 border-b border-primary/20" {...props} />
+    ),
+    h3: ({ node, ...props }: any) => (
+      <h3 className="text-2xl font-semibold text-slate-100 mt-9 mb-5" {...props} />
+    ),
+    h4: ({ node, ...props }: any) => (
+      <h4 className="text-xl font-semibold text-slate-200 mt-7 mb-4" {...props} />
+    ),
+    h5: ({ node, ...props }: any) => (
+      <h5 className="text-lg font-semibold text-slate-200 mt-6 mb-3" {...props} />
+    ),
+    h6: ({ node, ...props }: any) => (
+      <h6 className="text-base font-semibold text-slate-300 mt-5 mb-3" {...props} />
+    ),
+    p: ({ node, ...props }: any) => (
+      <p className="text-slate-300 leading-7 mb-5 text-base font-normal" {...props} />
+    ),
+    strong: ({ node, ...props }: any) => (
+      <strong className="font-semibold text-slate-100" {...props} />
+    ),
+    em: ({ node, ...props }: any) => (
+      <em className="italic text-slate-200" {...props} />
+    ),
+    ul: ({ node, ...props }: any) => (
+      <ul className="list-disc list-outside space-y-3 text-slate-300 mb-6 ml-6" {...props} />
+    ),
+    ol: ({ node, ...props }: any) => (
+      <ol className="list-decimal list-outside space-y-3 text-slate-300 mb-6 ml-6" {...props} />
+    ),
+    li: ({ node, ...props }: any) => (
+      <li className="text-slate-300 leading-relaxed text-base" {...props} />
+    ),
+    code: (props: any) => (
+      <code
+        className="rounded bg-slate-900 px-2 py-1 font-mono text-sm text-cyan-300 border border-cyan-900/30 whitespace-nowrap"
+        {...props}
+      />
+    ),
+    pre: ({ node, children, ...props }: any) => {
+      const child = children as any;
+      const isMermaid =
+        child?.props?.className?.includes("language-mermaid") ||
+        child?.props?.className?.includes("mermaid");
+
+      if (isMermaid) {
+        const code = String(child?.props?.children ?? "").trim();
+        return <MermaidBlock code={code} />;
+      }
+
+      return (
+        <pre
+          className="overflow-x-auto rounded-lg bg-slate-900 p-5 text-sm text-slate-200 mb-6 border border-white/10 font-mono leading-6"
+          {...props}
+        >
+          {children}
+        </pre>
+      );
+    },
+    table: ({ node, ...props }: any) => (
+      <table className="w-full border-collapse my-7" {...props} />
+    ),
+    thead: ({ node, ...props }: any) => (
+      <thead className="bg-slate-800/60" {...props} />
+    ),
+    th: ({ node, ...props }: any) => (
+      <th className="border border-white/15 bg-slate-800 px-5 py-3 text-left font-semibold text-slate-100 text-base" {...props} />
+    ),
+    td: ({ node, ...props }: any) => (
+      <td className="border border-white/15 px-5 py-3 text-slate-300 text-base" {...props} />
+    ),
+    blockquote: ({ node, ...props }: any) => (
+      <blockquote
+        className="border-l-4 border-blue-500 bg-blue-500/10 px-6 py-4 my-7 rounded-r-lg text-slate-200 italic font-normal"
+        {...props}
+      />
+    ),
+    a: ({ node, ...props }: any) => (
+      <a className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors" {...props} />
+    ),
+    hr: ({ node, ...props }: any) => (
+      <hr className="my-8 border-white/10" {...props} />
+    ),
   };
 
   return (
@@ -289,81 +436,15 @@ const ChapterContent = ({
                   id={`subtopic-${chapterId ?? 0}-${lessonIndex}`}
                   className="prose prose-invert max-w-none space-y-6 scroll-mt-24"
                 >
-                  <ReactMarkdown
-                    components={{
-                      h1: ({ node, ...props }) => (
-                        <h1 className="text-5xl font-bold text-slate-50 mt-0 mb-8 leading-tight" {...props} />
-                      ),
-                      h2: ({ node, ...props }) => (
-                        <h2 className="text-3xl font-bold text-slate-100 mt-12 mb-6 pb-3 border-b border-primary/20" {...props} />
-                      ),
-                      h3: ({ node, ...props }) => (
-                        <h3 className="text-2xl font-semibold text-slate-100 mt-9 mb-5" {...props} />
-                      ),
-                      h4: ({ node, ...props }) => (
-                        <h4 className="text-xl font-semibold text-slate-200 mt-7 mb-4" {...props} />
-                      ),
-                      h5: ({ node, ...props }) => (
-                        <h5 className="text-lg font-semibold text-slate-200 mt-6 mb-3" {...props} />
-                      ),
-                      h6: ({ node, ...props }) => (
-                        <h6 className="text-base font-semibold text-slate-300 mt-5 mb-3" {...props} />
-                      ),
-                      p: ({ node, ...props }) => (
-                        <p className="text-slate-300 leading-7 mb-5 text-base font-normal" {...props} />
-                      ),
-                      strong: ({ node, ...props }) => (
-                        <strong className="font-semibold text-slate-100" {...props} />
-                      ),
-                      em: ({ node, ...props }) => (
-                        <em className="italic text-slate-200" {...props} />
-                      ),
-                      ul: ({ node, ...props }) => (
-                        <ul className="list-disc list-outside space-y-3 text-slate-300 mb-6 ml-6" {...props} />
-                      ),
-                      ol: ({ node, ...props }) => (
-                        <ol className="list-decimal list-outside space-y-3 text-slate-300 mb-6 ml-6" {...props} />
-                      ),
-                      li: ({ node, ...props }) => (
-                        <li className="text-slate-300 leading-relaxed text-base" {...props} />
-                      ),
-                      code: (props) => (
-                        <code
-                          className="rounded bg-slate-900 px-2 py-1 font-mono text-sm text-cyan-300 border border-cyan-900/30 whitespace-nowrap"
-                          {...props}
-                        />
-                      ),
-                      pre: ({ node, ...props }) => (
-                        <pre className="overflow-x-auto rounded-lg bg-slate-900 p-5 text-sm text-slate-200 mb-6 border border-white/10 font-mono leading-6" {...props} />
-                      ),
-                      table: ({ node, ...props }) => (
-                        <table className="w-full border-collapse my-7" {...props} />
-                      ),
-                      thead: ({ node, ...props }) => (
-                        <thead className="bg-slate-800/60" {...props} />
-                      ),
-                      th: ({ node, ...props }) => (
-                        <th className="border border-white/15 bg-slate-800 px-5 py-3 text-left font-semibold text-slate-100 text-base" {...props} />
-                      ),
-                      td: ({ node, ...props }) => (
-                        <td className="border border-white/15 px-5 py-3 text-slate-300 text-base" {...props} />
-                      ),
-                      blockquote: ({ node, ...props }) => (
-                        <blockquote
-                          className="border-l-4 border-blue-500 bg-blue-500/10 px-6 py-4 my-7 rounded-r-lg text-slate-200 italic font-normal"
-                          {...props}
-                        />
-                      ),
-                      a: ({ node, ...props }) => (
-                        <a className="text-blue-400 hover:text-blue-300 underline font-medium transition-colors" {...props} />
-                      ),
-                      hr: ({ node, ...props }) => (
-                        <hr className="my-8 border-white/10" {...props} />
-                      ),
-                    }}
-                  >
-                    {markdownContent}
-                  </ReactMarkdown>
+                  {serializedLessons[lessonIndex] ? (
+                    <MDXRemote {...serializedLessons[lessonIndex]} components={mdxComponents} />
+                  ) : markdownContent ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={mdxComponents as any}>
+                      {markdownContent}
+                    </ReactMarkdown>
+                  ) : (
+                    <p className="text-slate-400 text-sm">Loading lesson content...</p>
+                  )}
 
                   <div className="not-prose mt-8 overflow-hidden rounded-[28px] border border-white/10 bg-slate-950/80 shadow-[0_18px_55px_rgba(0,0,0,0.28)]">
                     <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 sm:px-5">

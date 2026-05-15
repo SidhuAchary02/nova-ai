@@ -146,3 +146,24 @@ export async function generateQuizStructured(userPrompt: string) {
 export async function generateSourcesJsonObject(userPrompt: string) {
   return generateGroqJsonObject(SYSTEM_PROMPTS.sourcesOnly, userPrompt, 0.55);
 }
+
+/** Generates mermaid flowchart code for a given lesson topic */
+export async function generateMermaidDiagram(prompt: string): Promise<string> {
+  const systemPrompt = `You are a technical diagram generator. Your ONLY job is to output valid Mermaid flowchart code.
+
+RULES:
+- Output ONLY the mermaid code block, nothing else
+- Always start with: flowchart TD
+- No explanation, no prose, no markdown outside the code block
+- No backticks, no triple backticks, just raw mermaid syntax
+- Keep it focused: 6-12 nodes maximum
+- Use these node shapes correctly:
+  - [Text] for process/rectangle
+  - {Text} for decision/diamond  
+  - ([Text]) for start/end rounded
+  - [(Text)] for database
+- Use --> for arrows
+- Use -->|label| for labeled arrows`;
+
+  return generateGroqPlainText(systemPrompt, prompt, 0.3);
+}

@@ -25,7 +25,6 @@ A modern, AI-powered platform for creating educational courses. Users can genera
 - **Database**: PostgreSQL with Drizzle ORM
 - **AI**: Groq API
 - **Video API**: YouTube API
-- **File Storage**: Firebase Storage
 - **Animations**: Framer Motion
 - **Deployment**: Vercel
 
@@ -64,15 +63,6 @@ A modern, AI-powered platform for creating educational courses. Users can genera
    NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY="your-google-gemini-api-key"
    GROQ_API_KEY="your-groq-api-key"
 
-   # Firebase Storage (for course banners and assets)
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-firebase-project-id"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-   NEXT_PUBLIC_FIREBASE_APP_ID="your-firebase-app-id"
-   NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID="your-measurement-id"
-
    # YouTube API (for video integration)
    NEXT_PUBLIC_YOUTUBE_API_KEY="your-youtube-api-key"
 
@@ -109,12 +99,6 @@ A modern, AI-powered platform for creating educational courses. Users can genera
 - Enable YouTube Data API v3
 - Create an API key
 
-### Firebase Setup
-- Go to [Firebase Console](https://console.firebase.google.com)
-- Create a new project
-- Go to Project Settings → General
-- Scroll down to find SDK configuration and copy the values
-
 ## Project Structure
 
 ```
@@ -130,7 +114,7 @@ nova-ai/
 │   ├── auth/            # Login and signup forms
 │   ├── ui/              # Reusable Shadcn UI components
 │   └── providers/       # Context and state providers
-├── configs/             # Configuration files (Supabase, Firebase, etc.)
+├── configs/             # Configuration files (Supabase, AI, database, etc.)
 ├── drizzle/             # Database schema and migrations
 ├── lib/                 # Utility functions
 └── public/              # Static assets

@@ -71,9 +71,9 @@ export const getYoutubeVideos = async (query: string) => {
         if (!details) return null;
 
         const durationSeconds = parseIsoDurationToSeconds(
-          details.contentDetails?.duration || ""
+          (details as any).contentDetails?.duration || ""
         );
-        const viewCount = Number(details.statistics?.viewCount || 0);
+        const viewCount = Number((details as any).statistics?.viewCount || 0);
 
         if (
           durationSeconds < MIN_VIDEO_DURATION_SECONDS ||

@@ -4,7 +4,6 @@ const nextConfig = {
     images: {
         domains: [
             '127.0.0.1',
-            "firebasestorage.googleapis.com",
             "img.clerk.com"
         ],
     },

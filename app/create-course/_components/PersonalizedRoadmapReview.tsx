@@ -134,7 +134,8 @@ const PersonalizedRoadmapReview = ({
     const endDay = dayCursor + phaseDaysInt - 1;
     dayCursor = endDay + 1;
 
-    const ranges = objectiveDayRanges(startDay, phaseDaysInt, p.objectives.length);
+    const objectiveCount = p.objectives?.length ?? 0;
+    const ranges = objectiveDayRanges(startDay, phaseDaysInt, objectiveCount);
 
     return {
       phase: p,

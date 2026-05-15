@@ -131,11 +131,16 @@ export default function CoursePage({ params }: CourseParams) {
 
   const courseOutput = useMemo(() => parseCourseOutput(course?.courseOutput), [course?.courseOutput]);
 
+  const learningContext = course?.learningContext as
+    | Record<string, unknown>
+    | null
+    | undefined;
+
   const dailyHours =
     typeof course?.learningTimePerDayHours === "number"
       ? course.learningTimePerDayHours
-      : course?.learningContext && typeof course.learningContext === "object"
-        ? (course.learningContext as Record<string, unknown>).timePerDayHours
+      : learningContext && typeof learningContext.timePerDayHours === "number"
+        ? learningContext.timePerDayHours
         : undefined;
 
   const isPublished = Boolean(course?.isPublished);

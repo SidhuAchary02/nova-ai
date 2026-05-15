@@ -1,6 +1,6 @@
 "use server";
 
-import { generateChapterContentMDX } from "@/configs/ai-models";
+import { generateChapterContentMDX, generateMermaidDiagram } from "@/configs/ai-models";
 import { getYoutubeVideos } from "@/configs/service";
 import { db } from "@/configs/db";
 import { CourseChapters, CourseList } from "@/schema/schema";
@@ -38,6 +38,18 @@ async function retryWithBackoff<T>(
   throw lastError;
 }
 
+function cleanMermaidOutput(raw: string): string {
+  let cleaned = raw.trim();
+
+  if (cleaned.startsWith("```mermaid")) {
+    cleaned = cleaned.replace(/^```mermaid\n?/, "").replace(/\n?```$/, "");
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```\n?/, "").replace(/\n?```$/, "");
+  }
+
+  return cleaned.trim();
+}
+
 export async function generateSingleSubtopicLesson(
   courseName: string,
   chapterName: string,
@@ -67,13 +79,39 @@ Write a complete, detailed, professional course lesson. Include overview, concep
 
 CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do NOT output any { or } or any structured format. Just markdown.`;
 
-    const result = await retryWithBackoff(async () => {
+    const lessonResult = await retryWithBackoff(async () => {
       return await generateChapterContentMDX(PROMPT);
     });
 
+    const MERMAID_PROMPT = `Generate a flowchart diagram for this lesson topic:
+
+Course: "${courseName}"
+Chapter: "${chapterName}"  
+Subtopic: "${subtopicName}"
+
+The flowchart should visually explain the core concept or process of this subtopic.
+For example: if it's about authentication, show the auth flow. If it's a sorting algorithm, show the steps. If it's a concept, show how the parts relate.
+
+Output ONLY raw mermaid syntax starting with: flowchart TD`;
+
+    let mermaidBlock = "";
+    try {
+      const mermaidRaw = await retryWithBackoff(async () => {
+        return await generateMermaidDiagram(MERMAID_PROMPT);
+      });
+
+      const mermaidCode = cleanMermaidOutput(mermaidRaw);
+
+      if (mermaidCode.startsWith("flowchart") || mermaidCode.startsWith("graph")) {
+        mermaidBlock = `\n\n## Visual Overview\n\n\`\`\`mermaid\n${mermaidCode}\n\`\`\`\n`;
+      }
+    } catch (mermaidError) {
+      console.warn("⚠️ Mermaid generation failed, continuing without diagram:", mermaidError);
+    }
+
     try {
       // MDX content from AI is raw markdown/MDX text
-      let mdxContent = result?.trim() ?? "";
+      let mdxContent = lessonResult?.trim() ?? "";
       
       // Safety check: if JSON was returned instead of markdown, try to extract content
       if (mdxContent.startsWith("{")) {
@@ -98,6 +136,14 @@ CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do NOT output any { or 
         return { success: false, error: "Content generation failed" };
       }
 
+      const firstHeadingMatch = mdxContent.match(/^#[^\n]*\n/);
+      if (firstHeadingMatch && mermaidBlock) {
+        const insertAt = firstHeadingMatch[0].length;
+        mdxContent = mdxContent.slice(0, insertAt) + mermaidBlock + mdxContent.slice(insertAt);
+      } else if (mermaidBlock) {
+        mdxContent = mdxContent + mermaidBlock;
+      }
+
       return {
         success: true,
         lesson: {
@@ -106,7 +152,7 @@ CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do NOT output any { or 
         },
       };
     } catch (error) {
-      console.error("❌ MDX processing failed:", error, result);
+      console.error("❌ MDX processing failed:", error, lessonResult);
       return { success: false, error: "Processing failed" };
     }
   } catch (error: unknown) {
