@@ -7,16 +7,15 @@ import { useRouter } from "next/navigation";
 export default function LoginForm() {
   const router = useRouter();
 
-  const [email,setEmail] = useState("");
-  const [password,setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if(error){
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
       alert(error.message);
     } else {
       router.push("/dashboard");
@@ -25,71 +24,87 @@ export default function LoginForm() {
 
   const handleGoogleLogin = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-
-    if (error) {
-      alert(error.message);
-    }
+    if (error) alert(error.message);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900/75 p-8 shadow-[0_18px_35px_rgba(2,6,23,0.5)] backdrop-blur-xl">
-          <h1 className="mb-2 text-center text-3xl font-bold text-slate-100">Welcome Back</h1>
-          <p className="mb-8 text-center text-slate-300">Sign in to your account</p>
-          
+    <div className="flex min-h-screen items-center justify-center bg-[#fdf8f4] p-4">
+      {/* Subtle background blobs */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-nova-primary/8 blur-3xl" />
+        <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-amber-300/10 blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md">
+        {/* Logo / Brand */}
+        <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-nova-primary shadow-[0_4px_16px_rgba(249,115,22,0.3)]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z" /><path d="M2 17l10 5 10-5" /><path d="M2 12l10 5 10-5" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-nova-heading">Nova AI</h1>
+          <p className="mt-1 text-sm text-nova-body">Sign in to continue learning</p>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-3xl border border-black/6 bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+          <h2 className="mb-6 text-center text-xl font-bold text-nova-heading">Welcome back</h2>
+
           <div className="flex flex-col gap-4">
             <input
               type="email"
-              className="w-full rounded-lg border border-white/15 bg-slate-950 px-4 py-3 text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-xl border border-black/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
               placeholder="Email address"
               value={email}
-              onChange={(e)=>setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
             />
 
             <input
               type="password"
-              className="w-full rounded-lg border border-white/15 bg-slate-950 px-4 py-3 text-slate-100 transition focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-xl border border-black/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
               placeholder="Password"
               value={password}
-              onChange={(e)=>setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             />
 
             <button
               onClick={handleLogin}
-              className="w-full rounded-lg bg-primary py-3 font-medium text-slate-950 transition duration-200 hover:bg-primary/90"
+              disabled={loading}
+              className="w-full rounded-xl bg-nova-primary py-3 font-semibold text-white shadow-[0_4px_14px_rgba(249,115,22,0.3)] transition duration-200 hover:bg-nova-primary/90 hover:shadow-[0_6px_20px_rgba(249,115,22,0.4)] disabled:opacity-60"
             >
-              Sign In
+              {loading ? "Signing in..." : "Sign In"}
             </button>
 
-            <div className="relative">
+            <div className="relative my-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/15"></div>
+                <div className="w-full border-t border-black/8" />
               </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="bg-slate-900 px-2 text-slate-400">Or continue with</span>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-3 text-nova-body">Or continue with</span>
               </div>
             </div>
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full rounded-lg border border-white/20 py-3 font-medium text-slate-200 transition duration-200 hover:bg-slate-800 flex items-center justify-center gap-3"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-white py-3 font-medium text-nova-heading transition duration-200 hover:bg-gray-50 hover:border-black/15"
             >
-              <img width="20" height="20" src="https://img.icons8.com/fluency/48/google-logo.png" alt="google-logo"/>
+              <img width="20" height="20" src="https://img.icons8.com/fluency/48/google-logo.png" alt="google-logo" />
               <span>Sign in with Google</span>
             </button>
 
-            <p className="mt-6 text-center text-sm text-slate-400">
+            <p className="mt-2 text-center text-sm text-nova-body">
               Don&apos;t have an account?{" "}
-              <a href="/sign-up" className="font-medium text-primary hover:text-primary/80">
+              <a href="/sign-up" className="font-semibold text-nova-primary hover:text-nova-primary/80">
                 Sign up
               </a>
             </p>
           </div>
+        </div>
       </div>
     </div>
   );

@@ -115,6 +115,9 @@ function ChapterRoadmapCard({
 export default function CoursePage({ params }: CourseParams) {
   const [course, setCourse] = useState<CourseType | null>(null);
   const [loading, setLoading] = useState(false);
+  const [genProgress, setGenProgress] = useState(0);
+  const [genTotal, setGenTotal] = useState(0);
+  const [genLesson, setGenLesson] = useState<string | undefined>();
   const router = useRouter();
 
   const loadCourse = async () => {
@@ -151,8 +154,18 @@ export default function CoursePage({ params }: CourseParams) {
     if (!course) return;
 
     setLoading(true);
+    setGenProgress(0);
+    setGenTotal(0);
+    setGenLesson(undefined);
     try {
-      const result = await generateCourseContent(course, setLoading, { initialCount: 3 });
+      const result = await generateCourseContent(course, setLoading, {
+        initialCount: 3,
+        onProgress: (completed, total, lessonName) => {
+          setGenProgress(completed);
+          setGenTotal(total);
+          setGenLesson(lessonName);
+        },
+      });
       if (!result.success) {
         alert(result.error || "Failed to generate course content");
         return;
@@ -166,6 +179,66 @@ export default function CoursePage({ params }: CourseParams) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleModifyPlan = () => {
+    if (!course) {
+      router.push("/create-course");
+      return;
+    }
+
+    // Seed localStorage so the wizard restores intent + all fields correctly
+    try {
+      const lc = course.learningContext as Record<string, unknown> | null | undefined;
+
+      // Best-effort: reconstruct the onboarding data from the course record
+      const restoredData = {
+        intent: course.courseName || "",
+        topic: course.courseName || "",
+        category: course.category || "",
+        goal: (course.learningGoal || lc?.goal || "hobby") as string,
+        level: (
+          course.learningCurrentLevel ||
+          course.level ||
+          (lc?.currentLevel as string) ||
+          "intermediate"
+        ),
+        timePerDayHours: (
+          course.learningTimePerDayHours ??
+          (lc?.timePerDayHours as number) ??
+          1
+        ),
+        topicsToFocus: (
+          course.learningTopicsToFocus ??
+          (lc?.topicsToFocus as string[]) ??
+          [course.courseName || ""]
+        ),
+        topicsToAvoid: (
+          course.learningTopicsToAvoid ??
+          (lc?.topicsToAvoid as string[]) ??
+          []
+        ),
+        pacingStyle: (
+          course.learningPacingStyle ??
+          (lc?.pacingStyle as string) ??
+          "balanced"
+        ),
+        featureCards: (
+          course.learningFeaturesRequired ??
+          (lc?.featuresRequired as string[]) ??
+          ["videos", "reading", "quiz"]
+        ),
+      };
+
+      window.localStorage.setItem(
+        "nova_onboarding_progress",
+        JSON.stringify({ step: 0, data: restoredData })
+      );
+    } catch (e) {
+      console.error("Failed to seed wizard state:", e);
+    }
+
+    router.push("/create-course");
   };
 
   if (!course) {
@@ -218,7 +291,13 @@ export default function CoursePage({ params }: CourseParams) {
       </div>
 
       <div className="section-shell mt-20">
-        <LoadingDialog loading={loading} />
+        <LoadingDialog
+          loading={loading}
+          variant="course"
+          progress={genProgress}
+          progressTotal={genTotal}
+          progressLesson={genLesson}
+        />
 
         <div className="space-y-10 rounded-[28px] border border-black/5 bg-white px-6 py-8 shadow-soft sm:px-10 sm:py-10">
           <header className="text-center sm:text-left">
@@ -309,7 +388,7 @@ export default function CoursePage({ params }: CourseParams) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push("/create-course")}
+                onClick={handleModifyPlan}
                 disabled={loading}
                 className="border-black/10 bg-transparent text-nova-heading hover:bg-white/5"
               >

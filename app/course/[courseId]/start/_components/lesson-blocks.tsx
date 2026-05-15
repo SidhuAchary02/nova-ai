@@ -45,39 +45,16 @@ function BlockShell({
 function HeroBlock({ block }: { block: Extract<LessonBlockType, { type: "hero" }> }) {
   return (
     <BlockShell accent="violet">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            Subchapter opener
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-nova-heading sm:text-3xl">
+          {block.title}
+        </h2>
+        {block.subtitle && (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-nova-body sm:text-base">
+            {block.subtitle}
           </p>
-          <h2 className="mt-2 text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
-            {block.title}
-          </h2>
-          {block.subtitle && (
-            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-nova-body sm:text-base">
-              {block.subtitle}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2 text-xs font-medium text-nova-heading">
-          {block.estimatedMinutes && (
-            <span className="rounded-full border border-black/5 bg-nova-bg/70 px-3 py-1">
-              {block.estimatedMinutes}
-            </span>
-          )}
-          {block.difficulty && (
-            <span className="rounded-full border border-black/5 bg-nova-bg/70 px-3 py-1">
-              {block.difficulty}
-            </span>
-          )}
-        </div>
+        )}
       </div>
-      {block.note && (
-        <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-nova-body">
-          <span className="font-semibold text-primary">AI note:</span> {block.note}
-        </div>
-      )}
     </BlockShell>
   );
 }
@@ -107,7 +84,7 @@ function TextBlock({ block }: { block: Extract<LessonBlockType, { type: "text" }
   return (
     <BlockShell title={block.title} accent="slate">
       {block.emphasis && block.emphasis.length > 0 && (
-        <div className="mb-6 flex flex-wrap gap-2">
+        <div className="mb-5 flex flex-wrap gap-2">
           {block.emphasis.map((item) => (
             <span key={item} className="rounded-md bg-nova-primary/10 text-nova-primary font-semibold px-3 py-1.5 text-xs">
               {item}
@@ -115,7 +92,7 @@ function TextBlock({ block }: { block: Extract<LessonBlockType, { type: "text" }
           ))}
         </div>
       )}
-      <div className="prose max-w-none prose-headings:text-nova-heading prose-p:text-nova-body prose-strong:text-nova-heading prose-strong:bg-nova-primary/10 prose-strong:px-1 prose-strong:rounded-md prose-code:text-nova-primary prose-a:text-blue-500 text-nova-body leading-relaxed">
+      <div className="prose max-w-none prose-headings:text-nova-heading prose-p:text-nova-body prose-strong:text-nova-heading prose-strong:bg-nova-primary/10 prose-strong:px-1 prose-strong:rounded-md prose-code:text-nova-primary prose-code:bg-nova-primary/8 prose-code:rounded prose-code:px-1 prose-a:text-nova-primary text-nova-body leading-relaxed">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{block.body}</ReactMarkdown>
       </div>
     </BlockShell>
@@ -281,8 +258,8 @@ function QuizBlock({ block }: { block: Extract<LessonBlockType, { type: "quiz" }
                   key={`${option}-${optionIndex}`}
                   className={`rounded-xl border px-3 py-2 text-sm ${
                     optionIndex === question.correctAnswer
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
-                      : "border-black/5 bg-white/5 text-nova-body"
+                      ? "border-emerald-400/40 bg-emerald-50 text-emerald-800 font-medium"
+                      : "border-black/8 bg-gray-50 text-nova-body"
                   }`}
                 >
                   <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-current text-[10px]">

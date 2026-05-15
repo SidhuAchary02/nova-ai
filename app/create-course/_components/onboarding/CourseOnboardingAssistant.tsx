@@ -66,6 +66,7 @@ export function CourseOnboardingAssistant({
   const [topicsToFocus, setTopicsToFocus] = useState<string[]>(userInput.learningProfile?.topicsToFocus || []);
   const [topicsToAvoid, setTopicsToAvoid] = useState<string[]>(userInput.learningProfile?.topicsToAvoid || []);
   const [pacingStyle, setPacingStyle] = useState<PacingStyle>(userInput.learningProfile?.pacingStyle || "balanced");
+  const [levelQuizCompleted, setLevelQuizCompleted] = useState(false);
 
   const progressValue = useMemo(
     () => Math.round(((step + 1) / stepperOptions.length) * 100),
@@ -153,18 +154,44 @@ export function CourseOnboardingAssistant({
           if (parsed && typeof parsed.step === "number") {
             setStep(parsed.step);
             setUserInput((prev) => ({ ...prev, ...parsed.data }));
-            
-            // Restore basic local states from parsed.data if needed, 
-            // but usually userInput context holds it. For exact restoration:
-            if (parsed.data.intent) setIntent(parsed.data.intent);
+
+            // intent may be stored directly or aliased as "topic" (from Modify plan)
+            const restoredIntent = parsed.data.intent || parsed.data.topic || "";
+            if (restoredIntent) setIntent(restoredIntent);
             if (parsed.data.category) setCategory(parsed.data.category);
             if (parsed.data.goal) setGoal(parsed.data.goal);
-            if (parsed.data.level) setLevel(parsed.data.level);
-            if (parsed.data.timePerDayHours) setHoursPerDay(parsed.data.timePerDayHours);
-            if (parsed.data.featureCards) setFeatureCards(new Set(parsed.data.featureCards));
-            if (parsed.data.topicsToFocus) setTopicsToFocus(parsed.data.topicsToFocus);
-            if (parsed.data.topicsToAvoid) setTopicsToAvoid(parsed.data.topicsToAvoid);
-            if (parsed.data.pacingStyle) setPacingStyle(parsed.data.pacingStyle);
+            if (parsed.data.goalCustomNote) setGoalCustomNote(parsed.data.goalCustomNote);
+            // level may be stored as "level" or nested in learningProfile
+            const restoredLevel =
+              parsed.data.level ||
+              parsed.data.learningProfile?.currentLevel ||
+              undefined;
+            if (restoredLevel) setLevel(restoredLevel);
+            const restoredHours =
+              parsed.data.timePerDayHours ||
+              parsed.data.learningProfile?.timePerDayHours ||
+              undefined;
+            if (restoredHours) setHoursPerDay(restoredHours);
+            const restoredFeatures =
+              parsed.data.featureCards ||
+              parsed.data.learningProfile?.featuresRequired ||
+              undefined;
+            if (restoredFeatures) setFeatureCards(new Set(restoredFeatures));
+            const restoredFocus =
+              parsed.data.topicsToFocus ||
+              parsed.data.learningProfile?.topicsToFocus ||
+              undefined;
+            if (restoredFocus) setTopicsToFocus(restoredFocus);
+            const restoredAvoid =
+              parsed.data.topicsToAvoid ||
+              parsed.data.learningProfile?.topicsToAvoid ||
+              undefined;
+            if (restoredAvoid) setTopicsToAvoid(restoredAvoid);
+            const restoredPacing =
+              parsed.data.pacingStyle ||
+              parsed.data.learningProfile?.pacingStyle ||
+              undefined;
+            if (restoredPacing) setPacingStyle(restoredPacing);
           }
         }
       } catch (e) {
@@ -188,6 +215,8 @@ export function CourseOnboardingAssistant({
       case 1:
         return !!goal;
       case 2:
+        // If "not_sure", require the quiz to be completed first
+        if (level === "not_sure") return levelQuizCompleted;
         return level !== undefined;
       case 3:
         return hoursPerDay >= 0.5 && hoursPerDay <= 8;
@@ -249,7 +278,7 @@ export function CourseOnboardingAssistant({
         </p>
       </header>
 
-      <div className="mb-8 space-y-3">
+      <div className="mb-8 space-y-4">
         <div className="flex items-center justify-between gap-4">
           <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
             Your AI learning assistant
@@ -258,32 +287,36 @@ export function CourseOnboardingAssistant({
             {step + 1} / {stepperOptions.length}
           </span>
         </div>
-        <Progress value={progressValue} className="h-1.5 bg-gray-50" />
-        <div className="flex justify-between gap-1 overflow-x-auto pb-1">
+
+        {/* Icons row — overflow-visible so scale-110 shadow isn't clipped */}
+        <div className="flex justify-between gap-1 py-2 overflow-visible">
           {stepperOptions.map((opt, i) => (
             <div
               key={opt.id}
-              className={`flex min-w-0 flex-1 flex-col items-center ${
-                i <= step ? "opacity-100" : "opacity-40"
+              className={`flex min-w-0 flex-1 flex-col items-center transition-opacity duration-200 ${
+                i <= step ? "opacity-100" : "opacity-55"
               }`}
             >
               <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs ${
+                className={`flex h-11 w-11 items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
                   i === step
-                    ? "bg-primary text-white"
+                    ? "bg-primary text-white shadow-[0_3px_12px_rgba(249,115,22,0.4)] scale-110"
                     : i < step
-                      ? "bg-primary/30 text-primary"
-                      : "bg-gray-50 text-gray-400"
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : "bg-white border border-black/10 text-gray-400"
                 }`}
               >
-                <opt.icon className="h-3.5 w-3.5" />
+                <opt.icon className="h-5 w-5" />
               </div>
-              <span className="mt-1 hidden truncate text-[10px] text-gray-400 sm:block">
+              <span className="mt-1.5 hidden truncate text-[11px] font-medium text-gray-500 sm:block">
                 {opt.shortLabel}
               </span>
             </div>
           ))}
         </div>
+
+        {/* Progress bar sits below the icons */}
+        <Progress value={progressValue} className="h-1.5 bg-gray-100" />
       </div>
 
       <div className="flex flex-1 flex-col justify-center">
@@ -310,8 +343,13 @@ export function CourseOnboardingAssistant({
             <StepLevel
               key="level"
               level={level}
-              onLevelChange={setLevel}
+              onLevelChange={(v) => {
+                setLevel(v);
+                // Reset quiz completion when user changes level selection
+                if (v !== "not_sure") setLevelQuizCompleted(false);
+              }}
               onResolvedLevel={(v) => setLevel(v)}
+              onQuizComplete={(done) => setLevelQuizCompleted(done)}
             />
           )}
           {step === 3 && (

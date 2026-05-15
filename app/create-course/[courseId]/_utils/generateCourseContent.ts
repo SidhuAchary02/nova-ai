@@ -9,6 +9,8 @@ const CONCURRENT_REQUESTS = 3;
 type GenerateCourseContentOptions = {
   initialCount?: number;
   chapterIndex?: number;
+  /** Called on each lesson start/finish: (completedCount, totalLessons, lessonName) */
+  onProgress?: (completed: number, total: number, lessonName?: string) => void;
 };
 
 export const generateCourseContent = async (
@@ -33,6 +35,7 @@ export const generateCourseContent = async (
       typeof options.chapterIndex === "number" && options.chapterIndex >= 0
         ? options.chapterIndex
         : undefined;
+    const { onProgress } = options;
 
     let chapterJobs: { chapter: any; chapterIndex: number }[] = [];
 
@@ -64,7 +67,7 @@ export const generateCourseContent = async (
       chapterJobs = allChapters
         .slice(0, initialCount)
         .map((chapter: any, chapterIndex: number) => ({ chapter, chapterIndex }))
-        .filter(({ chapterIndex }) => !generatedChapterIdSet.has(chapterIndex));
+        .filter(({ chapterIndex }: { chapterIndex: number }) => !generatedChapterIdSet.has(chapterIndex));
     }
 
     if (chapterJobs.length === 0) {
@@ -72,7 +75,7 @@ export const generateCourseContent = async (
     }
 
     // Flatten the selected chapter batch into subtopic jobs
-    const flattenedSubtopics: { chapterIndex: number; chapterName: string; subtopicName: string; }[] = [];
+    const flattenedSubtopics: { chapterIndex: number; chapterName: string; subtopicName: string }[] = [];
     chapterJobs.forEach(({ chapter, chapterIndex }) => {
       const subtopics = chapter.subtopics || [];
       subtopics.forEach((subtopicName: string) => {
@@ -84,22 +87,22 @@ export const generateCourseContent = async (
       return { success: false, error: "No subtopics found to generate" };
     }
 
-    // Generate content for the next chapter batch only
     const subtopicsToGenerate = flattenedSubtopics;
+    const total = subtopicsToGenerate.length;
 
-    console.log(
-      `Generating ${subtopicsToGenerate.length} deep subtopic lessons across ${chapterJobs.length} chapters...`
-    );
+    console.log(`Generating ${total} deep subtopic lessons across ${chapterJobs.length} chapters...`);
 
     const generatedLessons: any[] = [];
 
     // Process subtopics in batches
-    for (let i = 0; i < subtopicsToGenerate.length; i += CONCURRENT_REQUESTS) {
+    for (let i = 0; i < total; i += CONCURRENT_REQUESTS) {
       const batch = subtopicsToGenerate.slice(i, i + CONCURRENT_REQUESTS);
 
       const promises = batch.map((item, idx) => {
         const index = i + idx;
-        console.log(`📝 Generating lesson ${index + 1}/${subtopicsToGenerate.length}: ${item.subtopicName}`);
+        console.log(`📝 Generating lesson ${index + 1}/${total}: ${item.subtopicName}`);
+        // Signal lesson starting
+        onProgress?.(index, total, item.subtopicName);
 
         return generateSingleSubtopicLesson(
           course.courseName,
@@ -108,30 +111,29 @@ export const generateCourseContent = async (
         ).then((res) => {
           if (res.success) {
             console.log(`✅ Lesson ${index + 1} generated successfully`);
+            onProgress?.(index + 1, total, item.subtopicName);
             return { ...res, chapterIndex: item.chapterIndex, chapterName: item.chapterName };
           } else {
             console.error(`❌ Lesson ${index + 1} failed:`, res.error);
+            onProgress?.(index + 1, total, item.subtopicName);
             return null;
           }
         }).catch((err) => {
           console.error(`❌ Lesson ${index + 1} crashed:`, err);
+          onProgress?.(index + 1, total, item.subtopicName);
           return null;
         });
       });
 
       const batchResults = await Promise.all(promises);
-      
-      batchResults.forEach(res => {
-        if (res) {
-          generatedLessons.push(res);
-        }
+      batchResults.forEach((res) => {
+        if (res) generatedLessons.push(res);
       });
     }
 
     // Group results by chapterIndex
-    const groupedByChapter = new Map<number, { chapterName: string, lessons: any[] }>();
-    
-    generatedLessons.forEach(res => {
+    const groupedByChapter = new Map<number, { chapterName: string; lessons: any[] }>();
+    generatedLessons.forEach((res) => {
       if (!groupedByChapter.has(res.chapterIndex)) {
         groupedByChapter.set(res.chapterIndex, { chapterName: res.chapterName, lessons: [] });
       }

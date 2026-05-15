@@ -67,19 +67,32 @@ export type UserLearningContextValidated = z.infer<
 export const learningPhaseSchema = z.object({
   order: z.number().int().min(1),
   name: z.string().min(1),
-  durationDays: z.number().optional(),
-  objectives: z.array(z.string().min(1)).optional(),
-  chapters: z.array(z.object({
-    chapterName: z.string(),
-    durationDays: z.number().optional(),
-    subtopics: z.array(z.string())
-  })).optional(),
+  durationDays: z.number().optional().nullable().transform(v => v ?? undefined),
+  objectives: z
+    .preprocess((v) => (v == null ? [] : v), z.array(z.string().min(1)))
+    .optional(),
+  chapters: z
+    .preprocess(
+      (v) => (v == null ? [] : v),
+      z.array(
+        z.object({
+          chapterName: z.string(),
+          durationDays: z.number().optional().nullable().transform(v => v ?? undefined),
+          subtopics: z.preprocess((v) => (v == null ? [] : v), z.array(z.string())),
+        })
+      )
+    )
+    .optional(),
 });
 
 export const skillNodeSchema = z.object({
   skill: z.string().min(1),
   order: z.number().int().min(1),
-  dependsOn: z.array(z.string()).optional(),
+  // AI sometimes returns null instead of omitting the field — coerce to []
+  dependsOn: z.preprocess(
+    (v) => (v == null ? [] : v),
+    z.array(z.string())
+  ).optional(),
 });
 
 export const learningStrategyOutputSchema = z.object({
@@ -103,7 +116,11 @@ export const courseChapterOutlineSchema = z.object({
   chapterName: z.string().min(1),
   description: z.string(),
   duration: z.union([z.string(), z.object({ value: z.number(), unit: z.string() })]),
-  subtopics: z.array(z.string()).optional(),
+  // AI sometimes sends null — coerce to []
+  subtopics: z.preprocess(
+    (v) => (v == null ? [] : v),
+    z.array(z.string())
+  ).optional(),
 });
 
 /** AI must return this exact shape for chapter outlines */

@@ -255,7 +255,7 @@ in JSON format.`;
           </div>
         </div>
 
-        <LoadingDialog loading={loading} />
+        <LoadingDialog loading={loading} variant="roadmap" />
       </div>
     );
   }
@@ -312,7 +312,7 @@ in JSON format.`;
         </div>
       </div>
 
-      <LoadingDialog loading={loading} variant={phase === "roadmap" ? "course" : "roadmap"} />
+      <LoadingDialog loading={loading} variant="roadmap" />
     </div>
   );
 };

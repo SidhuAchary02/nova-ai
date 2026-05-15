@@ -40,10 +40,7 @@ const Header = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/create-course" className="hidden md:flex items-center gap-2 bg-nova-primary/10 text-nova-primary px-4 py-2 rounded-lg font-medium text-sm hover:bg-nova-primary/20 transition-colors">
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
-            New Course
-          </Link>
+
 
           {user && (
             <div className="flex items-center gap-4 border-l border-black/5 pl-4">

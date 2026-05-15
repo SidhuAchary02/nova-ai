@@ -32,9 +32,10 @@ type Props = {
   level: UserLearningProfileInput["currentLevel"] | "not_sure";
   onLevelChange: (v: UserLearningProfileInput["currentLevel"] | "not_sure") => void;
   onResolvedLevel: (v: UserLearningProfileInput["currentLevel"]) => void;
+  onQuizComplete?: (completed: boolean) => void;
 };
 
-export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
+export function StepLevel({ level, onLevelChange, onResolvedLevel, onQuizComplete }: Props) {
   const [showAssessment, setShowAssessment] = useState(false);
   const [aq, setAq] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -56,6 +57,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
         sum <= 4 ? "beginner" : sum <= 7 ? "intermediate" : "advanced";
       onResolvedLevel(resolved);
       onLevelChange(resolved);
+      onQuizComplete?.(true);
       setShowAssessment(false);
     }
   };
@@ -113,15 +115,15 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel }: Props) {
               : "border-black/5 bg-white/50 hover:border-black/10"
           }`}
         >
-          <FaCircleQuestion className="h-6 w-6 text-amber-400" />
+          <FaCircleQuestion className="h-6 w-6 text-amber-500" />
           <div>
             <div className="font-semibold text-nova-heading">
               Not sure{" "}
-              <span className="ml-2 rounded-md bg-amber-500/20 px-2 py-0.5 text-xs font-normal text-amber-200">
+              <span className="ml-2 rounded-md bg-amber-500/15 px-2 py-0.5 text-xs font-normal text-amber-700">
                 recommended
               </span>
             </div>
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-nova-body">
               We&apos;ll suggest a quick check-in below — no grades, just a guide.
             </div>
           </div>

@@ -62,7 +62,7 @@ const Hero = () => {
                 </Link>
               )}
 
-              <Link href="/dashboard/explore">
+              <Link href={user ? "/dashboard/explore" : "/sign-in"}>
                 <Button variant="outline" className="border-black/10 bg-white/70 text-nova-heading hover:bg-gray-50">
                   Explore Courses
                 </Button>
