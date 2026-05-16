@@ -409,7 +409,7 @@ export default function Home() {
         </section>
 
         {/* Testimonials */}
-        <section className="px-4 md:px-16 py-section">
+        {/* <section className="px-4 md:px-16 py-section">
           <div className="max-w-6xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-nova-heading tracking-tight mb-12">Loved by Learners</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -432,7 +432,7 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-16 flex flex-wrap justify-center gap-8 text-nova-body">
+             <div className="mt-16 flex flex-wrap justify-center gap-8 text-nova-body">
               <div className="text-center">
                 <div className="text-3xl font-bold text-nova-heading mb-1">10k+</div>
                 <div className="text-sm">Active Learners</div>
@@ -445,9 +445,9 @@ export default function Home() {
                 <div className="text-3xl font-bold text-nova-heading mb-1">4.9/5</div>
                 <div className="text-sm">Average Rating</div>
               </div>
-            </div>
+            </div> 
           </div>
-        </section>
+        </section> */}
 
       </main>
 
