@@ -8,7 +8,7 @@ import { sendEmail } from "@/app/actions/sendEmail";
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [query, setQuery] = useState("");
-  const [previewTab, setPreviewTab] = useState<"dashboard" | "roadmaps" | "courses">("dashboard");
+  const [previewTab, setPreviewTab] = useState<"dashboard" | "roadmaps" | "courses">("courses");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+91 ");
@@ -285,14 +285,14 @@ export default function Home() {
                   </div>
                   <div className="space-y-2">
                     <button 
-                      onClick={() => setPreviewTab("dashboard")}
+                      onClick={() => setPreviewTab("courses")}
                       className={`w-full h-10 rounded-lg flex items-center px-4 text-sm font-medium transition-all ${
-                        previewTab === "dashboard" 
+                        previewTab === "courses" 
                           ? "bg-primary/10 text-primary shadow-inner" 
                           : "hover:bg-black/5 dark:hover:bg-white/5 text-nova-body"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[18px] mr-3">dashboard</span> Dashboard
+                      <span className="material-symbols-outlined text-[18px] mr-3">school</span> Courses
                     </button>
                     <button 
                       onClick={() => setPreviewTab("roadmaps")}
@@ -305,14 +305,14 @@ export default function Home() {
                       <span className="material-symbols-outlined text-[18px] mr-3">route</span> Roadmaps
                     </button>
                     <button 
-                      onClick={() => setPreviewTab("courses")}
+                      onClick={() => setPreviewTab("dashboard")}
                       className={`w-full h-10 rounded-lg flex items-center px-4 text-sm font-medium transition-all ${
-                        previewTab === "courses" 
+                        previewTab === "dashboard" 
                           ? "bg-primary/10 text-primary shadow-inner" 
                           : "hover:bg-black/5 dark:hover:bg-white/5 text-nova-body"
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[18px] mr-3">school</span> Courses
+                      <span className="material-symbols-outlined text-[18px] mr-3">dashboard</span> Dashboard
                     </button>
                   </div>
                 </div>
@@ -322,8 +322,8 @@ export default function Home() {
                     <div className="flex h-full gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
                       {/* Dashboard Fake Sidebar */}
                       <div className="hidden sm:flex w-48 flex-col gap-2 border-r border-black/5 dark:border-white/10 pr-6">
-                        <button className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-primary/90 w-full mb-4">
-                          <span className="material-symbols-outlined text-[18px]">add</span> Create Course
+                        <button className="flex items-center justify-center gap-1.5 bg-primary text-white px-3 py-1.5 rounded-lg text-sm font-semibold shadow-sm hover:bg-primary/90 w-full mb-4">
+                          <span className="material-symbols-outlined text-[16px]">add</span> Create Course
                         </button>
                         <div className="flex items-center gap-3 px-3 py-2.5 text-primary bg-primary/10 rounded-lg text-sm font-bold">
                           <span className="material-symbols-outlined text-[18px]">home</span> Home
@@ -422,12 +422,16 @@ export default function Home() {
                           <h3 className="text-2xl font-bold text-nova-heading">Python Mastery</h3>
                           <p className="text-sm text-nova-body mt-1 max-w-md">A structured path from where you are today to the outcomes you chose.</p>
                         </div>
-                        <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-medium shadow-sm hover:bg-primary/90 whitespace-nowrap">
+                        <button className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm hover:bg-primary/90 whitespace-nowrap">
                           Start Course Generation
                         </button>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-6 mb-6 p-4 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 shadow-sm">
+                      <div className="flex flex-wrap items-center gap-8 mb-6 p-6 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 shadow-sm">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Level</p>
+                          <p className="text-sm font-bold text-nova-heading">Beginner</p>
+                        </div>
                         <div>
                           <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Chapters</p>
                           <p className="text-sm font-bold text-nova-heading">12</p>
