@@ -28,7 +28,7 @@ const ChapterSources = ({
   if (!sources || sources.length === 0) {
     console.warn("⚠️ No sources to display");
     return (
-      <div className="mt-12 border-t border-black/5 pt-8">
+      <div className="mt-12 border-t border-black/5 dark:border-white/10 dark:border-white/5 pt-8">
         <div className="max-w-4xl mx-auto px-4">
           <div className="mb-4 rounded-lg border border-amber-300/20 bg-amber-500/10 p-4">
             <p className="text-sm text-amber-200">
@@ -52,7 +52,7 @@ const ChapterSources = ({
   }
 
   return (
-    <div className="mt-12 border-t border-black/5 pt-8">
+    <div className="mt-12 border-t border-black/5 dark:border-white/10 dark:border-white/5 pt-8">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
@@ -70,7 +70,7 @@ const ChapterSources = ({
           {sources.map((source, index) => (
             <div
               key={index}
-              className="rounded-lg border border-black/5 bg-white/60 p-4 transition-all hover:border-primary/40 hover:shadow-md"
+              className="rounded-lg border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/60 p-4 transition-all hover:border-primary/40 hover:shadow-md"
             >
               {/* Source Number and Title */}
               <div className="flex items-start gap-3 mb-2">

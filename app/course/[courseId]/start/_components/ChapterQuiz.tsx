@@ -53,7 +53,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
   const answeredAll = selectedAnswers.every((ans) => ans !== null);
 
   return (
-    <div className="rounded-[28px] border border-black/5 bg-white shadow-soft p-8 relative overflow-hidden">
+    <div className="rounded-[28px] border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-soft p-8 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-nova-primary to-nova-accent"></div>
       <h2 className="mb-2 text-3xl font-bold tracking-tight text-nova-heading flex items-center gap-2">
         <span className="text-nova-primary">🧠</span> Knowledge Check
@@ -74,7 +74,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                 {selectedAnswers.filter((a) => a !== null).length} answered
               </span>
             </div>
-            <div className="h-2 w-full rounded-full bg-gray-100">
+            <div className="h-2 w-full rounded-full bg-gray-100 dark:bg-nova-card/10">
               <div
                 className="h-2 rounded-full bg-primary transition-all duration-300"
                 style={{
@@ -98,8 +98,8 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   onClick={() => handleAnswerSelect(idx)}
                   className={`group w-full p-5 text-left rounded-xl border-2 transition-all duration-300 ${
                     selectedAnswers[currentQuestion] === idx
-                      ? "border-nova-primary bg-nova-primary/5 shadow-sm translate-x-1"
-                      : "border-black/5 bg-white hover:border-nova-primary/30 hover:bg-nova-primary/5 hover:shadow-sm hover:translate-x-1"
+                      ? "border-nova-primary bg-nova-primary/5 shadow-sm dark:shadow-none translate-x-1"
+                      : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card hover:border-nova-primary/30 hover:bg-nova-primary/5 hover:shadow-sm dark:shadow-none hover:translate-x-1"
                   }`}
                 >
                   <div className="flex items-center">
@@ -107,11 +107,11 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                       className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center transition-colors ${
                         selectedAnswers[currentQuestion] === idx
                           ? "border-nova-primary bg-nova-primary"
-                          : "border-black/20 group-hover:border-nova-primary/50"
+                          : "border-black/20 dark:border-white/20 group-hover:border-nova-primary/50"
                       }`}
                     >
                       {selectedAnswers[currentQuestion] === idx && (
-                        <div className="h-2 w-2 rounded-full bg-white shadow-sm"></div>
+                        <div className="h-2 w-2 rounded-full bg-nova-card shadow-sm dark:shadow-none"></div>
                       )}
                     </div>
                     <span className={`text-base transition-colors ${selectedAnswers[currentQuestion] === idx ? "font-semibold text-nova-primary" : "text-nova-heading"}`}>{option}</span>
@@ -137,7 +137,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setCurrentQuestion(Math.min(questions.length - 1, currentQuestion + 1))
                 }
                 variant="outline"
-                className="flex items-center gap-2 border-black/10 bg-white/50 text-nova-heading"
+                className="flex items-center gap-2 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/50 text-nova-heading"
               >
                 Next <FaArrowRight size={14} />
               </Button>
@@ -235,7 +235,7 @@ const ChapterQuiz = ({ questions, chapterName, onQuizComplete }: ChapterQuizProp
                   setSelectedAnswers(new Array(questions.length).fill(null));
                 }}
                 variant="outline"
-                className="flex-1 border-black/10 bg-white/50 text-nova-heading"
+                className="flex-1 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/50 text-nova-heading"
               >
                 Retry Quiz
               </Button>

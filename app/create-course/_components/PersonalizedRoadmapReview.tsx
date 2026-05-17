@@ -54,7 +54,7 @@ function ChapterCard({ title, subtopics, timeLabel, index }: { title: string; su
   const hasSubtopics = Array.isArray(subtopics) && subtopics.length > 0;
 
   return (
-    <div className="group rounded-xl border border-black/5 bg-nova-bg/60 transition hover:border-primary/25 hover:bg-nova-bg/90 overflow-hidden">
+    <div className="group rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/60 transition hover:border-primary/25 hover:bg-nova-bg/90 overflow-hidden">
       <button
         type="button"
         onClick={() => hasSubtopics && setExpanded(!expanded)}
@@ -149,7 +149,7 @@ const PersonalizedRoadmapReview = ({
   const reasoningParts = splitReasoning(strategy.reasoning);
 
   return (
-    <div className="space-y-10 rounded-2xl border border-black/5 bg-nova-bg/50 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
+    <div className="space-y-10 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/50 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.35)] sm:p-10">
       <header className="text-center sm:text-left">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
           Your personalized plan
@@ -163,7 +163,7 @@ const PersonalizedRoadmapReview = ({
       </header>
 
       {/* Summary strip */}
-      <div className="grid gap-4 rounded-2xl border border-black/5 bg-nova-bg shadow-sm p-6 sm:grid-cols-3 sm:p-8">
+      <div className="grid gap-4 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg shadow-sm dark:shadow-none p-6 sm:grid-cols-3 sm:p-8">
         <div className="text-center sm:text-left">
           <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
             Total duration
@@ -217,7 +217,7 @@ const PersonalizedRoadmapReview = ({
                 <span className="text-xs font-bold text-primary">{pi + 1}</span>
               </div>
 
-              <div className="rounded-2xl border border-black/5 bg-white/50 p-5 sm:p-6">
+              <div className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 p-5 sm:p-6">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="text-xl font-semibold text-nova-heading">
@@ -228,7 +228,7 @@ const PersonalizedRoadmapReview = ({
                       {phaseDaysInt === 1 ? "" : "s"} in this phase
                     </p>
                   </div>
-                  <span className="inline-flex w-fit rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body">
+                  <span className="inline-flex w-fit rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body">
                     Phase {pi + 1} of {phases.length}
                   </span>
                 </div>
@@ -266,7 +266,7 @@ const PersonalizedRoadmapReview = ({
       </div>
 
       {/* Skill graph — compact */}
-      <div className="rounded-2xl border border-black/5 bg-white/40 p-5 sm:p-6">
+      <div className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/40 p-5 sm:p-6">
         <h4 className="text-sm font-semibold uppercase tracking-wider text-nova-body">
           Skills you&apos;ll build
         </h4>
@@ -277,7 +277,7 @@ const PersonalizedRoadmapReview = ({
             .map((s) => (
               <span
                 key={`${s.order}-${s.skill}`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1.5 text-xs text-nova-heading"
+                className="inline-flex items-center gap-1.5 rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/80 px-3 py-1.5 text-xs text-nova-heading"
               >
                 <FaCheck className="h-3 w-3 text-primary" />
                 {s.skill}
@@ -287,7 +287,7 @@ const PersonalizedRoadmapReview = ({
       </div>
 
       {/* Reasoning */}
-      <div className="rounded-2xl border border-black/5 bg-nova-bg/60 p-6 sm:p-8">
+      <div className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/60 p-6 sm:p-8">
         <h4 className="text-sm font-semibold uppercase tracking-wider text-primary">
           Why this roadmap?
         </h4>
@@ -298,13 +298,13 @@ const PersonalizedRoadmapReview = ({
         </div>
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-black/5 pt-8 sm:flex-row sm:justify-between">
+      <div className="flex flex-col-reverse gap-3 border-t border-black/5 dark:border-white/10 dark:border-white/5 pt-8 sm:flex-row sm:justify-between">
         <Button
           type="button"
           variant="outline"
           onClick={onBack}
           disabled={loading}
-          className="border-black/10 bg-transparent text-nova-heading hover:bg-white/5"
+          className="border-black/10 dark:border-white/10 dark:border-white/10 bg-transparent text-nova-heading hover:bg-nova-card/5"
         >
           Modify plan
         </Button>

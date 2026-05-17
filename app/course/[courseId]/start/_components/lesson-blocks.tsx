@@ -19,11 +19,11 @@ function BlockShell({
   compact?: boolean;
 }) {
   const accentClasses: Record<string, string> = {
-    slate: "border-black/5 bg-white shadow-soft",
-    gold: "border-amber-200/60 bg-amber-50 shadow-sm",
-    emerald: "border-emerald-200/60 bg-emerald-50 shadow-sm",
-    violet: "border-violet-200/60 bg-violet-50 shadow-sm",
-    cyan: "border-cyan-200/60 bg-cyan-50 shadow-sm",
+    slate: "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-soft",
+    gold: "border-amber-200/60 bg-amber-50 shadow-sm dark:shadow-none",
+    emerald: "border-emerald-200/60 bg-emerald-50 shadow-sm dark:shadow-none",
+    violet: "border-violet-200/60 bg-violet-50 shadow-sm dark:shadow-none",
+    cyan: "border-cyan-200/60 bg-cyan-50 shadow-sm dark:shadow-none",
   };
 
   return (
@@ -105,7 +105,7 @@ function VideoBlock({ block }: { block: Extract<LessonBlockType, { type: "video"
     <BlockShell title={block.title || "Video walkthrough"} accent="cyan">
       {block.summary && <p className="mb-4 text-sm text-nova-body">{block.summary}</p>}
       {videoId ? (
-        <div className="overflow-hidden rounded-2xl border border-black/5 bg-nova-bg">
+        <div className="overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg">
           <iframe
             className="aspect-video w-full"
             src={`https://www.youtube.com/embed/${videoId}`}
@@ -115,7 +115,7 @@ function VideoBlock({ block }: { block: Extract<LessonBlockType, { type: "video"
           />
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-black/10 bg-nova-bg/60 p-6 text-sm text-nova-body">
+        <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/60 p-6 text-sm text-nova-body">
           Add a video URL or videoId to enable the video block.
         </div>
       )}
@@ -134,7 +134,7 @@ function DiagramBlock({ block }: { block: Extract<LessonBlockType, { type: "diag
       {block.description && <p className="mb-4 text-sm text-nova-body">{block.description}</p>}
       <div className="grid gap-3 sm:grid-cols-3">
         {(block.nodes || ["Start", "Process", "Outcome"]).map((node, index) => (
-          <div key={`${node}-${index}`} className="rounded-2xl border border-black/5 bg-white shadow-sm p-4 text-center text-sm font-medium text-nova-heading">
+          <div key={`${node}-${index}`} className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none p-4 text-center text-sm font-medium text-nova-heading">
             {node}
           </div>
         ))}
@@ -151,9 +151,9 @@ function DiagramBlock({ block }: { block: Extract<LessonBlockType, { type: "diag
 function TableBlock({ block }: { block: Extract<LessonBlockType, { type: "table" }> }) {
   return (
     <BlockShell title={block.title || "Comparison"} accent="gold">
-      <div className="overflow-x-auto rounded-2xl border border-black/5 bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-black/5 bg-gray-50 text-nova-heading">
+          <thead className="border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-gray-50 dark:bg-nova-card/5 text-nova-heading">
             <tr>
               {block.headers.map((header) => (
                 <th key={header} className="px-4 py-3 font-semibold">
@@ -164,7 +164,7 @@ function TableBlock({ block }: { block: Extract<LessonBlockType, { type: "table"
           </thead>
           <tbody>
             {block.rows.map((row, index) => (
-              <tr key={index} className="border-b border-black/5 last:border-0">
+              <tr key={index} className="border-b border-black/5 dark:border-white/10 dark:border-white/5 last:border-0">
                 {row.map((cell, cellIndex) => (
                   <td key={`${index}-${cellIndex}`} className="px-4 py-3 text-nova-body">
                     {cell}
@@ -194,7 +194,7 @@ function ChartBlock({ block }: { block: Extract<LessonBlockType, { type: "chart"
                 <span>{label}</span>
                 <span>{value}</span>
               </div>
-              <div className="h-3 overflow-hidden rounded-full bg-white">
+              <div className="h-3 overflow-hidden rounded-full bg-nova-card">
                 <div className="h-full rounded-full bg-gradient-to-r from-primary to-cyan-400" style={{ width }} />
               </div>
             </div>
@@ -211,7 +211,7 @@ function CodeBlock({ block }: { block: Extract<LessonBlockType, { type: "code" }
       {block.explanation && <p className="mb-4 text-sm text-nova-body">{block.explanation}</p>}
       <SandpackRenderer language={block.language} initialCode={block.initialCode} />
       {block.solution && (
-        <details className="mt-4 rounded-2xl border border-black/5 bg-white shadow-sm p-4 text-sm text-nova-body">
+        <details className="mt-4 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none p-4 text-sm text-nova-body">
           <summary className="cursor-pointer select-none font-medium text-nova-heading hover:text-nova-primary transition-colors">Show solution</summary>
           <pre className="mt-3 overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed text-nova-body">
             {block.solution}
@@ -227,7 +227,7 @@ function ExampleBlock({ block }: { block: Extract<LessonBlockType, { type: "exam
     <BlockShell title={block.title || "Real-world example"} accent="violet">
       <p className="text-sm leading-relaxed text-nova-body">{block.scenario}</p>
       {block.takeaway && (
-        <p className="mt-4 rounded-2xl border border-black/5 bg-nova-bg/70 px-4 py-3 text-sm text-nova-heading">
+        <p className="mt-4 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/70 px-4 py-3 text-sm text-nova-heading">
           <span className="font-semibold text-primary">Takeaway:</span> {block.takeaway}
         </p>
       )}
@@ -250,7 +250,7 @@ function QuizBlock({ block }: { block: Extract<LessonBlockType, { type: "quiz" }
       {block.note && <p className="mb-4 text-sm text-nova-body">{block.note}</p>}
       <div className="space-y-4">
         {block.questions.map((question, index) => (
-          <div key={`${index}-${question.question}`} className="rounded-2xl border border-black/5 bg-white shadow-sm p-5">
+          <div key={`${index}-${question.question}`} className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none p-5">
             <p className="font-semibold text-nova-heading text-base">{question.question}</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {question.options.map((option, optionIndex) => (
@@ -259,7 +259,7 @@ function QuizBlock({ block }: { block: Extract<LessonBlockType, { type: "quiz" }
                   className={`rounded-xl border px-3 py-2 text-sm ${
                     optionIndex === question.correctAnswer
                       ? "border-emerald-400/40 bg-emerald-50 text-emerald-800 font-medium"
-                      : "border-black/8 bg-gray-50 text-nova-body"
+                      : "border-black/8 bg-gray-50 dark:bg-nova-card/5 text-nova-body"
                   }`}
                 >
                   <span className="mr-2 inline-flex h-4 w-4 items-center justify-center rounded-full border border-current text-[10px]">
@@ -282,7 +282,7 @@ function AccordionBlock({ block }: { block: Extract<LessonBlockType, { type: "ac
     <BlockShell title={block.title || "Deep dive"} accent="slate">
       <div className="space-y-3">
         {block.items.map((item, index) => (
-          <details key={`${item.label}-${index}`} className="group rounded-2xl border border-black/5 bg-white shadow-sm p-5">
+          <details key={`${item.label}-${index}`} className="group rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none p-5">
             <summary className="cursor-pointer list-none font-medium text-nova-heading flex items-center justify-between">
               {item.label}
               <span className="text-nova-primary transition-transform group-open:rotate-180">▼</span>
@@ -298,12 +298,12 @@ function AccordionBlock({ block }: { block: Extract<LessonBlockType, { type: "ac
 function ImageBlock({ block }: { block: Extract<LessonBlockType, { type: "image" }> }) {
   return (
     <BlockShell title={block.title || "Visual"} accent="cyan">
-      <div className="overflow-hidden rounded-2xl border border-black/5 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none">
         {block.src ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={block.src} alt={block.title || block.prompt || "Visual"} className="h-auto w-full object-cover" />
         ) : (
-          <div className="flex min-h-64 items-center justify-center bg-gray-50 p-8 text-center border-dashed border-2 border-black/5 m-4 rounded-xl">
+          <div className="flex min-h-64 items-center justify-center bg-gray-50 dark:bg-nova-card/5 p-8 text-center border-dashed border-2 border-black/5 dark:border-white/10 dark:border-white/5 m-4 rounded-xl">
             <div>
               <p className="text-lg font-semibold text-nova-heading">AI illustration placeholder</p>
               <p className="mt-2 text-sm text-nova-body">{block.prompt || "Add a generated or curated image here."}</p>
@@ -321,7 +321,7 @@ function PracticeBlock({ block }: { block: Extract<LessonBlockType, { type: "pra
     <BlockShell title={block.title || "Practice"} accent="emerald">
       <div className="space-y-2">
         {block.tasks.map((task, index) => (
-          <div key={`${task}-${index}`} className="flex gap-3 rounded-xl border border-black/5 bg-white shadow-sm px-5 py-4 text-sm text-nova-heading">
+          <div key={`${task}-${index}`} className="flex gap-3 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none px-5 py-4 text-sm text-nova-heading">
             <span className="font-bold text-nova-primary">{index + 1}.</span>
             <span>{task}</span>
           </div>
@@ -337,7 +337,7 @@ function SummaryBlock({ block }: { block: Extract<LessonBlockType, { type: "summ
     <BlockShell title={block.title || "Revision notes"} accent="gold">
       <div className="grid gap-2">
         {block.takeaways.map((takeaway, index) => (
-          <div key={`${takeaway}-${index}`} className="flex items-start gap-3 rounded-xl border border-black/5 bg-white shadow-sm px-5 py-4 text-sm text-nova-heading">
+          <div key={`${takeaway}-${index}`} className="flex items-start gap-3 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none px-5 py-4 text-sm text-nova-heading">
             <FaCheck className="mt-0.5 h-4 w-4 text-nova-primary" />
             <span>{takeaway}</span>
           </div>

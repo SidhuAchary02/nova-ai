@@ -194,7 +194,7 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left transition hover:bg-white/[0.06]"
+        className="flex w-full items-center justify-between rounded-xl border border-white/10 bg-nova-card/[0.03] px-4 py-3 text-left transition hover:bg-nova-card/[0.06]"
         aria-expanded={isOpen}
       >
         <div>
@@ -204,7 +204,7 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
           </p>
         </div>
         <span
-          className={`flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition-transform ${
+          className={`flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-nova-card/5 text-slate-300 transition-transform ${
             isOpen ? "rotate-180" : "rotate-0"
           }`}
         >
@@ -253,7 +253,7 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
                 <button
                   type="button"
                   onClick={handleRetry}
-                  className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10"
+                  className="rounded-full border border-white/10 bg-nova-card/5 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:bg-nova-card/10"
                 >
                   Retry diagram
                 </button>

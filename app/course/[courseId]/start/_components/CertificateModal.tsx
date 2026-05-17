@@ -116,12 +116,12 @@ const CertificateModal = ({
         </DialogHeader>
 
         {/* Certificate Preview */}
-        <div id="certificate-content" className="w-full bg-white rounded-lg p-12 text-center text-black shadow-2xl border-4 border-black">
+        <div id="certificate-content" className="w-full bg-nova-card rounded-lg p-12 text-center text-nova-heading shadow-2xl border-4 border-black">
           {/* Certificate Border */}
           <div className="border-4 border-black rounded-lg p-10">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-5xl font-bold mb-2 text-black">Certificate of Completion</h1>
+              <h1 className="text-5xl font-bold mb-2 text-nova-heading">Certificate of Completion</h1>
               <div className="flex justify-center gap-2 mb-4">
                 <div className="h-1 w-20 bg-black"></div>
                 <div className="h-1 w-20 bg-black"></div>
@@ -132,10 +132,10 @@ const CertificateModal = ({
             {/* Main Content */}
             <div className="mb-8">
               <p className="text-xl mb-4 text-gray-800">This Certifies That</p>
-              <h2 className="text-4xl font-bold mb-6 text-black">{userName}</h2>
+              <h2 className="text-4xl font-bold mb-6 text-nova-heading">{userName}</h2>
 
               <p className="text-lg text-gray-800 mb-2">Has Successfully Completed the Course</p>
-              <h3 className="text-3xl font-bold mb-6 text-black">{courseName}</h3>
+              <h3 className="text-3xl font-bold mb-6 text-nova-heading">{courseName}</h3>
 
               <p className="text-base text-gray-700 mb-2">
                 {courseLevel && `Course Level: ${courseLevel}`}
@@ -146,23 +146,23 @@ const CertificateModal = ({
             <div className="grid grid-cols-3 gap-6 my-10 border-t-2 border-b-2 border-black py-8">
               <div>
                 <p className="text-sm text-gray-700 mb-1">Issued By</p>
-                <p className="text-lg font-semibold text-black">Nova AI</p>
+                <p className="text-lg font-semibold text-nova-heading">UpSkillAi</p>
               </div>
               <div>
                 <p className="text-sm text-gray-700 mb-1">Date of Issue</p>
-                <p className="text-lg font-semibold text-black">{issuedDate || new Date().toLocaleDateString()}</p>
+                <p className="text-lg font-semibold text-nova-heading">{issuedDate || new Date().toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-700 mb-1">Certificate ID</p>
-                <p className="text-sm font-mono font-semibold text-black">{certificateId || "N/A"}</p>
+                <p className="text-sm font-mono font-semibold text-nova-heading">{certificateId || "N/A"}</p>
               </div>
             </div>
 
             {/* Signature Area */}
             <div className="mt-8">
               <p className="text-sm text-gray-700 mb-4">Verified and Authenticated</p>
-              <p className="text-center italic text-black text-sm font-semibold">
-                &ldquo;Excellence in Learning - Powered by Nova AI&rdquo;
+              <p className="text-center italic text-nova-heading text-sm font-semibold">
+                &ldquo;Excellence in Learning - Powered by UpSkillAi&rdquo;
               </p>
             </div>
           </div>
@@ -180,7 +180,7 @@ const CertificateModal = ({
             <Button
               onClick={handlePrint}
               variant="outline"
-              className="border-black text-black hover:bg-gray-100 flex items-center gap-2"
+              className="border-black text-nova-heading hover:bg-gray-100 dark:bg-nova-card/10 flex items-center gap-2"
             >
               <FaPrint /> Print Certificate
             </Button>

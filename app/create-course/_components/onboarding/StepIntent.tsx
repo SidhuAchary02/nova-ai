@@ -78,12 +78,12 @@ export function StepIntent({
         onChange={(e) => onIntentChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
         placeholder="e.g. Learn React to build real-world projects"
-        className="w-full rounded-lg bg-white border border-black/10 p-3 text-nova-heading shadow-sm focus:outline-none focus:ring-2 focus:ring-nova-primary"
+        className="w-full rounded-lg bg-nova-card border border-black/10 dark:border-white/10 dark:border-white/10 p-3 text-nova-heading shadow-sm dark:shadow-none focus:outline-none focus:ring-2 focus:ring-nova-primary"
         rows={3}
       />
 
       {suggestions.length > 0 && (
-        <div className="rounded-lg bg-white p-2 border border-black/5 shadow-sm mt-2 transition-all">
+        <div className="rounded-lg bg-nova-card p-2 border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none mt-2 transition-all">
           <div className="text-xs font-semibold text-nova-body mb-2 px-2 uppercase tracking-wider">
             Suggestions
           </div>

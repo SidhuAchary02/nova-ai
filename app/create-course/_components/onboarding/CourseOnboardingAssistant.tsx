@@ -68,10 +68,18 @@ export function CourseOnboardingAssistant({
   const [pacingStyle, setPacingStyle] = useState<PacingStyle>(userInput.learningProfile?.pacingStyle || "balanced");
   const [levelQuizCompleted, setLevelQuizCompleted] = useState(false);
 
+  const [highestStepReached, setHighestStepReached] = useState(initialStep);
+
   const progressValue = useMemo(
     () => Math.round(((step + 1) / stepperOptions.length) * 100),
     [step]
   );
+
+  useEffect(() => {
+    if (step > highestStepReached) {
+      setHighestStepReached(step);
+    }
+  }, [step, highestStepReached]);
 
   const getMergedInput = useCallback((): UserInputType => {
     const resolvedLevel: UserLearningProfileInput["currentLevel"] =
@@ -192,6 +200,13 @@ export function CourseOnboardingAssistant({
               parsed.data.learningProfile?.pacingStyle ||
               undefined;
             if (restoredPacing) setPacingStyle(restoredPacing);
+            
+            // Set highest step reached based on loaded state
+            if (parsed.step >= 6) {
+              setHighestStepReached(6);
+            } else {
+              setHighestStepReached(parsed.step);
+            }
           }
         }
       } catch (e) {
@@ -201,12 +216,7 @@ export function CourseOnboardingAssistant({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialStep, setUserInput]);
 
-  useEffect(() => {
-    if (step === 5 && topicsToFocus.length === 0 && intent.trim()) {
-      const line = intent.split("\n")[0]?.trim();
-      if (line) setTopicsToFocus([line.slice(0, 80)]);
-    }
-  }, [step, intent, topicsToFocus.length]);
+
 
   const allowNext = () => {
     switch (step) {
@@ -297,17 +307,23 @@ export function CourseOnboardingAssistant({
                 i <= step ? "opacity-100" : "opacity-55"
               }`}
             >
-              <div
-                className={`flex h-11 w-11 items-center justify-center rounded-full shadow-sm transition-all duration-200 ${
+              <button
+                type="button"
+                onClick={() => {
+                  if (highestStepReached >= 6 && i !== step) {
+                    setStep(i);
+                  }
+                }}
+                className={`flex h-11 w-11 items-center justify-center rounded-full shadow-sm dark:shadow-none transition-all duration-200 outline-none ${
                   i === step
-                    ? "bg-primary text-white shadow-[0_3px_12px_rgba(249,115,22,0.4)] scale-110"
+                    ? "bg-primary text-white shadow-[0_3px_12px_rgba(249,115,22,0.4)] scale-110 cursor-default"
                     : i < step
                       ? "bg-primary/20 text-primary border border-primary/30"
-                      : "bg-white border border-black/10 text-gray-400"
-                }`}
+                      : "bg-nova-card border border-black/10 dark:border-white/10 dark:border-white/10 text-gray-400"
+                } ${highestStepReached >= 6 && i !== step ? "cursor-pointer hover:bg-primary/10" : "cursor-default"}`}
               >
                 <opt.icon className="h-5 w-5" />
-              </div>
+              </button>
               <span className="mt-1.5 hidden truncate text-[11px] font-medium text-gray-500 sm:block">
                 {opt.shortLabel}
               </span>
@@ -316,7 +332,7 @@ export function CourseOnboardingAssistant({
         </div>
 
         {/* Progress bar sits below the icons */}
-        <Progress value={progressValue} className="h-1.5 bg-gray-100" />
+        <Progress value={progressValue} className="h-1.5 bg-gray-100 dark:bg-nova-card/10" />
       </div>
 
       <div className="flex flex-1 flex-col justify-center">
@@ -398,14 +414,14 @@ export function CourseOnboardingAssistant({
 
       <motion.div
         initial={false}
-        className="mt-10 flex flex-col gap-3 border-t border-black/5 pt-8 sm:flex-row sm:items-center sm:justify-between"
+        className="mt-10 flex flex-col gap-3 border-t border-black/5 dark:border-white/10 dark:border-white/5 pt-8 sm:flex-row sm:items-center sm:justify-between"
       >
         <Button
           type="button"
           variant="outline"
           onClick={handleBack}
           disabled={step === 0 || loading}
-          className="border-black/10 bg-white/50 text-nova-heading"
+          className="border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/50 text-nova-heading"
         >
           Back
         </Button>
@@ -421,7 +437,7 @@ export function CourseOnboardingAssistant({
                 onLegacyGenerate(merged);
               }}
               disabled={loading}
-              className="border-black/10 text-nova-body"
+              className="border-black/10 dark:border-white/10 dark:border-white/10 text-nova-body"
             >
               Legacy: one-shot layout
             </Button>

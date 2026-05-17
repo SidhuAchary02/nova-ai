@@ -4,7 +4,7 @@ import Link from 'next/link'
 const page = () => {
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-soft text-center max-w-4xl mx-auto">
+      <div className="bg-nova-card rounded-3xl p-8 border border-black/5 dark:border-white/10 dark:border-white/5 shadow-soft text-center max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-nova-heading tracking-tight mb-4">
           Scale Beyond the Free Plan
         </h1>
@@ -14,7 +14,7 @@ const page = () => {
 
         <div className="flex flex-col md:flex-row gap-8 justify-center items-stretch text-left">
           {/* Free Plan */}
-          <div className="flex-1 bg-nova-bg p-8 rounded-2xl border border-black/5 shadow-sm flex flex-col justify-between">
+          <div className="flex-1 bg-nova-bg p-8 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none flex flex-col justify-between">
             <div>
               <h3 className="text-xl font-bold text-nova-heading mb-2">Free Plan</h3>
               <p className="text-nova-body text-sm mb-6">Your current plan.</p>
@@ -28,14 +28,14 @@ const page = () => {
                 ))}
               </ul>
             </div>
-            <button className="w-full bg-black/5 text-nova-heading text-sm font-medium py-3 rounded-xl border border-black/5 cursor-default">
+            <button className="w-full bg-black/5 dark:bg-white/5 text-nova-heading text-sm font-medium py-3 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 cursor-default">
               Current Plan
             </button>
           </div>
           
           {/* Pro Plan */}
-          <div className="flex-1 bg-white p-8 rounded-2xl border border-nova-primary/20 shadow-soft relative flex flex-col justify-between">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-nova-primary to-nova-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow-sm">Pro</div>
+          <div className="flex-1 bg-nova-card p-8 rounded-2xl border border-nova-primary/20 shadow-soft relative flex flex-col justify-between">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-nova-primary to-nova-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow-sm dark:shadow-none">Pro</div>
             <div>
               <h3 className="text-xl font-bold text-nova-heading mb-2">Pro Plan</h3>
               <p className="text-nova-body text-sm mb-6">For dedicated learners wanting no limits.</p>
@@ -55,9 +55,11 @@ const page = () => {
                 ))}
               </ul>
             </div>
-            <button className="w-full bg-nova-primary text-white text-sm font-medium py-3 rounded-xl hover:shadow-[0_10px_20px_rgba(255,140,66,0.2)] transition-all active:scale-95 duration-200">
-              Contact for Upgrade
-            </button>
+            <Link href="/dashboard/contact?query=I+am+interested+in+upgrading+to+Pro" className="w-full">
+              <button className="w-full bg-nova-primary text-white text-sm font-medium py-3 rounded-xl hover:shadow-[0_10px_20px_rgba(255,140,66,0.2)] transition-all active:scale-95 duration-200">
+                Contact for Upgrade
+              </button>
+            </Link>
           </div>
         </div>
       </div>

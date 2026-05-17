@@ -31,7 +31,7 @@ export function StepTimeCommitment({ hoursPerDay, onHoursChange }: Props) {
         </p>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-black/5 bg-nova-bg/50 p-6">
+      <div className="space-y-3 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/50 p-6">
         <label className="text-sm font-medium text-nova-heading block text-center mb-6">
           Daily study time
         </label>
@@ -41,7 +41,7 @@ export function StepTimeCommitment({ hoursPerDay, onHoursChange }: Props) {
             type="button"
             onClick={() => onHoursChange(Math.max(0.5, hoursPerDay - 0.5))}
             disabled={hoursPerDay <= 0.5}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-black/5 bg-gray-50 text-xl font-bold text-nova-heading transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-gray-50 dark:bg-nova-card/5 text-xl font-bold text-nova-heading transition-colors hover:bg-gray-100 dark:bg-nova-card/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             -
           </button>
@@ -59,7 +59,7 @@ export function StepTimeCommitment({ hoursPerDay, onHoursChange }: Props) {
             type="button"
             onClick={() => onHoursChange(Math.min(8, hoursPerDay + 0.5))}
             disabled={hoursPerDay >= 8}
-            className="flex h-12 w-12 items-center justify-center rounded-full border border-black/5 bg-gray-50 text-xl font-bold text-nova-heading transition-colors hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-gray-50 dark:bg-nova-card/5 text-xl font-bold text-nova-heading transition-colors hover:bg-gray-100 dark:bg-nova-card/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             +
           </button>

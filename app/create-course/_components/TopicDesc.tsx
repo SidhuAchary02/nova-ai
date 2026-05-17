@@ -22,7 +22,7 @@ const TopicDesc = () => {
           placeholder="Enter the topic"
           defaultValue={userInput?.topic}
           onChange={(e) => handleInputChange("topic", e.target.value)}
-          className="h-11 border-black/10 bg-nova-bg/70 text-nova-heading"
+          className="h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading"
         />
       </div>
       <div className="mt-5">
@@ -34,7 +34,7 @@ const TopicDesc = () => {
           placeholder="About your course"
           defaultValue={userInput?.description}
           onChange={(e) => handleInputChange("description", e.target.value)}
-          className="min-h-[130px] border-black/10 bg-nova-bg/70 text-nova-heading"
+          className="min-h-[130px] border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading"
         />
       </div>
     </div>

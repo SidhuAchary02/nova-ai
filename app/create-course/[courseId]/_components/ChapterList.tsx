@@ -79,7 +79,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
             <div
               key={index}
               className={`rounded-xl border transition-all duration-300 ${
-                isExpanded ? "border-primary/30 bg-white/60" : "border-black/5 bg-white/40 hover:bg-white/60 hover:border-black/10"
+                isExpanded ? "border-primary/30 bg-nova-card/60" : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/40 hover:bg-nova-card/60 hover:border-black/10 dark:border-white/10 dark:border-white/10"
               }`}
             >
               {/* Header */}
@@ -89,7 +89,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
               >
                 <div className="flex gap-4 items-center min-w-0">
                   <div className={`flex h-10 w-10 flex-none items-center justify-center rounded-full font-bold text-lg border transition-colors ${
-                    isExpanded ? "bg-primary/20 text-primary border-primary/30" : "bg-gray-50 text-nova-body border-black/5"
+                    isExpanded ? "bg-primary/20 text-primary border-primary/30" : "bg-gray-50 dark:bg-nova-card/5 text-nova-body border-black/5 dark:border-white/10 dark:border-white/5"
                   }`}>
                     {index + 1}
                   </div>
@@ -115,7 +115,7 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                       />
                     </div>
                   )}
-                  <div className={`p-2 rounded-full transition-colors ${isExpanded ? "bg-primary/10 text-primary" : "bg-gray-50 text-nova-body"}`}>
+                  <div className={`p-2 rounded-full transition-colors ${isExpanded ? "bg-primary/10 text-primary" : "bg-gray-50 dark:bg-nova-card/5 text-nova-body"}`}>
                     {isExpanded ? <FaChevronUp size={12} /> : <FaChevronDown size={12} />}
                   </div>
                 </div>
@@ -150,8 +150,8 @@ const ChapterList = ({ course, onRefresh, edit = true }: ChapterListProps) => {
                             }}
                             className={`flex items-center justify-between p-3.5 rounded-xl border ${
                               isLocked 
-                                ? "bg-nova-bg/50 border-black/5 opacity-75 cursor-pointer hover:bg-white/50" 
-                                : "bg-gray-50/40 border-black/5 hover:bg-gray-50/80 hover:border-primary/30 transition-all cursor-pointer group"
+                                ? "bg-nova-bg/50 border-black/5 dark:border-white/10 dark:border-white/5 opacity-75 cursor-pointer hover:bg-nova-card/50" 
+                                : "bg-gray-50 dark:bg-nova-card/5/40 border-black/5 dark:border-white/10 dark:border-white/5 hover:bg-gray-50 dark:bg-nova-card/5/80 hover:border-primary/30 transition-all cursor-pointer group"
                             }`}
                           >
                             <div className="flex items-center gap-3.5 min-w-0">

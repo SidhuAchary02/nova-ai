@@ -56,7 +56,7 @@ const FinsihScreen = ({ params }: { params: ParamsType }) => {
 
       <h2 className="mt-5 text-nova-heading">Course URL</h2>
 
-      <h2 className="mt-2 flex items-center gap-5 rounded-lg border border-black/5 bg-white/70 p-2 text-center font-bold text-nova-body">
+      <h2 className="mt-2 flex items-center gap-5 rounded-lg border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/70 p-2 text-center font-bold text-nova-body">
         <Link
           href={COURSE_LINK}
           className="cursor-pointer transition-all hover:text-primary"

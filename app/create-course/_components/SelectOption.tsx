@@ -44,7 +44,7 @@ const SelectOption = () => {
             onValueChange={(value) => handleInputChange("difficulty", value)}
             defaultValue={userInput?.difficulty}
           >
-            <SelectTrigger className="h-11 border-black/10 bg-nova-bg/70 text-nova-heading">
+            <SelectTrigger className="h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading">
               <SelectValue placeholder="Select Level" />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +61,7 @@ const SelectOption = () => {
             onValueChange={(value) => handleInputChange("duration", value)}
             defaultValue={userInput?.duration}
           >
-            <SelectTrigger className="h-11 border-black/10 bg-nova-bg/70 text-nova-heading">
+            <SelectTrigger className="h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading">
               <SelectValue placeholder="Select Duration" />
             </SelectTrigger>
             <SelectContent>
@@ -82,7 +82,7 @@ const SelectOption = () => {
             onValueChange={(value) => handleInputChange("video", value)}
             defaultValue={userInput?.video}
           >
-            <SelectTrigger className="h-11 border-black/10 bg-nova-bg/70 text-nova-heading">
+            <SelectTrigger className="h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading">
               <SelectValue placeholder="Select Option" />
             </SelectTrigger>
             <SelectContent>
@@ -101,7 +101,7 @@ const SelectOption = () => {
             placeholder="Enter chapters (1-20)"
             onChange={(e) => handleInputChange("totalChapters", e.target.value)}
             defaultValue={userInput?.totalChapters}
-            className={`h-11 border-black/10 bg-nova-bg/70 text-nova-heading ${chaptersError ? "border-red-500" : ""}`}
+            className={`h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/70 text-nova-heading ${chaptersError ? "border-red-500" : ""}`}
           />
           {chaptersError && (
             <p className="text-xs text-red-500 mt-1 font-medium">{chaptersError}</p>

@@ -16,7 +16,7 @@ type PremiumDialogProps = {
 export default function PremiumDialog({ open, onOpenChange }: PremiumDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md bg-white border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.1)]">
+      <DialogContent className="sm:max-w-md bg-nova-card border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.1)]">
         <DialogHeader className="flex flex-col items-center pt-6 pb-2">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
             <FaLock className="h-8 w-8 text-amber-500" />

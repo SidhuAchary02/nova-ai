@@ -93,7 +93,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel, onQuizComplet
             className={`flex w-full items-center justify-between rounded-2xl border px-5 py-4 text-left transition-all ${
               level === L.id
                 ? "border-primary bg-primary/10"
-                : "border-black/5 bg-white/50 hover:border-black/10"
+                : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 hover:border-black/10 dark:border-white/10 dark:border-white/10"
             }`}
           >
             <div>
@@ -112,7 +112,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel, onQuizComplet
           className={`flex w-full items-center gap-3 rounded-2xl border px-5 py-4 text-left transition-all ${
             level === "not_sure"
               ? "border-amber-400/50 bg-amber-500/10"
-              : "border-black/5 bg-white/50 hover:border-black/10"
+              : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 hover:border-black/10 dark:border-white/10 dark:border-white/10"
           }`}
         >
           <FaCircleQuestion className="h-6 w-6 text-amber-500" />
@@ -136,7 +136,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel, onQuizComplet
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden rounded-2xl border border-black/5 bg-nova-bg/60 p-5"
+            className="overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/60 p-5"
           >
             <p className="text-sm text-nova-body">
               Optional: take a quick 5-question check-in (UI preview — results stay on your device).
@@ -176,7 +176,7 @@ export function StepLevel({ level, onLevelChange, onResolvedLevel, onQuizComplet
                   key={opt}
                   type="button"
                   onClick={() => pickOption(idx)}
-                  className="rounded-xl border border-black/5 bg-white/80 px-4 py-3 text-left text-sm text-nova-heading hover:border-primary/40 hover:bg-gray-50"
+                  className="rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/80 px-4 py-3 text-left text-sm text-nova-heading hover:border-primary/40 hover:bg-gray-50 dark:bg-nova-card/5"
                 >
                   {opt}
                 </button>

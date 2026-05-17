@@ -73,25 +73,15 @@ const CourseCover = ({
       )}
     >
       <div className={ny("absolute inset-0 bg-gradient-to-br", gradient)} />
-      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-nova-card/10 blur-2xl" />
       <div className="absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-amber-300/20 blur-2xl" />
 
-      <div className="relative z-10 flex w-full items-end justify-between gap-3">
-        <div>
-          <div className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/30 px-2.5 py-1 text-[11px] font-medium text-slate-200">
-            <LuSparkles size={11} />
-            {category || "AI Course"}
-          </div>
-          {showTitle && (
-            <p className="mt-2 text-lg font-semibold leading-tight text-white drop-shadow-md">
-              {compact ? title || "Untitled" : title || "New Course"}
-            </p>
-          )}
-        </div>
-
-        <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/20 bg-black/35 text-base font-bold text-amber-200">
-          {initials}
-        </div>
+      <div className="relative z-10 flex h-full w-full items-center justify-center text-center">
+        {showTitle && (
+          <p className="text-2xl font-extrabold leading-tight text-white drop-shadow-md">
+            {compact ? title || "Untitled" : title || "New Course"}
+          </p>
+        )}
       </div>
     </div>
   );

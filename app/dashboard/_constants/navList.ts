@@ -4,6 +4,8 @@ import {
   LuAtom,
   LuShieldCheck,
   LuUser,
+  LuMessageSquare,
+  LuBookPlus,
 } from "react-icons/lu";
 
 type NavListType = {
@@ -16,7 +18,7 @@ type NavListType = {
 export const navList: NavListType[] = [
   {
     id: 1,
-    name: "Dashboard",
+    name: "Home",
     icon: LuLayoutDashboard,
     route: "/dashboard",
   },
@@ -28,14 +30,26 @@ export const navList: NavListType[] = [
   },
   {
     id: 3,
+    name: "Create Course",
+    icon: LuBookPlus,
+    route: "/create-course",
+  },
+  {
+    id: 4,
     name: "Profile",
     icon: LuUser,
     route: "/dashboard/profile",
   },
   {
-    id: 4,
+    id: 5,
     name: "Upgrade",
     icon: LuShieldCheck,
     route: "/dashboard/upgrade",
+  },
+  {
+    id: 6,
+    name: "Contact",
+    icon: LuMessageSquare,
+    route: "/dashboard/contact",
   },
 ];

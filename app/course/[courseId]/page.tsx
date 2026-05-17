@@ -60,9 +60,8 @@ function ChapterRoadmapCard({
           <button
             type="button"
             onClick={() => hasSubtopics && setExpanded((prev) => !prev)}
-            className={`inline-flex w-fit items-center gap-2 rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body ${
-              hasSubtopics ? "hover:border-primary/30 hover:text-nova-heading" : "opacity-70"
-            }`}
+            className={`inline-flex w-fit items-center gap-2 rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body ${hasSubtopics ? "hover:border-primary/30 hover:text-nova-heading" : "opacity-70"
+              }`}
           >
             {hasSubtopics ? (
               <>

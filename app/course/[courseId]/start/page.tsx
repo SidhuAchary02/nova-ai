@@ -166,11 +166,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
   if (!course) return (
     <div className="min-h-screen">
       {/* Loading Header */}
-      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
           <button
             onClick={() => router.push("/dashboard")}
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-nova-body hover:bg-gray-50"
+            className="flex items-center gap-2 rounded-lg px-3 py-2 text-nova-body hover:bg-gray-50 dark:bg-nova-card/5"
           >
             <FaChevronLeft size={16} />
             <span className="text-sm font-medium">Dashboard</span>
@@ -416,18 +416,18 @@ const CourseStart = ({ params }: CourseStartProps) => {
   return (
     <div className="min-h-screen">
       {/* Top Navigation Header - Professional & UX Friendly */}
-      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
+      <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
           {/* Left Section - Back Button & Course Title */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/dashboard")}
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 dark:bg-nova-card/5"
             >
               <FaChevronLeft size={16} />
               <span className="text-sm font-medium">Dashboard</span>
             </button>
-            <div className="hidden border-l border-black/5 pl-4 md:block">
+            <div className="hidden border-l border-black/5 dark:border-white/10 dark:border-white/5 pl-4 md:block">
               <h1 className="truncate text-lg font-semibold text-nova-heading">
                 {course?.courseName}
               </h1>
@@ -441,7 +441,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                 <span className="font-medium text-nova-body">
                   Chapter {selectedChapterIndex + 1}/{totalChapters || 1}
                 </span>
-                <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100">
+                <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100 dark:bg-nova-card/10">
                   <div
                     className="h-full bg-primary transition-all"
                     style={{
@@ -458,7 +458,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
               className={`rounded-lg p-2.5 transition-all duration-300 ${
                 sidebarOpen
                   ? "bg-primary text-white hover:bg-primary/90"
-                  : "border border-black/10 bg-white text-nova-heading hover:bg-gray-50"
+                  : "border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5"
               }`}
               title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
             >
@@ -474,7 +474,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
         className={`fixed left-4 top-4 z-50 rounded-lg p-2.5 transition-all duration-300 md:hidden ${
           sidebarOpen
             ? "bg-primary text-white hover:bg-primary/90"
-            : "border border-black/10 bg-white text-nova-heading hover:bg-gray-50"
+            : "border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5"
         }`}
       >
         {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -482,19 +482,19 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
       {/* Sidebar - Professional Styling */}
       <div
-        className={`fixed top-16 z-40 h-[calc(100vh-64px)] w-72 overflow-y-auto border-r border-black/5 bg-nova-bg/95 transition-all duration-300 lg:left-0 lg:translate-x-0 ${
+        className={`fixed top-16 z-40 h-[calc(100vh-64px)] w-72 overflow-y-auto border-r border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/95 transition-all duration-300 lg:left-0 lg:translate-x-0 ${
           sidebarOpen ? "left-0" : "-left-72"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="border-b border-black/5 bg-white">
+        <div className="border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card">
           <h2 className="truncate p-4 text-lg font-bold text-nova-heading">
             {courseOutput?.topic || "Course"}
           </h2>
         </div>
         
         {/* Progress Bar */}
-        <div className="border-b border-black/5 bg-white/50 p-4">
+        <div className="border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 p-4">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-semibold text-nova-heading">Course Progress</span>
             <span className="text-sm font-bold text-primary">{calculateProgress()}%</span>
@@ -513,15 +513,15 @@ const CourseStart = ({ params }: CourseStartProps) => {
             const isChapterGenerated = generatedChapterSet.has(index);
 
             return (
-              <div key={index} className="border-b border-black/5 last:border-0 bg-nova-bg">
+              <div key={index} className="border-b border-black/5 dark:border-white/10 dark:border-white/5 last:border-0 bg-nova-bg">
                 {/* Chapter Header */}
                 <div
                   className={`cursor-pointer transition-all duration-200 flex items-center justify-between p-3 group ${
                     isSelectedChapter
                       ? "border-l-4 border-primary bg-primary/5"
                       : !isChapterGenerated
-                      ? "border-l-4 border-transparent hover:bg-white/50 opacity-60"
-                      : "border-l-4 border-transparent hover:bg-white/50"
+                      ? "border-l-4 border-transparent hover:bg-nova-card/50 opacity-60"
+                      : "border-l-4 border-transparent hover:bg-nova-card/50"
                   }`}
                   onClick={() => {
                     // Toggle expansion state
@@ -573,8 +573,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
                             isSelectedSubtopic 
                               ? "border-primary text-primary bg-primary/10 font-medium" 
                               : isSubtopicLocked
-                              ? "border-transparent text-gray-400 hover:text-nova-body hover:bg-white/30 opacity-70"
-                              : "border-transparent text-nova-body hover:text-nova-heading hover:bg-white"
+                              ? "border-transparent text-gray-400 hover:text-nova-body hover:bg-nova-card/30 opacity-70"
+                              : "border-transparent text-nova-body hover:text-nova-heading hover:bg-nova-card"
                           }`}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -615,7 +615,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
       <div className="pt-20 lg:pl-72">
         {showPremiumCTA ? (
           <div className="section-shell max-w-4xl px-4 py-12">
-            <div className="rounded-2xl border border-amber-500/20 bg-amber-50 p-8 text-center shadow-sm">
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-50 p-8 text-center shadow-sm dark:shadow-none">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
                 <FaLock className="h-8 w-8 text-amber-500" />
               </div>
@@ -712,7 +712,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     onClick={handlePrevLesson}
                     disabled={selectedChapterIndex === 0 && selectedSubtopicIndex === 0}
                     variant="outline"
-                    className="flex items-center gap-2 border-black/10 bg-white/50 text-nova-heading"
+                    className="flex items-center gap-2 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/50 text-nova-heading"
                   >
                     <FaChevronLeft /> Previous Lesson
                   </Button>
@@ -725,7 +725,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     onClick={handleNextLesson}
                     disabled={isLastSubtopic}
                     variant="outline"
-                    className="flex items-center gap-2 border-black/10 bg-white/50 text-nova-heading"
+                    className="flex items-center gap-2 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/50 text-nova-heading"
                   >
                     Next Lesson <FaChevronRight />
                   </Button>
@@ -735,7 +735,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
             
             {/* End of generated batch / full completion */}
             {isLastChapter && quizPassed && (
-              <div className="mx-auto mb-10 flex max-w-4xl flex-col items-center justify-center rounded-2xl border border-black/5 bg-nova-bg shadow-sm px-4 py-8">
+              <div className="mx-auto mb-10 flex max-w-4xl flex-col items-center justify-center rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg shadow-sm dark:shadow-none px-4 py-8">
                 {generatedUnlockedChapters < totalChapters ? (
                   <>
                     <h2 className="mb-4 text-2xl font-bold text-nova-heading">
@@ -775,7 +775,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
           </div>
         ) : (
           <div className="section-shell flex min-h-[65vh] max-w-5xl items-center justify-center">
-            <div className="w-full rounded-2xl border border-black/5 bg-white/70 p-8 text-center">
+            <div className="w-full rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/70 p-8 text-center">
               <div className="mx-auto h-[190px] max-w-lg overflow-hidden rounded-xl">
                 <CourseCover
                   title={courseOutput?.topic || course.courseName}

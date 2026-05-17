@@ -43,7 +43,7 @@ export function StepPreferences({ selected, onToggle }: Props) {
               className={`relative flex flex-col rounded-2xl border p-5 text-left transition-all ${
                 on
                   ? "border-primary bg-primary/10 ring-1 ring-primary/30"
-                  : "border-black/5 bg-white/50 hover:border-black/10"
+                  : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 hover:border-black/10 dark:border-white/10 dark:border-white/10"
               }`}
             >
               {on && (

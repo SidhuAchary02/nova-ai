@@ -77,7 +77,7 @@ export function OnboardingSummary({
         </p>
       </div>
 
-      <div className="space-y-3 rounded-2xl border border-black/5 bg-nova-bg/60 p-6">
+      <div className="space-y-3 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/60 p-6">
         <SummaryRow
           title="Learning intent"
           value={intent || "—"}
@@ -140,7 +140,7 @@ function SummaryRow({
   onEdit: () => void;
 }) {
   return (
-    <div className="flex gap-4 border-b border-black/5 pb-4 last:border-0 last:pb-0">
+    <div className="flex gap-4 border-b border-black/5 dark:border-white/10 dark:border-white/5 pb-4 last:border-0 last:pb-0">
       <div className="min-w-0 flex-1">
         <div className="text-xs font-medium uppercase tracking-wide text-gray-400">
           {title}

@@ -17,10 +17,10 @@ const SelectCategory = () => {
         {categoryList.map((category, index) => (
           <div
             key={index}
-            className={`relative overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-gray-50/70 cursor-pointer ${
+            className={`relative overflow-hidden rounded-2xl border p-5 transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:bg-gray-50 dark:bg-nova-card/5/70 cursor-pointer ${
               userInput?.category === category.name
-                ? "border-primary/70 bg-gray-50/80"
-                : "border-black/5 bg-white/60"
+                ? "border-primary/70 bg-gray-50 dark:bg-nova-card/5/80"
+                : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/60"
             }`}
             onClick={() => handleCategorySelect(category.name)}
           >

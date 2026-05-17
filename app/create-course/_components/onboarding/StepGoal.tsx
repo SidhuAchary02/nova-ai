@@ -85,8 +85,8 @@ export function StepGoal({ selected, customNote, onSelect, onCustomChange }: Pro
               onClick={() => onSelect(c.goal)}
               className={`flex flex-col items-start rounded-2xl border p-5 text-left transition-all ${
                 active
-                  ? "border-nova-primary bg-nova-primary/10 shadow-sm"
-                  : "border-black/5 bg-white hover:border-black/10 hover:bg-gray-50"
+                  ? "border-nova-primary bg-nova-primary/10 shadow-sm dark:shadow-none"
+                  : "border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card hover:border-black/10 dark:border-white/10 dark:border-white/10 hover:bg-gray-50 dark:bg-nova-card/5"
               }`}
             >
               <Icon
@@ -99,7 +99,7 @@ export function StepGoal({ selected, customNote, onSelect, onCustomChange }: Pro
         })}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-black/10 bg-nova-bg/40 p-5">
+      <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-bg/40 p-5">
         <label className="text-sm font-medium text-nova-body">
           Something more specific? (optional)
         </label>
@@ -107,7 +107,7 @@ export function StepGoal({ selected, customNote, onSelect, onCustomChange }: Pro
           value={customNote}
           onChange={(e) => onCustomChange(e.target.value)}
           placeholder='e.g. "FAANG interviews" or "AWS Solutions Architect"'
-          className="mt-2 h-11 border-black/10 bg-white/80 text-nova-heading"
+          className="mt-2 h-11 border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/80 text-nova-heading"
         />
         <p className="mt-2 text-xs text-gray-400">
           We&apos;ll weave this into your course description for the AI.

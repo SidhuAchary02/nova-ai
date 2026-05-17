@@ -81,7 +81,7 @@ function FloatingActions({
       <button
         onClick={onBookmark}
         title="Bookmark this lesson"
-        className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-lg"
+        className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-300 hover:shadow-lg"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -100,7 +100,7 @@ function FloatingActions({
       <button
         onClick={onStickyNote}
         title="Add a sticky note"
-        className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-black/10 bg-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-nova-primary hover:shadow-lg"
+        className="group relative flex h-12 w-12 items-center justify-center rounded-full border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:border-nova-primary hover:shadow-lg"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-nova-primary">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -198,7 +198,7 @@ function StickyNoteModal({
 function BookmarkToast({ show }: { show: boolean }) {
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-amber-200 bg-white px-4 py-2.5 shadow-lg transition-all duration-300 ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full border border-amber-200 bg-nova-card px-4 py-2.5 shadow-lg transition-all duration-300 ${show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"}`}
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="text-amber-500">
         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
@@ -351,7 +351,7 @@ const ChapterContent = ({
       <h1 className="text-3xl font-bold tracking-tight text-nova-heading mt-0 mb-6 leading-tight" {...props} />
     ),
     h2: ({ node, ...props }: any) => (
-      <h2 className="text-xl font-bold tracking-tight text-nova-heading mt-10 mb-4 pb-3 border-b border-black/5 flex items-center gap-3 before:content-[''] before:block before:w-1 before:h-5 before:bg-nova-primary before:rounded-full" {...props} />
+      <h2 className="text-xl font-bold tracking-tight text-nova-heading mt-10 mb-4 pb-3 border-b border-black/5 dark:border-white/10 dark:border-white/5 flex items-center gap-3 before:content-[''] before:block before:w-1 before:h-5 before:bg-nova-primary before:rounded-full" {...props} />
     ),
     h3: ({ node, ...props }: any) => (
       <h3 className="text-lg font-semibold tracking-tight text-nova-primary mt-8 mb-3" {...props} />
@@ -393,7 +393,7 @@ const ChapterContent = ({
 
       if (!inline) {
         return (
-          <pre className="overflow-x-auto rounded-xl bg-[#f8f7f4] border border-black/8 p-5 text-sm text-slate-800 mb-5 font-mono leading-6 shadow-sm">
+          <pre className="overflow-x-auto rounded-xl bg-[#f8f7f4] border border-black/8 p-5 text-sm text-slate-800 mb-5 font-mono leading-6 shadow-sm dark:shadow-none">
             <code className={className} {...props}>
               {children}
             </code>
@@ -422,7 +422,7 @@ const ChapterContent = ({
       }
       return (
         <pre
-          className="overflow-x-auto rounded-xl bg-[#f8f7f4] border border-black/8 p-5 text-sm text-slate-800 mb-5 font-mono leading-6 shadow-sm"
+          className="overflow-x-auto rounded-xl bg-[#f8f7f4] border border-black/8 p-5 text-sm text-slate-800 mb-5 font-mono leading-6 shadow-sm dark:shadow-none"
           {...props}
         >
           {children}
@@ -430,18 +430,18 @@ const ChapterContent = ({
       );
     },
     table: ({ node, ...props }: any) => (
-      <div className="overflow-x-auto my-6 rounded-xl border border-black/8 shadow-sm">
+      <div className="overflow-x-auto my-6 rounded-xl border border-black/8 shadow-sm dark:shadow-none">
         <table className="w-full border-collapse" {...props} />
       </div>
     ),
     thead: ({ node, ...props }: any) => (
-      <thead className="bg-gray-50" {...props} />
+      <thead className="bg-gray-50 dark:bg-nova-card/5" {...props} />
     ),
     th: ({ node, ...props }: any) => (
       <th className="border-b border-black/8 px-5 py-3 text-left font-semibold text-nova-heading text-sm" {...props} />
     ),
     td: ({ node, ...props }: any) => (
-      <td className="border-b border-black/5 px-5 py-3 text-nova-body text-sm last:border-0" {...props} />
+      <td className="border-b border-black/5 dark:border-white/10 dark:border-white/5 px-5 py-3 text-nova-body text-sm last:border-0" {...props} />
     ),
     blockquote: ({ node, ...props }: any) => (
       <blockquote
@@ -459,7 +459,7 @@ const ChapterContent = ({
 
   return (
     <div className="mx-auto max-w-6xl px-3 py-8 sm:px-4">
-      <div className="space-y-8 rounded-[28px] border border-black/5 bg-white p-5 shadow-soft sm:p-8">
+      <div className="space-y-8 rounded-[28px] border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card p-5 shadow-soft sm:p-8">
         <header className="flex flex-col gap-4">
           <div>
             <h1 className="mt-1 text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
@@ -469,7 +469,7 @@ const ChapterContent = ({
               {chapter?.description}
             </p>
             {chapter?.duration && (
-              <div className="mt-4 inline-flex rounded-full border border-black/5 bg-nova-bg px-4 py-2 text-sm text-nova-body shadow-sm">
+              <div className="mt-4 inline-flex rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg px-4 py-2 text-sm text-nova-body shadow-sm dark:shadow-none">
                 ⏱️ {formatDuration(chapter.duration)}
               </div>
             )}
@@ -477,7 +477,7 @@ const ChapterContent = ({
         </header>
 
         {content?.videoId && (
-          <section className="relative overflow-hidden rounded-2xl border border-black/5 bg-white shadow-soft group">
+          <section className="relative overflow-hidden rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-soft group">
             <div className="aspect-video w-full relative">
               <YouTube
                 videoId={content.videoId}
@@ -490,12 +490,12 @@ const ChapterContent = ({
             {/* Why this video matters — tooltip only */}
             <div className="absolute top-3 right-3 z-10">
               <div className="group/tip relative">
-                <button className="flex h-7 w-7 items-center justify-center rounded-full bg-white/80 border border-black/10 shadow-sm text-nova-body hover:bg-white transition-all">
+                <button className="flex h-7 w-7 items-center justify-center rounded-full bg-nova-card/80 border border-black/10 dark:border-white/10 dark:border-white/10 shadow-sm dark:shadow-none text-nova-body hover:bg-nova-card transition-all">
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
                 </button>
-                <div className="pointer-events-none absolute right-0 top-9 w-64 rounded-xl bg-white/95 backdrop-blur-md p-3.5 shadow-xl border border-black/5 opacity-0 group-hover/tip:opacity-100 transition-all duration-200 translate-y-1 group-hover/tip:translate-y-0">
+                <div className="pointer-events-none absolute right-0 top-9 w-64 rounded-xl bg-nova-card/95 backdrop-blur-md p-3.5 shadow-xl border border-black/5 dark:border-white/10 dark:border-white/5 opacity-0 group-hover/tip:opacity-100 transition-all duration-200 translate-y-1 group-hover/tip:translate-y-0">
                   <p className="text-xs font-bold uppercase tracking-wider text-nova-primary mb-1">Why this video matters</p>
                   <p className="text-xs leading-relaxed text-nova-heading">
                     Use this as a mental reset before the content below. It reinforces core concepts from a different angle.
@@ -508,7 +508,7 @@ const ChapterContent = ({
 
         <div className="space-y-6">
           {visibleLessons.length === 0 ? (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center shadow-sm">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-8 text-center shadow-sm dark:shadow-none">
               <p className="text-nova-body font-medium">
                 No content available for this subtopic yet. Please generate the course content first.
               </p>
@@ -572,10 +572,10 @@ const ChapterContent = ({
                         .map((annotation) => (
                           <div
                             key={annotation.id}
-                            className={`group relative overflow-hidden rounded-2xl border p-4 shadow-sm ${
+                            className={`group relative overflow-hidden rounded-2xl border p-4 shadow-sm dark:shadow-none ${
                               annotation.type === "sticky-note"
                                 ? "border-amber-200 bg-[#fffbeb]"
-                                : "border-black/8 bg-white"
+                                : "border-black/8 bg-nova-card"
                             }`}
                           >
                             {annotation.type === "sticky-note" && (
@@ -586,7 +586,7 @@ const ChapterContent = ({
                               onClick={() => handleDeleteAnnotation(annotation.id)}
                               disabled={deletingId === annotation.id}
                               title="Delete"
-                              className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-white border border-black/8 text-gray-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-500 shadow-sm"
+                              className="absolute top-2.5 right-2.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-nova-card border border-black/8 text-gray-400 opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 hover:border-red-200 hover:text-red-500 shadow-sm dark:shadow-none"
                             >
                               {deletingId === annotation.id ? (
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -603,7 +603,7 @@ const ChapterContent = ({
                               <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest ${
                                 annotation.type === "sticky-note"
                                   ? "bg-amber-100 text-amber-700"
-                                  : "bg-gray-100 text-gray-600"
+                                  : "bg-gray-100 dark:bg-nova-card/10 text-gray-600"
                               }`}>
                                 {annotation.type === "sticky-note" ? "Note" : "Bookmark"}
                               </span>

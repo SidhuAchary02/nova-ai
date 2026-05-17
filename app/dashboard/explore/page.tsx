@@ -27,14 +27,14 @@ const ExplorePage = () => {
 
   return (
     <div className="space-y-8">
-      <div className="bg-white rounded-3xl p-8 border border-black/5 shadow-soft">
+      <div className="bg-nova-card rounded-3xl p-8 border border-black/5 dark:border-white/10 dark:border-white/5 shadow-soft">
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-nova-primary/10 rounded-xl flex items-center justify-center text-nova-primary">
             <span className="material-symbols-outlined">explore</span>
           </div>
           <h2 className="text-3xl font-bold text-nova-heading tracking-tight">Explore Courses</h2>
         </div>
-        <p className="text-nova-body ml-13">Discover what other creators are publishing with Nova AI Studio.</p>
+        <p className="text-nova-body ml-13">Discover what other creators are publishing with UpSkillAi Studio.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
@@ -53,21 +53,21 @@ const ExplorePage = () => {
         )}
       </div>
 
-      <div className="bg-white flex items-center justify-between rounded-2xl p-4 shadow-sm border border-black/5">
+      <div className="bg-nova-card flex items-center justify-between rounded-2xl p-4 shadow-sm dark:shadow-none border border-black/5 dark:border-white/10 dark:border-white/5">
         <Button
           onClick={() => setPageIndex(pageIndex - 1)}
           disabled={pageIndex == 0}
           variant="outline"
-          className="border-black/10 text-nova-heading hover:bg-gray-50"
+          className="border-black/10 dark:border-white/10 dark:border-white/10 text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5"
         >
           Prev
         </Button>
-        <Badge className="bg-nova-bg border border-black/5 text-nova-heading font-medium">Page : {pageIndex + 1}</Badge>
+        <Badge className="bg-nova-bg border border-black/5 dark:border-white/10 dark:border-white/5 text-nova-heading font-medium">Page : {pageIndex + 1}</Badge>
         <Button
           onClick={() => setPageIndex(pageIndex + 1)}
           disabled={courseList?.length !== 8}
           variant="outline"
-          className="border-black/10 text-nova-heading hover:bg-gray-50"
+          className="border-black/10 dark:border-white/10 dark:border-white/10 text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5"
         >
           Next
         </Button>

@@ -5,9 +5,9 @@ import SupabaseProvider from "@/components/providers/SupabaseProvider";
 const inter = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Nova AI Course Studio",
+  title: "UpSkillAi Course Studio",
   description:
-    "Nova AI Course Studio helps you create and publish high-quality courses with AI generated outlines, chapter content, quizzes, and curated videos.",
+    "UpSkillAi Course Studio helps you create and publish high-quality courses with AI generated outlines, chapter content, quizzes, and curated videos.",
 };
 
 export default function RootLayout({

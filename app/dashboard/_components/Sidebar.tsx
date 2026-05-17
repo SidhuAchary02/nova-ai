@@ -12,13 +12,13 @@ const Sidebar = () => {
   const { userCourseList } = useContext(UserCourseListContext);
 
   return (
-    <aside className="fixed h-screen w-72 border-r border-black/5 bg-white p-5 shadow-sm flex flex-col">
+    <aside className="fixed h-screen w-72 border-r border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card p-5 shadow-sm dark:shadow-none flex flex-col">
       <Link href="/" className="flex items-center gap-3 mb-10 px-2">
-        <div className="w-8 h-8 bg-nova-primary rounded-lg flex items-center justify-center text-white shadow-sm">
+        <div className="w-8 h-8 bg-nova-primary rounded-lg flex items-center justify-center text-white shadow-sm dark:shadow-none">
           <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
         </div>
         <div>
-          <h1 className="text-lg font-bold text-nova-heading tracking-tight leading-none">Nova Studio</h1>
+          <h1 className="text-lg font-bold text-nova-heading tracking-tight leading-none">UpSkillAi Studio</h1>
           <p className="text-[10px] text-nova-body uppercase tracking-wider font-semibold mt-1">Course Workspace</p>
         </div>
       </Link>
@@ -32,7 +32,7 @@ const Sidebar = () => {
                 className={`flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-colors ${
                   isActive
                     ? "bg-nova-primary/10 text-nova-primary"
-                    : "text-nova-body hover:bg-black/5 hover:text-nova-heading"
+                    : "text-nova-body hover:bg-black/5 dark:bg-white/5 hover:text-nova-heading"
                 }`}
               >
                 <div className="text-[20px]">
@@ -45,13 +45,13 @@ const Sidebar = () => {
         })}
       </ul>
 
-      <div className="mt-auto mb-4 rounded-xl border border-black/5 bg-nova-bg p-4 shadow-sm">
-        <Progress value={(userCourseList.length / 5) * 100} className="h-2 bg-black/5 [&>div]:bg-nova-primary" />
+      <div className="mt-auto mb-4 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg p-4 shadow-sm dark:shadow-none">
+        <Progress value={(userCourseList.length / 5) * 100} className="h-2 bg-black/5 dark:bg-white/5 [&>div]:bg-nova-primary" />
         <h2 className="my-3 text-sm text-nova-body font-medium">
           <span className="text-nova-heading font-bold">{userCourseList.length}</span> out of 5 courses created
         </h2>
         <Link href="/dashboard/upgrade">
-          <button className="w-full bg-white border border-black/10 text-nova-heading text-xs font-semibold py-2 rounded-lg hover:bg-gray-50 transition-colors shadow-sm">
+          <button className="w-full bg-nova-card border border-black/10 dark:border-white/10 dark:border-white/10 text-nova-heading text-xs font-semibold py-2 rounded-lg hover:bg-gray-50 dark:bg-nova-card/5 transition-colors shadow-sm dark:shadow-none">
             Upgrade for Unlimited
           </button>
         </Link>

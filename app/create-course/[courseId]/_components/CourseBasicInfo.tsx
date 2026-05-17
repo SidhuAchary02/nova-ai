@@ -24,7 +24,7 @@ const CourseBasicInfo = ({
   // console.log("Course Info", courseInfo);
 
   return (
-    <div className="mt-5 rounded-2xl border border-black/5 bg-white/60 p-6 shadow-[0_16px_30px_rgba(2,6,23,0.4)] sm:p-8">
+    <div className="mt-5 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/60 p-6 shadow-[0_16px_30px_rgba(2,6,23,0.4)] sm:p-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="">
           <h2 className="text-3xl font-bold text-nova-heading">

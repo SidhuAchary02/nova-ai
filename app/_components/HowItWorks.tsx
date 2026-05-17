@@ -54,7 +54,7 @@ export const HowItWorks = () => {
 
       <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
         {features.map(({ icon, title, description }: FeatureProps) => (
-          <Card key={title} className="bg-white border border-black/5 shadow-soft h-full border-black/5 bg-white/60">
+          <Card key={title} className="bg-nova-card border border-black/5 dark:border-white/10 dark:border-white/5 shadow-soft h-full border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/60">
             <CardHeader>
               <CardTitle className="grid place-items-center gap-4 text-nova-heading">
                 <div className="rounded-2xl border border-primary/35 bg-primary/10 p-3 text-primary">

@@ -96,8 +96,8 @@ print("✅ Code executed successfully")`;
   };
 
   return (
-    <div className="my-8 rounded-[24px] border border-black/5 bg-white shadow-soft p-2 overflow-hidden group">
-      <div className="rounded-[20px] bg-[#0A0A0A] overflow-hidden shadow-inner border border-black/10">
+    <div className="my-8 rounded-[24px] border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-soft p-2 overflow-hidden group">
+      <div className="rounded-[20px] bg-[#0A0A0A] overflow-hidden shadow-inner border border-black/10 dark:border-white/10 dark:border-white/10">
         {/* Terminal Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-[#111]">
           <div className="flex items-center gap-3">
@@ -112,7 +112,7 @@ print("✅ Code executed successfully")`;
           </div>
           <button
             onClick={copyCode}
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/40 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-white/40 transition-colors hover:bg-nova-card/10 hover:text-white"
           >
             {copied ? (
               <>
@@ -154,7 +154,7 @@ print("✅ Code executed successfully")`;
                 </>
               )}
             </Button>
-            <span className="text-xs font-medium text-nova-body bg-black/5 px-3 py-1.5 rounded-lg border border-black/5">
+            <span className="text-xs font-medium text-nova-body bg-black/5 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-black/5 dark:border-white/10 dark:border-white/5">
               {language === "python" ? "🐍 Python 3.10" : "🟨 Node.js 18"}
             </span>
           </div>
@@ -176,7 +176,7 @@ print("✅ Code executed successfully")`;
           )}
 
           {!output && !error && !loading && (
-            <div className="rounded-xl border border-black/5 bg-nova-bg/50 p-5 text-center text-sm text-nova-body font-medium">
+            <div className="rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/50 p-5 text-center text-sm text-nova-body font-medium">
               Click &quot;Run Code&quot; to execute this snippet
             </div>
           )}

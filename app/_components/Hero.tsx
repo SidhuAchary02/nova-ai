@@ -29,9 +29,9 @@ const Hero = () => {
   return (
     <section className="section-shell">
       <div className="mx-auto flex min-h-[calc(100vh-7rem)] max-w-6xl items-center justify-center py-10 sm:py-14">
-        <div className="bg-white border border-black/5 shadow-soft w-full rounded-3xl px-6 py-14 text-center sm:px-12">
+        <div className="bg-nova-card border border-black/5 dark:border-white/10 dark:border-white/5 shadow-soft w-full rounded-3xl px-6 py-14 text-center sm:px-12">
           <div className="mx-auto max-w-3xl">
-            <GradientTextAnimation title="Introducing Nova AI Course Studio" />
+            <GradientTextAnimation title="Introducing UpSkillAi Course Studio" />
 
             <WordPullUp
               className="mt-4 text-4xl font-extrabold leading-tight sm:text-5xl lg:text-7xl"
@@ -63,7 +63,7 @@ const Hero = () => {
               )}
 
               <Link href={user ? "/dashboard/explore" : "/sign-in"}>
-                <Button variant="outline" className="border-black/10 bg-white/70 text-nova-heading hover:bg-gray-50">
+                <Button variant="outline" className="border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/70 text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5">
                   Explore Courses
                 </Button>
               </Link>

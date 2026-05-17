@@ -30,7 +30,7 @@ const AddCourse = () => {
     <div className="flex flex-col gap-6">
       {/* Welcome & Stats Row */}
       <div className="flex flex-col md:flex-row gap-6">
-        <div className="flex-1 bg-white p-8 rounded-3xl border border-black/5 shadow-soft">
+        <div className="flex-1 bg-nova-card p-8 rounded-3xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-soft">
           <h2 className="text-3xl font-bold text-nova-heading tracking-tight mb-2">
             Welcome back, {userName} 👋
           </h2>
@@ -38,14 +38,14 @@ const AddCourse = () => {
             Continue building your AI-powered learning journey.
           </p>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="bg-nova-bg px-4 py-3 rounded-xl border border-black/5 flex flex-col">
+            <div className="bg-nova-bg px-4 py-3 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 flex flex-col">
               <span className="text-xs text-nova-body font-semibold uppercase tracking-wider">Current Plan</span>
               <span className="text-nova-heading font-bold flex items-center gap-1 mt-1">
                 <span className="material-symbols-outlined text-[16px] text-nova-primary">star</span>
                 Free Tier
               </span>
             </div>
-            <div className="bg-nova-bg px-4 py-3 rounded-xl border border-black/5 flex flex-col">
+            <div className="bg-nova-bg px-4 py-3 rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 flex flex-col">
               <span className="text-xs text-nova-body font-semibold uppercase tracking-wider">Credits Used</span>
               <span className="text-nova-heading font-bold flex items-center gap-1 mt-1">
                 <span className="material-symbols-outlined text-[16px] text-nova-accent">donut_large</span>
@@ -57,10 +57,10 @@ const AddCourse = () => {
 
         {/* Create Course Primary CTA */}
         <div className="md:w-[400px] bg-gradient-to-br from-nova-primary to-nova-accent p-[2px] rounded-3xl shadow-soft">
-          <div className="bg-white h-full rounded-[22px] p-8 flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-nova-card h-full rounded-[22px] p-8 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-nova-primary/10 rounded-full blur-2xl -z-10"></div>
             <div>
-              <div className="w-12 h-12 bg-nova-bg rounded-xl flex items-center justify-center mb-4 border border-black/5 shadow-sm text-nova-primary">
+              <div className="w-12 h-12 bg-nova-bg rounded-xl flex items-center justify-center mb-4 border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none text-nova-primary">
                 <span className="material-symbols-outlined text-[24px]">magic_button</span>
               </div>
               <h3 className="text-xl font-bold text-nova-heading mb-2">Create New Course</h3>

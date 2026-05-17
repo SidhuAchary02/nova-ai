@@ -36,13 +36,14 @@ const UserCourseList = () => {
     });
 
     const data = await res.json();
-    setCourses(data);
-    setUserCourseList(data);
+    const sortedData = Array.isArray(data) ? [...data].sort((a: any, b: any) => b.id - a.id) : data;
+    setCourses(sortedData);
+    setUserCourseList(sortedData);
   };
 
   if (courses?.length === 0)
     return (
-      <div className="mt-14 rounded-2xl border border-dashed border-black/10 bg-white p-14 text-center text-nova-body shadow-sm">
+      <div className="mt-14 rounded-2xl border border-dashed border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card p-14 text-center text-nova-body shadow-sm dark:shadow-none">
         No courses found. Create your first course to get started.
       </div>
     );

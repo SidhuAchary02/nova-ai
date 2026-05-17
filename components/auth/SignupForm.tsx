@@ -7,24 +7,31 @@ export default function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   const handleSignup = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.signUp({ email, password });
+    setErrorMsg("");
+    setSuccessMsg("");
+    const { data, error } = await supabase.auth.signUp({ email, password });
     setLoading(false);
     if (error) {
-      alert(error.message);
+      setErrorMsg(error.message);
+    } else if (data.user?.identities?.length === 0) {
+      setErrorMsg("Already a user! Please sign in.");
     } else {
-      alert("Check your email for a verification link!");
+      setSuccessMsg("Check your email for a verification link!");
     }
   };
 
   const handleGoogleSignup = async () => {
+    setErrorMsg("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
-    if (error) alert(error.message);
+    if (error) setErrorMsg(error.message);
   };
 
   return (
@@ -48,13 +55,25 @@ export default function SignupForm() {
         </div>
 
         {/* Card */}
-        <div className="rounded-3xl border border-black/6 bg-white p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+        <div className="rounded-3xl border border-black/6 bg-nova-card p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
           <h2 className="mb-6 text-center text-xl font-bold text-nova-heading">Create Account</h2>
+
+          {errorMsg && (
+            <div className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-600 border border-red-100">
+              {errorMsg}
+            </div>
+          )}
+          
+          {successMsg && (
+            <div className="mb-4 rounded-xl bg-green-50 p-3 text-sm text-green-600 border border-green-100">
+              {successMsg}
+            </div>
+          )}
 
           <div className="flex flex-col gap-4">
             <input
               type="email"
-              className="w-full rounded-xl border border-black/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
+              className="w-full rounded-xl border border-black/10 dark:border-white/10 dark:border-white/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -62,7 +81,7 @@ export default function SignupForm() {
 
             <input
               type="password"
-              className="w-full rounded-xl border border-black/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
+              className="w-full rounded-xl border border-black/10 dark:border-white/10 dark:border-white/10 bg-[#fdf8f4] px-4 py-3 text-nova-heading placeholder:text-nova-body/50 transition focus:border-nova-primary focus:outline-none focus:ring-2 focus:ring-nova-primary/20"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -82,13 +101,13 @@ export default function SignupForm() {
                 <div className="w-full border-t border-black/8" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-3 text-nova-body">Or continue with</span>
+                <span className="bg-nova-card px-3 text-nova-body">Or continue with</span>
               </div>
             </div>
 
             <button
               onClick={handleGoogleSignup}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 bg-white py-3 font-medium text-nova-heading transition duration-200 hover:bg-gray-50 hover:border-black/15"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card py-3 font-medium text-nova-heading transition duration-200 hover:bg-gray-50 dark:bg-nova-card/5 hover:border-black/15"
             >
               <img width="20" height="20" src="https://img.icons8.com/fluency/48/google-logo.png" alt="google-logo" />
               <span>Sign up with Google</span>

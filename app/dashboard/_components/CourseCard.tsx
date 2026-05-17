@@ -34,67 +34,77 @@ const CourseCard = ({
   };
 
   return (
-    <div className="group relative flex h-full flex-col rounded-2xl border border-black/5 bg-white p-3 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-soft">
-      {/* Completed Badge */}
-      {course.isCompleted && (
-        <div className="absolute right-5 top-5 z-10 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700 shadow-sm">
-          ✓ Completed
-        </div>
-      )}
+    <div className="group relative flex h-full flex-col rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card shadow-sm dark:shadow-none transition duration-300 hover:-translate-y-1 hover:shadow-soft">
+      <Link href={`/course/${course.courseId}`} className="flex h-full flex-col p-3">
+        {/* Completed Badge */}
+        {course.isCompleted && (
+          <div className="absolute right-8 top-8 z-20 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700 shadow-sm dark:shadow-none">
+            ✓ Completed
+          </div>
+        )}
 
-      {/* Course Image */}
-      <Link href={`/course/${course.courseId}`}>
-        <div className="h-[180px] overflow-hidden rounded-xl border border-black/5">
+        {/* Course Image */}
+        <div className="h-[180px] overflow-hidden rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5">
           <CourseCover
             title={courseOutput?.topic || course.courseName}
             category={course.category}
             imageUrl={course?.courseBanner}
             className="h-full w-full transition duration-300 group-hover:scale-[1.02]"
             compact
-            showTitle={false}
+            showTitle={true}
           />
         </div>
-      </Link>
 
-      {/* Course Info */}
-      <div className="flex flex-1 flex-col p-2 pt-4">
-        <h2 className="flex items-start justify-between gap-2 text-lg font-bold text-nova-heading leading-tight">
-          <span className="line-clamp-2">{courseOutput?.topic ?? "Untitled Course"}</span>
+        {/* Course Info */}
+        <div className="flex flex-1 flex-col p-2 pt-4">
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="text-lg font-bold text-nova-heading leading-tight line-clamp-2">
+              {courseOutput?.topic ?? "Untitled Course"}
+            </h2>
 
-          {!displayUser && (
-            <DropDownOptions handleDeleteCourse={() => handleOnDelete()}>
-              <HiOutlineDotsVertical
-                size={20}
-                className="cursor-pointer rounded-md bg-gray-50 hover:bg-gray-100 p-1 text-nova-body transition-colors"
-              />
-            </DropDownOptions>
-          )}
-        </h2>
-
-        <p className="my-2 line-clamp-1 text-sm text-nova-body font-medium">{course.category}</p>
-
-        {/* Chapter Count + Level */}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-black/5">
-          <h2 className="flex items-center gap-1.5 rounded-lg bg-nova-bg border border-black/5 px-2.5 py-1.5 text-xs font-semibold text-nova-heading shadow-sm">
-            <span className="material-symbols-outlined text-[14px] text-nova-primary">menu_book</span>
-            {courseOutput?.chapters?.length ?? 0} Chapters
-          </h2>
-
-          <h2 className="rounded-lg bg-nova-accent/10 border border-nova-primary/10 px-2.5 py-1.5 text-xs font-bold text-nova-primary shadow-sm">
-            {course.level}
-          </h2>
-        </div>
-
-        {/* User Info */}
-        {displayUser && (
-          <div className="mt-4 flex items-center gap-2 pt-3 border-t border-black/5">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/5 bg-nova-bg text-sm font-bold text-nova-primary">
-              {(course?.username || "U").charAt(0).toUpperCase()}
-            </span>
-            <NameChip name={course.username || "Creator"} maxLength={14} className="text-nova-heading font-medium" />
+            {!displayUser && (
+              <div 
+                className="z-30" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <DropDownOptions handleDeleteCourse={() => handleOnDelete()}>
+                  <HiOutlineDotsVertical
+                    size={20}
+                    className="cursor-pointer rounded-md bg-gray-50 dark:bg-nova-card/5 hover:bg-gray-100 dark:bg-nova-card/10 p-1 text-nova-body transition-colors"
+                  />
+                </DropDownOptions>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+
+          <p className="my-2 line-clamp-1 text-sm text-nova-body font-medium">{course.category}</p>
+
+          {/* Chapter Count + Level */}
+          <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-black/5 dark:border-white/10 dark:border-white/5">
+            <h2 className="flex items-center gap-1.5 rounded-lg bg-nova-bg border border-black/5 dark:border-white/10 dark:border-white/5 px-2.5 py-1.5 text-xs font-semibold text-nova-heading shadow-sm dark:shadow-none">
+              <span className="material-symbols-outlined text-[14px] text-nova-primary">menu_book</span>
+              {courseOutput?.chapters?.length ?? 0} Chapters
+            </h2>
+
+            <h2 className="rounded-lg bg-nova-accent/10 border border-nova-primary/10 px-2.5 py-1.5 text-xs font-bold text-nova-primary shadow-sm dark:shadow-none">
+              {course.level}
+            </h2>
+          </div>
+
+          {/* User Info */}
+          {displayUser && (
+            <div className="mt-4 flex items-center gap-2 pt-3 border-t border-black/5 dark:border-white/10 dark:border-white/5">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg text-sm font-bold text-nova-primary">
+                {(course?.username || "U").charAt(0).toUpperCase()}
+              </span>
+              <NameChip name={course.username || "Creator"} maxLength={14} className="text-nova-heading font-medium" />
+            </div>
+          )}
+        </div>
+      </Link>
     </div>
   );
 };
