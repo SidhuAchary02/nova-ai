@@ -314,7 +314,7 @@ const PersonalizedRoadmapReview = ({
           disabled={loading}
           className="bg-primary px-8 text-base font-semibold text-white hover:bg-primary/90"
         >
-          {loading ? "Saving roadmap..." : "Save Roadmap"}
+          {loading ? "Saving roadmap..." : "Save Roadmap & Proceed to Course Generation"}
         </Button>
       </div>
     </div>

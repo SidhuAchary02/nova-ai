@@ -252,30 +252,23 @@ export default function CoursePage({ params }: CourseParams) {
     <div className="min-h-screen bg-nova-bg pb-16">
       <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading"
-            >
-              Home
-            </button>
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-nova-primary rounded-lg flex items-center justify-center text-white shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+              </div>
+              <span className="font-bold text-nova-heading tracking-tight hidden sm:block">UpSkillAi</span>
+            </div>
+            
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-nova-body transition-colors hover:bg-gray-50 hover:text-nova-heading"
+              className="rounded-lg px-4 py-1.5 text-sm font-medium text-nova-body transition-colors bg-white hover:text-nova-primary border border-black/5 shadow-sm hidden sm:block"
             >
               Dashboard
             </button>
-            <button
-              type="button"
-              onClick={() => router.push("/create-course")}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-gray-50"
-            >
-              Create Course
-            </button>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {isPublished ? (
               <span className="rounded-full border border-emerald-300 bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800 shadow-sm md:text-sm">
                 Published ✓
@@ -285,6 +278,13 @@ export default function CoursePage({ params }: CourseParams) {
                 Roadmap ready
               </span>
             )}
+            
+            <button 
+              onClick={() => router.push("/dashboard/profile")}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-nova-primary/10 text-nova-primary hover:bg-nova-primary/20 transition-colors border border-nova-primary/20"
+            >
+              <span className="material-symbols-outlined text-[20px]">person</span>
+            </button>
           </div>
         </div>
       </div>
@@ -299,16 +299,39 @@ export default function CoursePage({ params }: CourseParams) {
         />
 
         <div className="space-y-10 rounded-[28px] border border-black/5 bg-white px-6 py-8 shadow-soft sm:px-10 sm:py-10">
-          <header className="text-center sm:text-left">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              Your personalized plan
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
-              Learning roadmap
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-nova-body">
-              A structured path from where you are today to the outcomes you chose — optimized for your time and goals.
-            </p>
+          <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6 text-center sm:text-left">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+                Your personalized plan
+              </p>
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-nova-heading sm:text-4xl">
+                {course.courseName || "Learning roadmap"}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-nova-body">
+                A structured path from where you are today to the outcomes you chose — optimized for your time and goals.
+              </p>
+            </div>
+            
+            <div className="flex-shrink-0">
+              {isPublished ? (
+                <Button
+                  type="button"
+                  onClick={() => router.push(`/course/${params.courseId}/start`)}
+                  className="bg-primary px-8 py-6 text-base font-semibold text-white hover:bg-primary/90 rounded-xl w-full sm:w-auto shadow-sm"
+                >
+                  Start course
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleGenerateCourseContent}
+                  disabled={loading}
+                  className="bg-primary px-8 py-6 text-base font-semibold text-white hover:bg-primary/90 rounded-xl w-full sm:w-auto shadow-sm"
+                >
+                  {loading ? "Generating first 3 chapters..." : "Start Course Generation"}
+                </Button>
+              )}
+            </div>
           </header>
 
           <div className="grid gap-4 rounded-2xl border border-black/5 bg-nova-bg shadow-sm p-6 sm:grid-cols-5 sm:p-8">
@@ -345,7 +368,7 @@ export default function CoursePage({ params }: CourseParams) {
                 {chapterCount}
               </p>
             </div>
-            <div className="text-center sm:text-left">
+            {/* <div className="text-center sm:text-left">
               <p className="text-xs font-medium uppercase tracking-wider text-gray-400">
                 Video Included
               </p>
@@ -356,7 +379,7 @@ export default function CoursePage({ params }: CourseParams) {
                     ? String(course.isVideo.value)
                     : "Yes"}
               </p>
-            </div>
+            </div> */}
           </div>
 
           <p className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-center text-sm text-nova-body">

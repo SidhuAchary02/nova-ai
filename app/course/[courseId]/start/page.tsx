@@ -418,8 +418,15 @@ const CourseStart = ({ params }: CourseStartProps) => {
       {/* Top Navigation Header - Professional & UX Friendly */}
       <div className="fixed left-0 right-0 top-0 z-30 border-b border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/85 backdrop-blur-xl">
         <div className="section-shell flex h-16 items-center justify-between">
-          {/* Left Section - Back Button & Course Title */}
+          {/* Left Section - Logo, Back Button & Course Title */}
           <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 pr-4 border-r border-black/5 dark:border-white/10 hidden sm:flex">
+              <div className="w-8 h-8 bg-nova-primary rounded-lg flex items-center justify-center text-white shadow-sm">
+                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+              </div>
+              <span className="font-bold text-nova-heading tracking-tight">UpSkillAi</span>
+            </div>
+
             <button
               onClick={() => router.push("/dashboard")}
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-nova-body transition-colors hover:bg-gray-50 dark:bg-nova-card/5"
@@ -441,28 +448,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
                 <span className="font-medium text-nova-body">
                   Chapter {selectedChapterIndex + 1}/{totalChapters || 1}
                 </span>
-                <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-100 dark:bg-nova-card/10">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{
-                      width: `${totalChapters > 0 ? ((selectedChapterIndex + 1) / totalChapters) * 100 : 0}%`,
-                    }}
-                  ></div>
-                </div>
               </div>
             )}
 
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`rounded-lg p-2.5 transition-all duration-300 ${
-                sidebarOpen
-                  ? "bg-primary text-white hover:bg-primary/90"
-                  : "border border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5"
-              }`}
-              title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            <button 
+              onClick={() => router.push("/dashboard/profile")}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-nova-primary/10 text-nova-primary hover:bg-nova-primary/20 transition-colors border border-nova-primary/20"
             >
-              {sidebarOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+              <span className="material-symbols-outlined text-[20px]">person</span>
             </button>
           </div>
         </div>

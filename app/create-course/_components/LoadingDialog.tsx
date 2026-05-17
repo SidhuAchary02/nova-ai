@@ -108,10 +108,10 @@ function RoadmapLoader() {
           <div
             key={i}
             className={`rounded-full transition-all duration-400 ${i === msgIdx
-                ? "h-1.5 w-5 bg-nova-primary"
-                : i < msgIdx
-                  ? "h-1.5 w-1.5 bg-nova-primary/40"
-                  : "h-1.5 w-1.5 bg-black/10 dark:bg-white/10"
+              ? "h-1.5 w-5 bg-nova-primary"
+              : i < msgIdx
+                ? "h-1.5 w-1.5 bg-nova-primary/40"
+                : "h-1.5 w-1.5 bg-black/10"
               }`}
           />
         ))}
@@ -139,18 +139,12 @@ function CourseLoader({
   progressLesson?: string;
 }) {
   const hasReal = progressTotal > 0;
+  const realPct = hasReal ? Math.min(95, Math.round((progress / progressTotal) * 100)) : 0;
 
   const [simPct, setSimPct] = useState(0);
-  const [maxPct, setMaxPct] = useState(0);
   const [msgIdx, setMsgIdx] = useState(0);
   const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    if (hasReal) {
-      const calculatedPct = Math.min(95, Math.round((progress / progressTotal) * 100));
-      setMaxPct((prev) => Math.max(prev, calculatedPct));
-    }
-  }, [hasReal, progress, progressTotal]);
+  const [maxDisplayPct, setMaxDisplayPct] = useState(0);
 
   useEffect(() => {
     if (hasReal) return;
@@ -172,7 +166,16 @@ function CourseLoader({
     return () => clearInterval(t);
   }, [hasReal]);
 
-  const pct = hasReal ? maxPct : Math.round(simPct);
+  const rawPct = hasReal ? realPct : Math.round(simPct);
+
+  useEffect(() => {
+    setMaxDisplayPct((prev) => {
+      const next = Math.max(prev, rawPct);
+      return Math.min(95, next);
+    });
+  }, [rawPct]);
+
+  const pct = maxDisplayPct;
   const primaryMsg = hasReal && progressLesson
     ? progressLesson
     : COURSE_MESSAGES[msgIdx];
@@ -231,7 +234,7 @@ function CourseLoader({
       </div>
 
       <p className="text-center text-xs text-nova-body/50">
-        This usually takes 15-30 seconds — we're crafting something great for you!
+        This may take a moment — we're crafting something great
       </p>
     </div>
   );
@@ -275,7 +278,7 @@ const LoadingDialog = (props: LoadingDialogProps) => {
         style={{ pointerEvents: "none" }}
       >
         <div
-          className="w-full max-w-[360px] rounded-2xl border border-black/[0.06] bg-nova-card p-8 shadow-[0_8px_40px_rgba(0,0,0,0.10)]"
+          className="w-full max-w-[360px] rounded-2xl border border-black/[0.06] bg-white p-8 shadow-[0_8px_40px_rgba(0,0,0,0.10)]"
           style={{
             pointerEvents: "auto",
             animation: "nova-up 0.3s cubic-bezier(0.16,1,0.3,1) both",

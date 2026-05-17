@@ -66,13 +66,7 @@ const AddCourse = () => {
               <h3 className="text-xl font-bold text-nova-heading mb-2">Create New Course</h3>
               <p className="text-sm text-nova-body mb-6">Generate a structured learning roadmap powered by AI.</p>
             </div>
-            <Link
-              href={
-                coursesCreated >= maxCourses
-                  ? "/dashboard/upgrade"
-                  : "/create-course"
-              }
-            >
+            <Link href="/create-course">
               <button className="w-full bg-nova-primary text-white font-medium py-3 rounded-xl hover:shadow-[0_10px_20px_rgba(255,140,66,0.2)] transition-all active:scale-95 duration-200 flex items-center justify-center gap-2">
                 <span className="material-symbols-outlined text-[20px]">add</span>
                 Start Generating

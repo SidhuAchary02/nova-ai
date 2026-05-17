@@ -14,7 +14,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
   const courseOutput = parseCourseOutput(courseDetail.courseOutput);
 
   return (
-    <div className="mt-3 rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/60 p-7 shadow-[0_16px_30px_rgba(2,6,23,0.35)]">
+    <div className="mt-3 rounded-2xl border border-black/5 bg-white/60 p-7 shadow-[0_16px_30px_rgba(2,6,23,0.35)]">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
 
         <div className="flex gap-2">
@@ -45,7 +45,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
           </div>
         </div>
 
-        {/* <div className="flex gap-2">
+        <div className="flex gap-2">
           <FaVideo className="text-4xl text-primary" />
           <div>
             <h2 className="text-xs text-nova-body">Video Included</h2>
@@ -57,7 +57,7 @@ const CourseDetail = ({ courseDetail }: CourseDetailProps) => {
                   : ''}
             </h2>
           </div>
-        </div> */}
+        </div>
 
       </div>
     </div>
