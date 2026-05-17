@@ -8,6 +8,7 @@ import { sendEmail } from "@/app/actions/sendEmail";
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [query, setQuery] = useState("");
+  const [previewTab, setPreviewTab] = useState<"dashboard" | "roadmaps" | "courses">("dashboard");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("+91 ");
@@ -109,14 +110,14 @@ export default function Home() {
                 </button>
               </Link>
             </div>
-            <div className="mt-8 flex items-center gap-4 text-nova-body text-sm">
+            {/* <div className="mt-8 flex items-center gap-4 text-nova-body text-sm">
               <div className="flex -space-x-3">
                 <img alt="User" className="w-10 h-10 rounded-full border-2 border-white" src="https://i.pravatar.cc/100?img=1" />
                 <img alt="User" className="w-10 h-10 rounded-full border-2 border-white" src="https://i.pravatar.cc/100?img=2" />
                 <img alt="User" className="w-10 h-10 rounded-full border-2 border-white" src="https://i.pravatar.cc/100?img=3" />
               </div>
               <p>Join 10,000+ early adopters</p>
-            </div>
+            </div> */}
           </div>
 
           {/* Dashboard Mockup */}
@@ -283,44 +284,365 @@ export default function Home() {
                     <span className="font-bold text-nova-heading">UpSkillAi Studio</span>
                   </div>
                   <div className="space-y-2">
-                    <div className="h-8 bg-nova-primary/10 text-nova-primary rounded-md flex items-center px-3 text-sm font-medium">
-                      <span className="material-symbols-outlined text-[16px] mr-2">dashboard</span> Dashboard
-                    </div>
-                    <div className="h-8 hover:bg-black/5 dark:bg-white/5 text-nova-body rounded-md flex items-center px-3 text-sm cursor-pointer">
-                      <span className="material-symbols-outlined text-[16px] mr-2">route</span> Roadmaps
-                    </div>
-                    <div className="h-8 hover:bg-black/5 dark:bg-white/5 text-nova-body rounded-md flex items-center px-3 text-sm cursor-pointer">
-                      <span className="material-symbols-outlined text-[16px] mr-2">school</span> Courses
-                    </div>
+                    <button 
+                      onClick={() => setPreviewTab("dashboard")}
+                      className={`w-full h-10 rounded-lg flex items-center px-4 text-sm font-medium transition-all ${
+                        previewTab === "dashboard" 
+                          ? "bg-primary/10 text-primary shadow-inner" 
+                          : "hover:bg-black/5 dark:hover:bg-white/5 text-nova-body"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px] mr-3">dashboard</span> Dashboard
+                    </button>
+                    <button 
+                      onClick={() => setPreviewTab("roadmaps")}
+                      className={`w-full h-10 rounded-lg flex items-center px-4 text-sm font-medium transition-all ${
+                        previewTab === "roadmaps" 
+                          ? "bg-primary/10 text-primary shadow-inner" 
+                          : "hover:bg-black/5 dark:hover:bg-white/5 text-nova-body"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px] mr-3">route</span> Roadmaps
+                    </button>
+                    <button 
+                      onClick={() => setPreviewTab("courses")}
+                      className={`w-full h-10 rounded-lg flex items-center px-4 text-sm font-medium transition-all ${
+                        previewTab === "courses" 
+                          ? "bg-primary/10 text-primary shadow-inner" 
+                          : "hover:bg-black/5 dark:hover:bg-white/5 text-nova-body"
+                      }`}
+                    >
+                      <span className="material-symbols-outlined text-[18px] mr-3">school</span> Courses
+                    </button>
                   </div>
                 </div>
                 {/* Main Content Mock */}
-                <div className="flex-1 p-6 md:p-10 overflow-y-auto">
-                  <div className="h-6 w-48 bg-gray-200 dark:bg-nova-card/20 rounded-md mb-8"></div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="h-32 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none p-4 flex flex-col justify-between">
-                      <div className="w-8 h-8 rounded-full bg-blue-50"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-nova-card/20 rounded"></div>
-                        <div className="h-3 w-16 bg-gray-100 dark:bg-nova-card/10 rounded"></div>
+                <div className="flex-1 p-4 md:p-8 overflow-y-auto bg-nova-bg hide-scrollbar">
+                  {previewTab === 'dashboard' && (
+                    <div className="flex h-full gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                      {/* Dashboard Fake Sidebar */}
+                      <div className="hidden sm:flex w-48 flex-col gap-2 border-r border-black/5 dark:border-white/10 pr-6">
+                        <button className="flex items-center justify-center gap-2 bg-primary text-white px-4 py-2 rounded-lg font-bold shadow-sm hover:bg-primary/90 w-full mb-4">
+                          <span className="material-symbols-outlined text-[18px]">add</span> Create Course
+                        </button>
+                        <div className="flex items-center gap-3 px-3 py-2.5 text-primary bg-primary/10 rounded-lg text-sm font-bold">
+                          <span className="material-symbols-outlined text-[18px]">home</span> Home
+                        </div>
+                        <div className="flex items-center gap-3 px-3 py-2.5 text-nova-body hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[18px]">library_books</span> My Courses
+                        </div>
+                        <div className="flex items-center gap-3 px-3 py-2.5 text-nova-body hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                          <span className="material-symbols-outlined text-[18px]">bar_chart</span> Analytics
+                        </div>
+                        <div className="flex items-center gap-3 px-3 py-2.5 text-nova-body hover:bg-black/5 dark:hover:bg-white/5 rounded-lg text-sm font-medium transition-colors cursor-pointer mt-auto">
+                          <span className="material-symbols-outlined text-[18px]">person</span> Profile
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-6">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <h3 className="text-xl font-bold text-nova-heading">Welcome back, Learner!</h3>
+                            <p className="text-sm text-nova-body">Ready to continue your learning journey?</p>
+                          </div>
+                          <span className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20">Pro Member</span>
+                        </div>
+                        
+                        {/* Stats Row */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm flex flex-col items-center justify-center">
+                            <div className="text-nova-body text-xs font-medium uppercase tracking-wider mb-2">Active Courses</div>
+                            <div className="text-3xl font-black text-nova-heading tabular-nums">3</div>
+                          </div>
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm flex flex-col items-center justify-center">
+                            <div className="text-nova-body text-xs font-medium uppercase tracking-wider mb-2">Hours Learned</div>
+                            <div className="text-3xl font-black text-nova-heading tabular-nums">12.5</div>
+                          </div>
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm flex flex-col items-center justify-center">
+                            <div className="text-nova-body text-xs font-medium uppercase tracking-wider mb-2">Quizzes Passed</div>
+                            <div className="text-3xl font-black text-nova-heading tabular-nums">8</div>
+                          </div>
+                        </div>
+
+                        {/* My Generated Courses */}
+                        <div className="mt-8">
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-sm font-bold text-nova-heading uppercase tracking-wider text-gray-500">My Generated Courses</h4>
+                            <span className="text-xs font-medium text-primary cursor-pointer hover:underline">View all</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-lg flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-[20px]">code</span>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-nova-heading text-sm">Python Mastery</div>
+                                  <div className="text-[10px] text-nova-body mt-0.5">Updated 2 days ago</div>
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="font-medium text-nova-body">Chapter 2</span>
+                                <span className="font-bold text-nova-heading">32%</span>
+                              </div>
+                              <div className="mt-1 h-1 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary w-[32%]"></div>
+                              </div>
+                            </div>
+                            
+                            <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-green-50 dark:bg-green-900/20 text-green-500 rounded-lg flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-[20px]">brush</span>
+                                </div>
+                                <div>
+                                  <div className="font-bold text-nova-heading text-sm">UI/UX Design Basics</div>
+                                  <div className="text-[10px] text-nova-body mt-0.5">Updated 1 week ago</div>
+                                </div>
+                              </div>
+                              <div className="flex justify-between items-center text-xs">
+                                <span className="font-medium text-nova-body">Not started</span>
+                                <span className="font-bold text-nova-heading">0%</span>
+                              </div>
+                              <div className="mt-1 h-1 w-full bg-black/5 dark:bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-full bg-gray-300 w-0"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="h-32 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none p-4 flex flex-col justify-between">
-                      <div className="w-8 h-8 rounded-full bg-green-50"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-nova-card/20 rounded"></div>
-                        <div className="h-3 w-16 bg-gray-100 dark:bg-nova-card/10 rounded"></div>
+                  )}
+
+                  {previewTab === 'roadmaps' && (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-2xl mx-auto">
+                      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-6 border-b border-black/5 dark:border-white/10">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-1">Your personalized plan</p>
+                          <h3 className="text-2xl font-bold text-nova-heading">Python Mastery</h3>
+                          <p className="text-sm text-nova-body mt-1 max-w-md">A structured path from where you are today to the outcomes you chose.</p>
+                        </div>
+                        <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-medium shadow-sm hover:bg-primary/90 whitespace-nowrap">
+                          Start Course Generation
+                        </button>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-6 mb-6 p-4 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 shadow-sm">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Chapters</p>
+                          <p className="text-sm font-bold text-nova-heading">12</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Duration</p>
+                          <p className="text-sm font-bold text-nova-heading">3 Weeks</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Pace</p>
+                          <p className="text-sm font-bold text-nova-heading">2 Hrs/day</p>
+                        </div>
+                        <div className="flex-1 min-w-[150px]">
+                          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Content Included</p>
+                          <div className="flex gap-2 mt-0.5">
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded"><span className="material-symbols-outlined text-[14px]">play_circle</span> Video</div>
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-green-600 bg-green-50 px-1.5 py-0.5 rounded"><span className="material-symbols-outlined text-[14px]">code</span> Code</div>
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded"><span className="material-symbols-outlined text-[14px]">quiz</span> Quiz</div>
+                            <div className="flex items-center gap-1 text-[11px] font-medium text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded"><span className="material-symbols-outlined text-[14px]">description</span> Text</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-5 bg-primary/5 border border-primary/10 rounded-xl mb-6">
+                        <h4 className="font-bold text-primary mb-2 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-[18px]">psychology</span> Why this roadmap?
+                        </h4>
+                        <p className="text-sm text-primary/80 leading-relaxed">
+                          This roadmap is designed for beginners wanting to master Python data structures. It prioritizes foundational logic before moving to advanced algorithms, ensuring a smooth learning curve customized to your 2 hours/day schedule.
+                        </p>
+                      </div>
+
+                      <div className="relative pl-6 border-l-2 border-gray-100 dark:border-white/10 space-y-4">
+                        {/* Expanded Chapter */}
+                        <div className="relative">
+                          <div className="absolute -left-[33px] top-4 w-4 h-4 rounded-full bg-primary ring-4 ring-nova-bg"></div>
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm border-l-4 border-l-primary">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="font-bold text-nova-heading text-lg">1. Python Basics</h4>
+                              <span className="text-[10px] font-bold text-nova-body bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded">Day 1-3</span>
+                            </div>
+                            <p className="text-xs text-nova-body mb-4 pb-4 border-b border-black/5 dark:border-white/10">Variables, Data Types, Control Flow, and Functions</p>
+                            
+                            <div className="pl-2 border-l-2 border-gray-100 dark:border-white/10 space-y-4">
+                              <div>
+                                <h5 className="text-sm font-bold text-nova-heading mb-2">1.1 Variables & Data Types</h5>
+                                <div className="space-y-1.5 pl-2 text-xs text-nova-body">
+                                  <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Integers & Floats</div>
+                                  <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> Strings & Booleans</div>
+                                </div>
+                              </div>
+                              <div>
+                                <h5 className="text-sm font-bold text-nova-heading mb-2">1.2 Control Flow</h5>
+                                <div className="space-y-1.5 pl-2 text-xs text-nova-body">
+                                  <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> If/Else Statements</div>
+                                  <div className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary"></span> For and While Loops</div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Collapsed Chapter */}
+                        <div className="relative">
+                          <div className="absolute -left-[33px] top-4 w-4 h-4 rounded-full bg-gray-200 dark:bg-white/20 ring-4 ring-nova-bg"></div>
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm flex items-center justify-between cursor-pointer hover:bg-black/5 opacity-80">
+                            <div className="flex flex-col">
+                              <h4 className="font-bold text-nova-heading">2. Data Structures</h4>
+                              <span className="text-[10px] text-nova-body mt-0.5">Lists, Dictionaries, Sets</span>
+                            </div>
+                            <span className="material-symbols-outlined text-[20px] text-gray-400">expand_more</span>
+                          </div>
+                        </div>
+
+                        {/* Collapsed Chapter */}
+                        <div className="relative">
+                          <div className="absolute -left-[33px] top-4 w-4 h-4 rounded-full bg-gray-200 dark:bg-white/20 ring-4 ring-nova-bg"></div>
+                          <div className="p-4 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm flex items-center justify-between cursor-pointer hover:bg-black/5 opacity-80">
+                            <div className="flex flex-col">
+                              <h4 className="font-bold text-nova-heading">3. Object Oriented Programming</h4>
+                              <span className="text-[10px] text-nova-body mt-0.5">Classes & Inheritance</span>
+                            </div>
+                            <span className="material-symbols-outlined text-[20px] text-gray-400">expand_more</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="h-32 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none p-4 flex flex-col justify-between">
-                      <div className="w-8 h-8 rounded-full bg-purple-50"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-24 bg-gray-200 dark:bg-nova-card/20 rounded"></div>
-                        <div className="h-3 w-16 bg-gray-100 dark:bg-nova-card/10 rounded"></div>
+                  )}
+
+                  {previewTab === 'courses' && (
+                    <div className="flex flex-col h-full animate-in fade-in slide-in-from-bottom-2 duration-500 pr-2">
+                      <div className="flex items-center justify-between mb-4 pb-4 border-b border-black/5 dark:border-white/10">
+                        <div>
+                          <h3 className="text-lg font-bold text-nova-heading">Lists and Arrays</h3>
+                          <p className="text-xs text-nova-body mt-1">Chapter 2: Data Structures • Lesson 1</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button className="px-3 py-1.5 text-xs font-semibold bg-nova-card border border-black/5 dark:border-white/10 rounded-lg text-nova-body hover:bg-black/5 hidden sm:block">Prev</button>
+                          <button className="px-3 py-1.5 text-xs font-semibold bg-primary text-white rounded-lg hover:bg-primary/90 shadow-sm">Next</button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto pr-2 pb-10 space-y-8">
+                        {/* Video & Text split layout */}
+                        <div className="flex flex-col md:flex-row gap-6">
+                          {/* Video Player Mock - Half Size */}
+                          <div className="w-full md:w-1/2 aspect-video bg-slate-900 rounded-xl flex items-center justify-center relative overflow-hidden group shadow-md border border-black/10">
+                            <img src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=800&q=80" alt="Code Background" className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                            <div className="w-12 h-12 bg-red-600 rounded-xl flex items-center justify-center text-white cursor-pointer hover:bg-red-500 hover:scale-105 transition-all z-10 shadow-lg">
+                              <span className="material-symbols-outlined text-[28px]">play_arrow</span>
+                            </div>
+                            <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2 z-10">
+                              <div className="text-white text-[10px] font-bold font-mono">12:04 / 24:15</div>
+                              <div className="h-1 bg-white/30 flex-1 rounded-full overflow-hidden">
+                                <div className="h-full bg-red-600 w-[50%]"></div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Text Output Mock beside video */}
+                          <div className="w-full md:w-1/2 flex flex-col justify-center">
+                            <h4 className="font-bold text-nova-heading text-xl mb-3">Understanding Lists</h4>
+                            <p className="text-sm text-nova-body leading-relaxed mb-4">
+                              A list in Python is an ordered, mutable collection. Lists can contain items of different data types, and they are defined by enclosing elements in square brackets <code className="bg-nova-card border border-black/10 px-1 py-0.5 rounded text-xs font-mono">[]</code>.
+                            </p>
+                            <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 p-3 rounded-lg">
+                              <div className="flex items-center gap-2 text-blue-600 mb-1 font-bold text-[11px] uppercase tracking-wider">
+                                <span className="material-symbols-outlined text-[14px]">info</span> Pro Tip
+                              </div>
+                              <p className="text-[11px] text-nova-body">Lists are zero-indexed, meaning the first element is at index 0.</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Array / List Memory Diagram Chart Mock */}
+                        <div className="p-6 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm">
+                           <h4 className="font-bold text-nova-heading text-sm mb-6">List Memory Representation & Complexity</h4>
+                           <div className="flex items-center justify-center gap-4 font-mono text-sm overflow-x-auto pb-4">
+                             <div className="flex flex-col items-center">
+                               <span className="mb-2 text-[10px] text-gray-400 font-sans font-bold">Index 0</span>
+                               <div className="w-14 h-14 bg-primary/10 border-2 border-primary rounded-xl flex items-center justify-center font-bold text-primary shadow-sm">10</div>
+                             </div>
+                             <span className="material-symbols-outlined text-gray-300">arrow_forward</span>
+                             <div className="flex flex-col items-center">
+                               <span className="mb-2 text-[10px] text-gray-400 font-sans font-bold">Index 1</span>
+                               <div className="w-14 h-14 bg-primary/10 border-2 border-primary rounded-xl flex items-center justify-center font-bold text-primary shadow-sm">20</div>
+                             </div>
+                             <span className="material-symbols-outlined text-gray-300">arrow_forward</span>
+                             <div className="flex flex-col items-center">
+                               <span className="mb-2 text-[10px] text-gray-400 font-sans font-bold">Index 2</span>
+                               <div className="w-14 h-14 bg-primary/10 border-2 border-primary rounded-xl flex items-center justify-center font-bold text-primary shadow-sm">30</div>
+                             </div>
+                           </div>
+                           <div className="mt-6 grid grid-cols-3 gap-4 text-center border-t border-black/5 dark:border-white/10 pt-6">
+                             <div className="bg-black/5 dark:bg-white/5 p-3 rounded-lg">
+                               <div className="text-xs text-nova-body mb-1 font-medium uppercase tracking-wider">Access</div>
+                               <div className="font-bold text-green-500 text-lg">O(1)</div>
+                             </div>
+                             <div className="bg-black/5 dark:bg-white/5 p-3 rounded-lg">
+                               <div className="text-xs text-nova-body mb-1 font-medium uppercase tracking-wider">Search</div>
+                               <div className="font-bold text-yellow-500 text-lg">O(n)</div>
+                             </div>
+                             <div className="bg-black/5 dark:bg-white/5 p-3 rounded-lg">
+                               <div className="text-xs text-nova-body mb-1 font-medium uppercase tracking-wider">Append</div>
+                               <div className="font-bold text-green-500 text-lg">O(1)</div>
+                             </div>
+                           </div>
+                        </div>
+
+                        {/* Code Sandbox Mock */}
+                        <div>
+                          <div className="flex items-center justify-between bg-slate-800 text-white px-4 py-2 rounded-t-xl border border-slate-700">
+                            <span className="text-xs font-mono font-bold text-gray-300">python</span>
+                            <span className="text-[10px] bg-slate-700 px-3 py-1.5 rounded cursor-pointer hover:bg-slate-600 font-bold uppercase tracking-wider transition-colors shadow-sm">Run Code</span>
+                          </div>
+                          <div className="bg-[#1e1e1e] p-5 rounded-b-xl border-x border-b border-slate-800 font-mono text-sm shadow-inner overflow-x-auto">
+                            <div className="text-purple-400 mb-1"># Create a new list</div>
+                            <div className="mb-4"><span className="text-blue-400">my_list</span> = [<span className="text-orange-400">1</span>, <span className="text-orange-400">2</span>, <span className="text-orange-400">3</span>, <span className="text-green-400">"apple"</span>]</div>
+                            
+                            <div className="text-purple-400 mb-1"># Append an item</div>
+                            <div className="mb-4">my_list.append(<span className="text-green-400">"banana"</span>)</div>
+                            
+                            <div><span className="text-yellow-200">print</span>(my_list)</div>
+                          </div>
+                        </div>
+
+                        {/* Quiz Mock */}
+                        <div className="p-6 bg-nova-card border border-black/5 dark:border-white/10 rounded-xl shadow-sm relative">
+                          <div className="absolute top-6 right-6 text-xs font-bold text-gray-500 bg-black/5 px-3 py-1.5 rounded-full border border-black/5">Question 5/5</div>
+                          <div className="flex items-center gap-2 mb-6 text-primary font-bold">
+                            <span className="material-symbols-outlined">quiz</span> Quick Knowledge Check
+                          </div>
+                          <p className="text-sm font-medium text-nova-heading mb-6 pr-24">What is the output of <code className="bg-black/5 px-1.5 py-0.5 rounded text-xs">my_list[1]</code> if <code className="bg-black/5 px-1.5 py-0.5 rounded text-xs">my_list = [10, 20, 30]</code>?</p>
+                          <div className="space-y-3">
+                            <div className="p-4 border border-black/10 rounded-lg text-sm hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors font-mono">10</div>
+                            <div className="p-4 border border-primary bg-primary/10 rounded-lg text-sm font-bold text-primary flex justify-between items-center cursor-pointer font-mono shadow-sm">
+                              20 <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                            </div>
+                            <div className="p-4 border border-black/10 rounded-lg text-sm hover:border-primary hover:bg-primary/5 cursor-pointer transition-colors font-mono">30</div>
+                          </div>
+                          <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/10 flex justify-end">
+                            <button className="bg-primary text-white px-6 py-2.5 rounded-xl font-bold shadow-sm hover:bg-primary/90 transition-all hover:scale-105">Submit Quiz</button>
+                          </div>
+                        </div>
+
+                        {/* Mark Complete Button */}
+                        <div className="pt-4 flex justify-center pb-8">
+                          <button className="flex items-center gap-2 bg-green-500 text-white px-8 py-3.5 rounded-xl font-bold shadow-sm hover:bg-green-600 transition-all hover:shadow-md hover:scale-105">
+                            <span className="material-symbols-outlined">check_circle</span> Mark Lesson as Complete
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="h-64 bg-nova-card rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 shadow-sm dark:shadow-none"></div>
+                  )}
                 </div>
               </div>
             </div>

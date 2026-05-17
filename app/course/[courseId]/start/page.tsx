@@ -59,6 +59,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [showPremiumCTA, setShowPremiumCTA] = useState(false);
   const [generatedChapterIds, setGeneratedChapterIds] = useState<number[]>([]);
   const [generatingChapter, setGeneratingChapter] = useState(false);
+  const [activeSpecialTab, setActiveSpecialTab] = useState<'assessment' | 'certificate' | null>(null);
   
   // Accordion state for sidebar
   const [expandedSidebarChapters, setExpandedSidebarChapters] = useState<number[]>([0]);
@@ -317,6 +318,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   const navigateToLesson = (cIdx: number, sIdx: number) => {
+    setActiveSpecialTab(null);
     if (!course || !courseOutput?.chapters) return;
     const targetChapter = courseOutput.chapters[cIdx];
     if (!targetChapter) return;
@@ -400,6 +402,25 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   const isLessonCompleted = (globalIndex: number) => {
     return completedChapters.includes(globalIndex);
+  };
+
+  const isChapterFullyCompleted = (chapterIndex: number) => {
+    if (!courseOutput?.chapters) return false;
+    const targetChapter = courseOutput.chapters[chapterIndex];
+    if (!targetChapter) return false;
+    
+    const subtopicCount = targetChapter.subtopics?.length || 1;
+    for (let i = 0; i < subtopicCount; i++) {
+      if (!isLessonCompleted(getGlobalSubtopicIndex(chapterIndex, i))) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const isCourseFullyCompleted = () => {
+    if (!totalSubtopics) return false;
+    return completedSubtopics >= totalSubtopics;
   };
 
   const isLastSubtopic = (() => {
@@ -532,11 +553,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
                     <div className="transition-all duration-200">
                       {!isChapterGenerated ? (
                         <FaLock className="text-amber-500/70" size={14} />
-                      ) : isLessonCompleted(getGlobalSubtopicIndex(index, 0)) ? (
+                      ) : isChapterFullyCompleted(index) ? (
                         <FaCheckCircle className="text-green-500" size={16} />
                       ) : (
                         <div className={`w-2 h-2 rounded-full transition-colors ${
-                          isSelectedChapter ? "bg-primary" : "bg-black/20 group-hover:bg-primary/50"
+                          isSelectedChapter && !activeSpecialTab ? "bg-primary" : "bg-black/20 group-hover:bg-primary/50"
                         }`} />
                       )}
                     </div>
@@ -594,6 +615,55 @@ const CourseStart = ({ params }: CourseStartProps) => {
               </div>
             );
           })}
+
+          {/* Mega Assessment & Certificate Tabs */}
+          <div className="border-t-4 border-black/5 dark:border-white/10 bg-nova-bg">
+            {/* Mega Assessment */}
+            <div
+              className={`cursor-pointer transition-all duration-200 flex items-center p-4 gap-3 group border-l-4 ${
+                activeSpecialTab === 'assessment'
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-transparent hover:bg-nova-card/50 text-nova-heading"
+              }`}
+              onClick={() => {
+                setActiveSpecialTab('assessment');
+                setSelectedChapter(null); // Deselect normal chapter
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+            >
+              <div className="flex-none">
+                {!isCourseFullyCompleted() ? (
+                  <FaLock className="text-amber-500/70" size={14} />
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">workspace_premium</span>
+                )}
+              </div>
+              <div className="font-bold flex-1 truncate">Mega Assessment</div>
+            </div>
+
+            {/* Certificate */}
+            <div
+              className={`cursor-pointer transition-all duration-200 flex items-center p-4 gap-3 group border-l-4 border-t border-black/5 dark:border-white/5 ${
+                activeSpecialTab === 'certificate'
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-transparent hover:bg-nova-card/50 text-nova-heading"
+              }`}
+              onClick={() => {
+                setActiveSpecialTab('certificate');
+                setSelectedChapter(null); // Deselect normal chapter
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+            >
+              <div className="flex-none">
+                {!isCourseFullyCompleted() ? (
+                  <FaLock className="text-amber-500/70" size={14} />
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">verified</span>
+                )}
+              </div>
+              <div className="font-bold flex-1 truncate">Certificate</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -606,7 +676,97 @@ const CourseStart = ({ params }: CourseStartProps) => {
       )}
 
       <div className="pt-20 lg:pl-72">
-        {showPremiumCTA ? (
+        {activeSpecialTab === 'assessment' ? (
+          <div className="section-shell max-w-4xl px-4 py-12">
+            <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-nova-card p-8 shadow-sm">
+              <div className="mb-8 border-b border-black/5 dark:border-white/10 pb-6">
+                <h2 className="text-3xl font-bold text-nova-heading mb-2 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[32px] text-primary">workspace_premium</span>
+                  Course Mega Assessment
+                </h2>
+                <p className="text-nova-body">Validate your skills and earn your official certification.</p>
+              </div>
+
+              <div className="space-y-6 mb-8">
+                <div className="p-6 bg-primary/5 border border-primary/10 rounded-xl">
+                  <h3 className="font-bold text-primary mb-3 text-lg">Assessment Information</h3>
+                  <p className="text-sm text-nova-body leading-relaxed mb-4">
+                    This assessment will be conducted over the full generated course. You need to pass this by at least <strong>80%</strong> to unlock your certificate.
+                  </p>
+                  <ul className="space-y-4 text-sm text-nova-heading">
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-gray-400">timer</span> <strong>Duration:</strong> 1 Hour</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-gray-400">format_list_numbered</span> <strong>Questions:</strong> Dynamic (Not fixed)</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-gray-400">category</span> <strong>Type:</strong> Mix of MCQ, theory, and coding questions</li>
+                    <li className="flex items-center gap-3"><span className="material-symbols-outlined text-gray-400">visibility</span> <strong>Environment:</strong> Monitored test</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="flex justify-center pt-4 border-t border-black/5 dark:border-white/10">
+                {!isCourseFullyCompleted() ? (
+                  <div className="flex flex-col items-center text-center py-4">
+                    <FaLock className="text-amber-500 mb-3 text-3xl opacity-50" />
+                    <p className="text-amber-600 font-medium">Complete all course lessons to unlock the Mega Assessment.</p>
+                  </div>
+                ) : (
+                  <Button className="bg-primary px-10 py-6 text-lg font-bold text-white hover:bg-primary/90 shadow-md">
+                    Start Assessment
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : activeSpecialTab === 'certificate' ? (
+          <div className="section-shell max-w-4xl px-4 py-12">
+            <div className="rounded-2xl border border-black/5 dark:border-white/10 bg-nova-card p-8 shadow-sm">
+              <div className="mb-8 border-b border-black/5 dark:border-white/10 pb-6 text-center">
+                <h2 className="text-3xl font-bold text-nova-heading mb-2 flex items-center justify-center gap-3">
+                  <span className="material-symbols-outlined text-[32px] text-green-500">verified</span>
+                  Course Certificate
+                </h2>
+              </div>
+              
+              {!isCourseFullyCompleted() ? (
+                <div className="flex flex-col items-center text-center py-12">
+                  <FaLock className="text-amber-500 mb-4 text-4xl opacity-50" />
+                  <h3 className="text-xl font-bold text-nova-heading mb-2">Certificate Locked</h3>
+                  <p className="text-nova-body max-w-md">Complete the full course and pass the Mega Assessment to unlock your official certificate.</p>
+                </div>
+              ) : (
+                <div className="relative p-8 md:p-12 border-8 border-double border-gray-200 dark:border-white/10 bg-white dark:bg-[#111] rounded-lg text-center shadow-lg overflow-hidden">
+                  <div className="absolute -top-10 -left-10 opacity-5 pointer-events-none">
+                    <span className="material-symbols-outlined text-[200px]">workspace_premium</span>
+                  </div>
+                  <h1 className="text-3xl md:text-4xl font-serif font-bold text-gray-800 dark:text-gray-100 mb-2 relative z-10">CERTIFICATE OF COMPLETION</h1>
+                  <p className="text-sm font-semibold tracking-widest text-primary uppercase mb-10 relative z-10">UpSkills AI</p>
+                  
+                  <p className="text-lg text-gray-600 dark:text-gray-300 mb-4 italic relative z-10">This is to certify that</p>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white border-b-2 border-gray-300 dark:border-gray-700 pb-2 mb-6 inline-block min-w-[300px] relative z-10">
+                    {course?.username || "Student"}
+                  </h2>
+                  
+                  <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto mb-12 relative z-10">
+                    has successfully completed the course <strong className="text-gray-900 dark:text-white">"{course?.courseName}"</strong> by securing <strong>92%</strong> in the final assessment, which took <strong>3 weeks</strong> and covered comprehensive topics around <span className="capitalize">{course?.category || courseOutput?.topic}</span>.
+                  </p>
+                  
+                  <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 relative z-10 gap-6">
+                    <div className="text-center sm:text-left">
+                      <p className="font-bold text-gray-800 dark:text-gray-200 mb-1">UpSkills AI Team</p>
+                      <p className="text-sm text-gray-500">Verified Issuer</p>
+                    </div>
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-[32px]">verified</span>
+                    </div>
+                    <div className="text-center sm:text-right">
+                      <p className="font-bold text-gray-800 dark:text-gray-200 mb-1">{new Date().toLocaleDateString()}</p>
+                      <p className="text-sm text-gray-500">Date of Issue</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : showPremiumCTA ? (
           <div className="section-shell max-w-4xl px-4 py-12">
             <div className="rounded-2xl border border-amber-500/20 bg-amber-50 p-8 text-center shadow-sm dark:shadow-none">
               <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-amber-500/10">
@@ -667,8 +827,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
             )}
             
             {/* Chapter Completion and Navigation */}
-            {!showQuiz && (
-              <div className="px-4 py-8 mx-auto max-w-4xl border-t">
+            <div className="px-4 py-8 mx-auto max-w-4xl border-t">
                 {/* Mark Chapter as Complete Button */}
                 <div className="flex justify-center mb-6">
                   <Button
@@ -724,7 +883,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
                   </Button>
                 </div>
               </div>
-            )}
             
             {/* End of generated batch / full completion */}
             {isLastChapter && quizPassed && (
