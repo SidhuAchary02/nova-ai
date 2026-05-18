@@ -23,6 +23,11 @@ import { parseCourseOutput } from "@/utils/parseCourseOutput";
 import CourseCover from "@/components/common/CourseCover";
 import Link from "next/link";
 import { generateCourseContent } from "@/app/create-course/[courseId]/_utils/generateCourseContent";
+import { supabase } from "@/configs/supabase";
+import {
+  getMarketplaceAddStatusAction,
+  toggleMarketplaceLessonCompletionAction,
+} from "@/app/actions/marketplaceCourse";
 
 type CourseStartProps = {
   params: {
@@ -59,7 +64,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [showPremiumCTA, setShowPremiumCTA] = useState(false);
   const [generatedChapterIds, setGeneratedChapterIds] = useState<number[]>([]);
   const [generatingChapter, setGeneratingChapter] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState("Generating chapter...");
   const [activeSpecialTab, setActiveSpecialTab] = useState<'assessment' | 'certificate' | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [marketplaceAdded, setMarketplaceAdded] = useState(false);
   
   // Accordion state for sidebar
   const [expandedSidebarChapters, setExpandedSidebarChapters] = useState<number[]>([0]);
@@ -84,21 +93,28 @@ const CourseStart = ({ params }: CourseStartProps) => {
     setChapterContent(res as ChapterContentType);
   };
 
-  const getCourse = async () => {
+  const getCourse = async (email?: string | null) => {
     try {
-      const result = await getCourseByIdPublicAction(params.courseId);
+      const result = await getCourseByIdPublicAction(params.courseId, email);
       const currentCourse = result as CourseType;
 
       if (!currentCourse) return;
 
       setCourse(currentCourse);
       setCompletedChapters(currentCourse.completedChapters || []);
+      setMarketplaceAdded(false);
       
       // Load quiz passed chapters from database
       const passedChapters = await getQuizPassedChaptersAction(params.courseId);
       setQuizPassedChapters(passedChapters);
 
-      if (currentCourse.isPublished) {
+      if (email && currentCourse.createdBy !== email && currentCourse.isPublished) {
+        const addStatus = await getMarketplaceAddStatusAction(currentCourse.courseId, email);
+        setMarketplaceAdded(addStatus.added);
+        setCompletedChapters(addStatus.completedChapters || []);
+      }
+
+      if (currentCourse.isPublished || currentCourse.createdBy === email) {
         const parsed = parseCourseOutput(currentCourse.courseOutput);
         const totalCourseChapters = parsed?.chapters?.length || 0;
         const generatedProgress = await getGeneratedChapterIdsAction(currentCourse.courseId);
@@ -154,15 +170,52 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   useEffect(() => {
-    getCourse();
+    const init = async () => {
+      const { data } = await supabase.auth.getUser();
+      const email = data.user?.email ?? null;
+      setUserEmail(email);
+      await getCourse(email);
+    };
+
+    init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.courseId, params.chapterIndex, params.subtopicIndex]);
 
   useEffect(() => {
-    if (course && !course.isPublished) {
+    let interval: NodeJS.Timeout;
+    if (generatingChapter) {
+      setLoadingProgress(0);
+      setLoadingText("Generating chapter...");
+      
+      const texts = [
+        "Generating chapter...",
+        "Creating subtopics...",
+        "Structuring content...",
+        "Almost ready..."
+      ];
+      
+      let currentProgress = 0;
+      interval = setInterval(() => {
+        currentProgress += Math.random() * 5 + 2;
+        if (currentProgress > 95) currentProgress = 95;
+        setLoadingProgress(currentProgress);
+        
+        if (currentProgress < 25) setLoadingText(texts[0]);
+        else if (currentProgress < 50) setLoadingText(texts[1]);
+        else if (currentProgress < 75) setLoadingText(texts[2]);
+        else setLoadingText(texts[3]);
+      }, 500);
+    } else {
+      setLoadingProgress(100);
+    }
+    return () => clearInterval(interval);
+  }, [generatingChapter]);
+
+  useEffect(() => {
+    if (course && !course.isPublished && course.createdBy !== userEmail) {
       router.replace(`/course/${course.courseId}`);
     }
-  }, [course, router]);
+  }, [course, router, userEmail]);
 
   if (!course) return (
     <div className="min-h-screen">
@@ -191,7 +244,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   );
 
   // Check if course content has been generated
-  if (!course.isPublished) {
+  if (!course.isPublished && course.createdBy !== userEmail) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-nova-body">Redirecting to course layout...</p>
@@ -243,6 +296,10 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
   const handleMarkAsComplete = async () => {
     if (!course) return;
+    if (!isOwner) {
+      alert("Marketplace course completion is tracked per lesson in your dashboard.");
+      return;
+    }
     
     setCompletingCourse(true);
     
@@ -275,7 +332,9 @@ const CourseStart = ({ params }: CourseStartProps) => {
     if (!course) return;
     
     const globalIdx = getGlobalSubtopicIndex(selectedChapterIndex, selectedSubtopicIndex);
-    const result = await toggleChapterCompletionAction(course.courseId, globalIdx);
+    const result = userEmail && marketplaceAdded && course.createdBy !== userEmail
+      ? await toggleMarketplaceLessonCompletionAction(course.courseId, userEmail, globalIdx)
+      : await toggleChapterCompletionAction(course.courseId, globalIdx);
     
     if (result.success) {
       setCompletedChapters(result.completedChapters || []);
@@ -293,7 +352,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   const handleGenerateSelectedChapter = async () => {
-    if (!course || !selectedChapter) return;
+    if (!course || !selectedChapter || course.createdBy !== userEmail) return;
 
     setGeneratingChapter(true);
     try {
@@ -368,6 +427,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   };
 
   const courseOutput = parseCourseOutput(course?.courseOutput);
+  const isOwner = Boolean(course && userEmail && course.createdBy === userEmail);
   const totalChapters = courseOutput?.chapters?.length || 0;
   const generatedChapterSet = new Set(generatedChapterIds);
   const generatedUnlockedChapters = Math.min(generatedChapterIds.length, totalChapters);
@@ -778,14 +838,32 @@ const CourseStart = ({ params }: CourseStartProps) => {
               <p className="mb-8 mx-auto max-w-lg text-lg text-nova-body">
                 The roadmap for this chapter is ready, but its lesson content has not been generated yet. Generate only this chapter when you are ready.
               </p>
-              <Button
-                type="button"
-                onClick={handleGenerateSelectedChapter}
-                disabled={generatingChapter}
-                className="bg-amber-500 px-8 py-4 text-lg font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
-              >
-                {generatingChapter ? "Generating chapter..." : "Generate This Chapter"}
-              </Button>
+              {generatingChapter ? (
+                <div className="mx-auto max-w-md mt-8">
+                  <div className="flex justify-between text-sm font-medium text-amber-700 mb-2">
+                    <span className="animate-pulse">{loadingText}</span>
+                    <span>{Math.round(loadingProgress)}%</span>
+                  </div>
+                  <div className="h-2 w-full bg-amber-200/50 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-amber-500 transition-all duration-300 ease-out" 
+                      style={{ width: `${loadingProgress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ) : isOwner ? (
+                <Button
+                  type="button"
+                  onClick={handleGenerateSelectedChapter}
+                  className="bg-amber-500 px-8 py-4 text-lg font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all hover:bg-amber-400 hover:shadow-[0_0_30px_rgba(245,158,11,0.5)]"
+                >
+                  Generate This Chapter
+                </Button>
+              ) : (
+                <p className="text-sm font-medium text-amber-700">
+                  This chapter is not available in the published course yet.
+                </p>
+              )}
             </div>
           </div>
         ) : selectedChapter ? (

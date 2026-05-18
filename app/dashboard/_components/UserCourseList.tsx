@@ -5,12 +5,13 @@ import { useEffect, useState, useContext } from "react";
 import CourseCard from "./CourseCard";
 import SkeletonLoading from "./SkeletonLoading";
 import { UserCourseListContext } from "@/app/_context/UserCourseList.context";
-import { CourseType } from "@/types/types";
-import { fixAllCourseBannersAction } from "@/app/actions/fixCourseBanners";
+import { CourseType, MarketplaceAddType } from "@/types/types";
+import { getMarketplaceAddsAction } from "@/app/actions/marketplaceCourse";
 
 const UserCourseList = () => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [courses, setCourses] = useState<CourseType[] | null>(null);
+  const [marketplaceCourses, setMarketplaceCourses] = useState<MarketplaceAddType[] | null>(null);
   const { setUserCourseList } = useContext(UserCourseListContext);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ const UserCourseList = () => {
   useEffect(() => {
     if (userEmail) {
       getUserCourses(userEmail);
+      getMarketplaceCourses(userEmail);
     }
   }, [userEmail]);
 
@@ -41,32 +43,91 @@ const UserCourseList = () => {
     setUserCourseList(sortedData);
   };
 
-  if (courses?.length === 0)
-    return (
-      <div className="mt-14 rounded-2xl border border-dashed border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card p-14 text-center text-nova-body shadow-sm dark:shadow-none">
-        No courses found. Create your first course to get started.
-      </div>
-    );
+  const getMarketplaceCourses = async (email: string) => {
+    const adds = await getMarketplaceAddsAction(email);
+    setMarketplaceCourses(adds as MarketplaceAddType[]);
+  };
 
   return (
-    <div className="mt-10">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-nova-heading tracking-tight">My AI Courses</h2>
-      </div>
+    <div className="mt-10 space-y-12">
+      {/* My AI Courses */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-nova-heading tracking-tight">My AI Courses</h2>
+        </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-        {courses ? (
-          courses.map((course, index) => (
-            <CourseCard
-              key={index}
-              course={course}
-              onRefresh={() => getUserCourses(userEmail ?? "")}
-            />
-          ))
+        {courses === null ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <SkeletonLoading items={5} />
+          </div>
+        ) : courses.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-black/10 dark:border-white/10 bg-nova-card p-14 text-center text-nova-body shadow-sm dark:shadow-none">
+            No courses found. Create your first course to get started.
+          </div>
         ) : (
-          <SkeletonLoading items={5} />
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {courses.map((course, index) => (
+              <CourseCard
+                key={index}
+                course={course}
+                onRefresh={() => getUserCourses(userEmail ?? "")}
+                showPublishedBadge={true}
+              />
+            ))}
+          </div>
         )}
       </div>
+
+      {/* Courses From Marketplace */}
+      {(marketplaceCourses === null || marketplaceCourses.length > 0) && (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold text-nova-heading tracking-tight">
+                Courses From Marketplace
+              </h2>
+              <p className="text-sm text-nova-body mt-1">
+                Courses you added from the community marketplace.
+              </p>
+            </div>
+          </div>
+
+          {marketplaceCourses === null ? (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              <SkeletonLoading items={3} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {marketplaceCourses.map((add, index) => {
+                // Shape the add into a CourseType-compatible object for the card
+                const course: CourseType = {
+                  id: add.id,
+                  courseId: add.courseId,
+                  courseName: add.courseName,
+                  category: add.category,
+                  level: add.level,
+                  courseOutput: add.courseOutput,
+                  isVideo: add.isVideo,
+                  username: add.username,
+                  userprofileimage: add.userprofileimage,
+                  createdBy: add.createdBy,
+                  courseBanner: add.courseBanner,
+                  isPublished: add.isPublished,
+                  isCompleted: add.isCompleted ?? undefined,
+                };
+                return (
+                  <CourseCard
+                    key={index}
+                    course={course}
+                    onRefresh={() => getMarketplaceCourses(userEmail ?? "")}
+                    displayUser={true}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

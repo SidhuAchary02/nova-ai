@@ -265,3 +265,35 @@ export type ChapterQuizType = {
   courseId: string;
   questions: QuizQuestionType[];
 };
+
+/** Represents a non-owner user's marketplace course add */
+export type MarketplaceAddType = {
+  addId: number;
+  courseId: string;
+  addedAt: string;
+  completedChapters: number[];
+  // Course fields joined
+  id: number;
+  courseName: string;
+  category: string;
+  level: string;
+  courseOutput: any;
+  isVideo: string;
+  username: string | null;
+  userprofileimage: string | null;
+  createdBy: string | null;
+  courseBanner: string | null;
+  isPublished: boolean;
+  isCompleted: boolean | null;
+};
+
+/** Represents a review/feedback on a published course */
+export type CourseReviewType = {
+  id: number;
+  courseId: string;
+  reviewerEmail: string;
+  reviewerName: string | null;
+  rating: number | null; // 1-5 or null
+  reviewText: string;
+  createdAt: string;
+};

@@ -2,12 +2,15 @@
 
 import { db } from "@/configs/db";
 import { CourseList } from "@/schema/schema";
+import { eq } from "drizzle-orm";
 
+/** Fetch all PUBLISHED courses for the Explore marketplace page. */
 export async function getAllCoursesAction(limit: number, offset: number) {
   try {
     const result = await db
       .select()
       .from(CourseList)
+      .where(eq(CourseList.isPublished, true))
       .limit(limit)
       .offset(offset);
     // Convert to plain objects to avoid serialization issues

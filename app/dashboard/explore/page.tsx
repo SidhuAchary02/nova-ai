@@ -14,11 +14,8 @@ const ExplorePage = () => {
 
   const getAllCourses = async () => {
     const result = await getAllCoursesAction(8, pageIndex * 8);
-    // console.log(result);
     setCourseList(result as CourseType[]);
   };
-
-  // console.log(courseList);
 
   useEffect(() => {
     getAllCourses();

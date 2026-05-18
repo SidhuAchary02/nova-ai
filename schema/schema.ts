@@ -7,6 +7,7 @@ import {
   boolean,
   integer,
   real,
+  text,
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
@@ -87,3 +88,32 @@ export const CourseChapters = pgTable(
     ),
   })
 );
+
+/** Tracks non-owner users who have added a marketplace course to their dashboard */
+export const courseMarketplaceAdds = pgTable(
+  "course_marketplace_adds",
+  {
+    id: serial("id").primaryKey(),
+    courseId: varchar("courseId").notNull(),
+    addedByEmail: varchar("addedByEmail").notNull(),
+    completedChapters: json("completedChapters").default([]), // Per-user progress
+    addedAt: timestamp("addedAt").defaultNow().notNull(),
+  },
+  (table) => ({
+    courseUserUniq: uniqueIndex("course_marketplace_adds_course_user_uidx").on(
+      table.courseId,
+      table.addedByEmail
+    ),
+  })
+);
+
+/** Reviews and feedback for published courses */
+export const courseReviews = pgTable("course_reviews", {
+  id: serial("id").primaryKey(),
+  courseId: varchar("courseId").notNull(),
+  reviewerEmail: varchar("reviewerEmail").notNull(),
+  reviewerName: varchar("reviewerName"),
+  rating: integer("rating"), // Optional 1-5 star rating
+  reviewText: text("reviewText").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
