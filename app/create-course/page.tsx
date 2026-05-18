@@ -18,6 +18,13 @@ import { generateCourseStructureAction } from "@/app/actions/generateCourseStruc
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
+import {
+  getCourseGenerationAccessAction,
+} from "@/app/actions/courseGenerationAccess";
+import OutOfCreditsDialog from "@/components/common/OutOfCreditsDialog";
+import {
+  OUT_OF_CREDITS_ERROR,
+} from "@/configs/courseGenerationAccess";
 
 const CreateCoursePage = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -26,6 +33,7 @@ const CreateCoursePage = () => {
   const [hasUnsavedProgress, setHasUnsavedProgress] = useState(false);
   const [learningStrategy, setLearningStrategy] =
     useState<LearningStrategyOutput | null>(null);
+  const [outOfCreditsOpen, setOutOfCreditsOpen] = useState(false);
 
   const { userInput, setUserInput } = useContext(UserInputContext);
   const { userCourseList, setUserCourseList } =
@@ -56,13 +64,14 @@ const CreateCoursePage = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    if (userCourseList.length > 5) {
-      router.replace("/dashboard/upgrade");
-    }
-  }, [userCourseList, router]);
-
   const generateCourseLegacy = async (input: UserInputType) => {
+    const { data } = await supabase.auth.getUser();
+    const access = await getCourseGenerationAccessAction(data.user?.email ?? null);
+    if (!access.canGenerate) {
+      setOutOfCreditsOpen(true);
+      return;
+    }
+
     const BASIC_PROMPT = `Generate a course tutorial on following details with field name, description, along with the chapter name about and duration:
 Category '${input?.category}'
 Topic '${input?.topic}'
@@ -86,6 +95,9 @@ in JSON format.`;
       router.replace(`/course/${id}`);
     } catch (error) {
       console.log("AI Error:", error);
+      if (error instanceof Error && error.message === OUT_OF_CREDITS_ERROR) {
+        setOutOfCreditsOpen(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -98,6 +110,13 @@ in JSON format.`;
 
     if (!hasCompleteLearningProfile(input)) {
       alert("Please complete your learning profile.");
+      return;
+    }
+
+    const { data } = await supabase.auth.getUser();
+    const access = await getCourseGenerationAccessAction(data.user?.email ?? null);
+    if (!access.canGenerate) {
+      setOutOfCreditsOpen(true);
       return;
     }
 
@@ -125,6 +144,14 @@ in JSON format.`;
 
   const handleConfirmRoadmap = async () => {
     if (!learningStrategy) return;
+
+    const { data } = await supabase.auth.getUser();
+    const access = await getCourseGenerationAccessAction(data.user?.email ?? null);
+    if (!access.canGenerate) {
+      setOutOfCreditsOpen(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const id = uuid4();
@@ -186,6 +213,10 @@ in JSON format.`;
       router.replace(`/course/${id}`);
     } catch (e: any) {
       console.error("==> Caught exception during Course Generation:", e);
+      if (e?.message === OUT_OF_CREDITS_ERROR) {
+        setOutOfCreditsOpen(true);
+        return;
+      }
       alert(e?.message || "Failed to create course");
     } finally {
       setLoading(false);
@@ -212,6 +243,10 @@ in JSON format.`;
         </div>
 
         <LoadingDialog loading={loading} variant="roadmap" />
+        <OutOfCreditsDialog
+          open={outOfCreditsOpen}
+          onOpenChange={setOutOfCreditsOpen}
+        />
       </div>
     );
   }
@@ -243,6 +278,10 @@ in JSON format.`;
       </div>
 
       <LoadingDialog loading={loading} variant="roadmap" />
+      <OutOfCreditsDialog
+        open={outOfCreditsOpen}
+        onOpenChange={setOutOfCreditsOpen}
+      />
     </div>
   );
 };

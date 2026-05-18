@@ -70,6 +70,13 @@ export const CourseList = pgTable("courseList", {
   learningGoalCustomNote: varchar("learningGoalCustomNote"),
 });
 
+export const courseGenerationUsage = pgTable("course_generation_usage", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").notNull().unique(),
+  generatedCount: integer("generatedCount").notNull().default(0),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
 export const CourseChapters = pgTable(
   "courseChapters",
   {

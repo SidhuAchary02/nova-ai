@@ -32,6 +32,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FaCheck, FaChevronDown } from "react-icons/fa6";
 import { AnimatePresence, motion } from "framer-motion";
+import ProfileMenu from "@/components/common/ProfileMenu";
 
 type CourseParams = {
   params: {
@@ -244,66 +245,6 @@ export default function CoursePage({ params }: CourseParams) {
     }
   };
 
-  const handleModifyPlan = () => {
-    if (!course) {
-      router.push("/create-course");
-      return;
-    }
-
-    // Seed localStorage so the wizard restores intent + all fields correctly
-    try {
-      const lc = course.learningContext as Record<string, unknown> | null | undefined;
-
-      // Best-effort: reconstruct the onboarding data from the course record
-      const restoredData = {
-        intent: course.courseName || "",
-        topic: course.courseName || "",
-        category: course.category || "",
-        goal: (course.learningGoal || lc?.goal || "hobby") as string,
-        level: (
-          course.learningCurrentLevel ||
-          course.level ||
-          (lc?.currentLevel as string) ||
-          "intermediate"
-        ),
-        timePerDayHours: (
-          course.learningTimePerDayHours ??
-          (lc?.timePerDayHours as number) ??
-          1
-        ),
-        topicsToFocus: (
-          course.learningTopicsToFocus ??
-          (lc?.topicsToFocus as string[]) ??
-          [course.courseName || ""]
-        ),
-        topicsToAvoid: (
-          course.learningTopicsToAvoid ??
-          (lc?.topicsToAvoid as string[]) ??
-          []
-        ),
-        pacingStyle: (
-          course.learningPacingStyle ??
-          (lc?.pacingStyle as string) ??
-          "balanced"
-        ),
-        featureCards: (
-          course.learningFeaturesRequired ??
-          (lc?.featuresRequired as string[]) ??
-          ["videos", "reading", "quiz"]
-        ),
-      };
-
-      window.localStorage.setItem(
-        "nova_onboarding_progress",
-        JSON.stringify({ step: 0, data: restoredData })
-      );
-    } catch (e) {
-      console.error("Failed to seed wizard state:", e);
-    }
-
-    router.push("/create-course");
-  };
-
   const handlePublishCourse = async (nextPublishedState: boolean) => {
     if (!course || !userEmail) return;
 
@@ -418,12 +359,7 @@ export default function CoursePage({ params }: CourseParams) {
               </span>
             )}
             
-            <button 
-              onClick={() => router.push("/dashboard/profile")}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-nova-primary/10 text-nova-primary hover:bg-nova-primary/20 transition-colors border border-nova-primary/20"
-            >
-              <span className="material-symbols-outlined text-[20px]">person</span>
-            </button>
+            <ProfileMenu userName={userName} />
           </div>
         </div>
       </div>
@@ -614,17 +550,6 @@ export default function CoursePage({ params }: CourseParams) {
           </div>
 
           <div className="flex flex-col-reverse gap-3 border-t border-black/5 pt-8 sm:flex-row sm:justify-between">
-            {isOwner && !isPublished && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleModifyPlan}
-                disabled={loading}
-                className="border-black/10 bg-transparent text-nova-heading hover:bg-white/5"
-              >
-                Modify plan
-              </Button>
-            )}
             {canStartCourse ? (
               <Button
                 type="button"

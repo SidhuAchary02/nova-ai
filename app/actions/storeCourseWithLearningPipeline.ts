@@ -1,8 +1,18 @@
 "use server";
 
 import { db } from "@/configs/db";
-import { CourseList, learningStrategies, userProfiles } from "@/schema/schema";
+import {
+  CourseList,
+  courseGenerationUsage,
+  learningStrategies,
+  userProfiles,
+} from "@/schema/schema";
 import { generateCourseThumbnailAction } from "@/app/actions/courseEnhancements";
+import {
+  assertCanGenerateCourse,
+} from "@/app/actions/courseGenerationAccess";
+import { normalizeEmail } from "@/configs/premiumAccess";
+import { sql } from "drizzle-orm";
 export type StoreLearningPipelinePayload = {
   courseId: string;
   courseName: string;
@@ -63,6 +73,8 @@ export async function storeCourseWithLearningPipelineAction(
 ) {
   try {
     const lc = projectLearningContext(payload.learningContext);
+    await assertCanGenerateCourse(payload.createdBy);
+    const normalizedEmail = normalizeEmail(payload.createdBy);
 
     await db.transaction(async (tx) => {
       const [ls] = await tx
@@ -127,6 +139,23 @@ export async function storeCourseWithLearningPipelineAction(
               profileFeaturesRequired: lc.featuresRequired,
               profilePacingStyle: lc.pacingStyle,
               profileGoalCustomNote: lc.goalCustomNote,
+              updatedAt: new Date(),
+            },
+          });
+      }
+
+      if (normalizedEmail) {
+        await tx
+          .insert(courseGenerationUsage)
+          .values({
+            email: normalizedEmail,
+            generatedCount: 1,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: courseGenerationUsage.email,
+            set: {
+              generatedCount: sql`${courseGenerationUsage.generatedCount} + 1`,
               updatedAt: new Date(),
             },
           });

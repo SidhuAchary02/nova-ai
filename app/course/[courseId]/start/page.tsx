@@ -28,6 +28,7 @@ import {
   getMarketplaceAddStatusAction,
   toggleMarketplaceLessonCompletionAction,
 } from "@/app/actions/marketplaceCourse";
+import ProfileMenu from "@/components/common/ProfileMenu";
 
 type CourseStartProps = {
   params: {
@@ -68,6 +69,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [loadingText, setLoadingText] = useState("Generating chapter...");
   const [activeSpecialTab, setActiveSpecialTab] = useState<'assessment' | 'certificate' | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [marketplaceAdded, setMarketplaceAdded] = useState(false);
   
   // Accordion state for sidebar
@@ -173,7 +175,13 @@ const CourseStart = ({ params }: CourseStartProps) => {
     const init = async () => {
       const { data } = await supabase.auth.getUser();
       const email = data.user?.email ?? null;
+      const name =
+        data.user?.user_metadata?.full_name ||
+        data.user?.user_metadata?.name ||
+        data.user?.email?.split("@")[0] ||
+        null;
       setUserEmail(email);
+      setUserName(name);
       await getCourse(email);
     };
 
@@ -532,12 +540,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
               </div>
             )}
 
-            <button 
-              onClick={() => router.push("/dashboard/profile")}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-nova-primary/10 text-nova-primary hover:bg-nova-primary/20 transition-colors border border-nova-primary/20"
-            >
-              <span className="material-symbols-outlined text-[20px]">person</span>
-            </button>
+            <ProfileMenu userName={userName} />
           </div>
         </div>
       </div>

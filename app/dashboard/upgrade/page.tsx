@@ -20,7 +20,7 @@ const page = () => {
               <p className="text-nova-body text-sm mb-6">Your current plan.</p>
               <div className="text-4xl font-bold text-nova-heading mb-6">$0<span className="text-lg text-nova-body font-normal">/mo</span></div>
               <ul className="space-y-3 mb-8">
-                {["5 Course generations", "Standard AI chapters", "Basic quizzes", "Community support"].map((item, i) => (
+                {["1 Course generation", "Standard AI chapters", "Basic quizzes", "Community support"].map((item, i) => (
                   <li key={i} className="flex items-center gap-2 text-sm text-nova-body">
                     <span className="material-symbols-outlined text-gray-400 text-[18px]">check</span>
                     {item}

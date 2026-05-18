@@ -5,14 +5,18 @@ import { useEffect, useState, useContext } from "react";
 import { UserCourseListContext } from "@/app/_context/UserCourseList.context";
 import Link from "next/link";
 import NameChip from "@/components/common/NameChip";
+import { getCourseGenerationAccessAction } from "@/app/actions/courseGenerationAccess";
+import type { CourseGenerationAccess } from "@/configs/courseGenerationAccess";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
+  const [access, setAccess] = useState<CourseGenerationAccess | null>(null);
   const { userCourseList } = useContext(UserCourseListContext);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
+      getCourseGenerationAccessAction(data.user?.email ?? null).then(setAccess);
     });
   }, []);
 
@@ -24,8 +28,11 @@ export default function ProfilePage() {
     user?.email?.split("@")[0] ||
     "Creator";
 
-  const coursesCreated = userCourseList.length;
-  const maxCourses = 5;
+  const coursesCreated = access?.used ?? userCourseList.length;
+  const maxCourses = access?.limit ?? 1;
+  const creditsRemaining = Math.max(0, maxCourses - coursesCreated);
+  const progressValue = Math.min(100, (coursesCreated / maxCourses) * 100);
+  const planLabel = access?.isPremium ? "Premium" : "Free Tier";
 
   return (
     <div className="space-y-8 max-w-4xl">
@@ -52,7 +59,7 @@ export default function ProfilePage() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-nova-body font-medium text-sm">Subscription Plan</span>
-                <span className="text-nova-heading font-bold text-sm">Free Tier</span>
+                <span className="text-nova-heading font-bold text-sm">{planLabel}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-nova-body font-medium text-sm">Member Since</span>
@@ -76,14 +83,14 @@ export default function ProfilePage() {
                     <span className="text-nova-heading font-bold">{coursesCreated} / {maxCourses}</span>
                   </div>
                   <div className="w-full h-2 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full bg-nova-primary rounded-full" style={{ width: `${(coursesCreated / maxCourses) * 100}%` }}></div>
+                    <div className="h-full bg-nova-primary rounded-full" style={{ width: `${progressValue}%` }}></div>
                   </div>
                 </div>
                 
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span className="text-nova-body font-medium">Credits Remaining</span>
-                    <span className="text-nova-heading font-bold text-nova-accent">{maxCourses - coursesCreated}</span>
+                    <span className="text-nova-heading font-bold text-nova-accent">{creditsRemaining}</span>
                   </div>
                 </div>
               </div>
