@@ -40,7 +40,7 @@ const Header = () => {
                 Sign in
               </Button>
             </Link>
-            <Link href="/sign-up">
+            <Link href="/sign-up?redirectTo=/dashboard">
               <ShinyButton text="Get Started" />
             </Link>
           </div>

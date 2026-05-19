@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/configs/supabase";
 import { useRouter } from "next/navigation";
 
@@ -11,6 +11,16 @@ export default function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [redirectTo, setRedirectTo] = useState("/dashboard");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPath = params.get("redirectTo");
+
+    if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
+      setRedirectTo(requestedPath);
+    }
+  }, []);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -24,7 +34,7 @@ export default function LoginForm() {
         setErrorMsg(error.message);
       }
     } else {
-      router.push("/dashboard");
+      router.push(redirectTo);
     }
   };
 
@@ -32,7 +42,9 @@ export default function LoginForm() {
     setErrorMsg("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+      },
     });
     if (error) setErrorMsg(error.message);
   };
@@ -112,7 +124,10 @@ export default function LoginForm() {
 
             <p className="mt-2 text-center text-sm text-nova-body">
               Don&apos;t have an account?{" "}
-              <a href="/sign-up" className="font-semibold text-nova-primary hover:text-nova-primary/80">
+              <a
+                href={`/sign-up?redirectTo=${encodeURIComponent(redirectTo)}`}
+                className="font-semibold text-nova-primary hover:text-nova-primary/80"
+              >
                 Sign up
               </a>
             </p>

@@ -45,7 +45,7 @@ const Hero = () => {
 
             <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
               {!user ? (
-                <Link href="/sign-in">
+                <Link href="/sign-in?redirectTo=/dashboard">
                   <PulsatingButton
                     text="Start Building"
                     pulseColor="14,165,233"
@@ -62,7 +62,7 @@ const Hero = () => {
                 </Link>
               )}
 
-              <Link href={user ? "/dashboard/explore" : "/sign-in"}>
+              <Link href={user ? "/dashboard/explore" : "/sign-in?redirectTo=/dashboard/explore"}>
                 <Button variant="outline" className="border-black/10 dark:border-white/10 dark:border-white/10 bg-nova-card/70 text-nova-heading hover:bg-gray-50 dark:bg-nova-card/5">
                   Explore Courses
                 </Button>

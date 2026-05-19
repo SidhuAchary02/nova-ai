@@ -5,6 +5,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/configs/supabase";
 import { sendEmail } from "@/app/actions/sendEmail";
 
+const dashboardRedirect = "/sign-in?redirectTo=/dashboard";
+const exploreRedirect = "/sign-in?redirectTo=/dashboard/explore";
+
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [query, setQuery] = useState("");
@@ -55,7 +58,7 @@ export default function Home() {
           <Link className="text-sm text-nova-body hover:text-nova-primary transition-colors" href="#contact">Contact</Link>
         </div>
         {!user ? (
-          <Link href="/sign-up" className="hidden md:block">
+          <Link href="/sign-up?redirectTo=/dashboard" className="hidden md:block">
             <button className="bg-nova-primary text-white text-sm font-medium px-6 py-2.5 rounded-lg hover:bg-nova-primary/90 transition-colors active:scale-95 duration-200">
               Get Started
             </button>
@@ -91,7 +94,7 @@ export default function Home() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto">
               {!user ? (
-                <Link href="/sign-in">
+                <Link href={dashboardRedirect}>
                   <button className="bg-nova-primary text-white text-sm font-medium px-8 py-3.5 rounded-lg hover:shadow-[0_10px_20px_rgba(255,140,66,0.2)] transition-all active:scale-95 duration-200 w-full sm:w-auto">
                     Create My Learning Path
                   </button>
@@ -103,7 +106,7 @@ export default function Home() {
                   </button>
                 </Link>
               )}
-              <Link href={user ? "/dashboard/explore" : "/sign-in"} className="w-full sm:w-auto">
+              <Link href={user ? "/dashboard/explore" : exploreRedirect} className="w-full sm:w-auto">
                 <button className="bg-nova-card text-nova-heading text-sm font-medium px-8 py-3.5 rounded-lg border border-black/5 dark:border-white/10 dark:border-white/5 hover:bg-gray-50 dark:bg-nova-card/5 transition-all active:scale-95 duration-200 flex items-center justify-center gap-2 shadow-sm dark:shadow-none w-full">
                   <span className="material-symbols-outlined text-[20px]">play_circle</span>
                   Explore Courses
@@ -723,7 +726,7 @@ export default function Home() {
                   ))}
                 </ul>
                 {!user ? (
-                  <Link href="/sign-in" className="w-full block">
+                  <Link href={dashboardRedirect} className="w-full block">
                     <button className="w-full bg-nova-card text-nova-heading text-sm font-medium py-3 rounded-lg border border-black/10 dark:border-white/10 dark:border-white/10 hover:bg-gray-50 dark:bg-nova-card/5 transition-colors">
                       Get Started Free
                     </button>
@@ -932,8 +935,8 @@ export default function Home() {
               <Link className="hover:text-nova-primary transition-colors duration-200" href="#how-it-works">How It Works</Link>
               <Link className="hover:text-nova-primary transition-colors duration-200" href="#pricing">Pricing</Link>
               <Link className="hover:text-nova-primary transition-colors duration-200" href="/dashboard">Dashboard</Link>
-              <Link className="hover:text-nova-primary transition-colors duration-200" href="/sign-in">Create Course</Link>
-              <Link className="hover:text-nova-primary transition-colors duration-200" href={user ? "/dashboard/explore" : "/sign-in"}>Marketplace</Link>
+              <Link className="hover:text-nova-primary transition-colors duration-200" href={dashboardRedirect}>Create Course</Link>
+              <Link className="hover:text-nova-primary transition-colors duration-200" href={user ? "/dashboard/explore" : exploreRedirect}>Marketplace</Link>
               <Link className="hover:text-nova-primary transition-colors duration-200" href="#contact">Contact Us</Link>
             </div>
           </div>

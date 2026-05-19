@@ -36,3 +36,13 @@ yarn-error.log*
 next-env.d.ts
 
 neonCreds.txt
+
+# code-review-graph local index/cache
+.code-review-graph/
+.claude/
+.cursor/
+.gemini/
+.mcp.json
+.opencode.json
+.qoder/
+.vscode/mcp.json

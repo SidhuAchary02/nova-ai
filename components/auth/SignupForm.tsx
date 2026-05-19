@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/configs/supabase";
 
 export default function SignupForm() {
@@ -9,6 +9,16 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [redirectTo, setRedirectTo] = useState("/dashboard");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedPath = params.get("redirectTo");
+
+    if (requestedPath?.startsWith("/") && !requestedPath.startsWith("//")) {
+      setRedirectTo(requestedPath);
+    }
+  }, []);
 
   const handleSignup = async () => {
     setLoading(true);
@@ -29,7 +39,9 @@ export default function SignupForm() {
     setErrorMsg("");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirectTo=${encodeURIComponent(redirectTo)}`,
+      },
     });
     if (error) setErrorMsg(error.message);
   };
@@ -115,7 +127,10 @@ export default function SignupForm() {
 
             <p className="mt-2 text-center text-sm text-nova-body">
               Already have an account?{" "}
-              <a href="/sign-in" className="font-semibold text-nova-primary hover:text-nova-primary/80">
+              <a
+                href={`/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`}
+                className="font-semibold text-nova-primary hover:text-nova-primary/80"
+              >
                 Sign in
               </a>
             </p>
