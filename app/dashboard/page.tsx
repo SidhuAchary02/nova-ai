@@ -1,4 +1,5 @@
 import AddCourse from "./_components/AddCourse";
+import DashboardOnboardingTour from "./_components/DashboardOnboardingTour";
 import UserCourseList from "./_components/UserCourseList";
 
 const page = () => {
@@ -6,6 +7,7 @@ const page = () => {
     <div>
       <AddCourse />
       <UserCourseList />
+      <DashboardOnboardingTour />
     </div>
   );
 };

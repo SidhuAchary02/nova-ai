@@ -55,6 +55,13 @@ const Sidebar = () => {
               href={item.route}
               key={item.id}
               onClick={item.route === "/create-course" ? handleCreateCourseClick : undefined}
+              data-dashboard-tour={
+                item.route === "/dashboard/explore"
+                  ? "explore"
+                  : item.route === "/dashboard/contact"
+                    ? "contact"
+                    : undefined
+              }
             >
               <div
                 className={`flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-colors ${

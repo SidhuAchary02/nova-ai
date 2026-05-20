@@ -51,7 +51,7 @@ const UserCourseList = () => {
   return (
     <div className="mt-10 space-y-12">
       {/* My AI Courses */}
-      <div>
+      <div data-dashboard-tour="my-courses">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-nova-heading tracking-tight">My AI Courses</h2>
         </div>
@@ -80,7 +80,7 @@ const UserCourseList = () => {
 
       {/* Courses From Marketplace */}
       {(marketplaceCourses === null || marketplaceCourses.length > 0) && (
-        <div>
+        <div data-dashboard-tour="marketplace-courses">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-nova-heading tracking-tight">

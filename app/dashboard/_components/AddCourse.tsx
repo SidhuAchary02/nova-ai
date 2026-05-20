@@ -74,7 +74,10 @@ const AddCourse = () => {
         </div>
 
         {/* Create Course Primary CTA */}
-        <div className="md:w-[400px] bg-gradient-to-br from-nova-primary to-nova-accent p-[2px] rounded-3xl shadow-soft">
+        <div
+          data-dashboard-tour="create-course"
+          className="md:w-[400px] bg-gradient-to-br from-nova-primary to-nova-accent p-[2px] rounded-3xl shadow-soft"
+        >
           <div className="bg-nova-card h-full rounded-[22px] p-8 flex flex-col justify-between relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-nova-primary/10 rounded-full blur-2xl -z-10"></div>
             <div>
