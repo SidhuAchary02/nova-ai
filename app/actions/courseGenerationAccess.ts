@@ -2,11 +2,10 @@
 
 import { db } from "@/configs/db";
 import { CourseList, courseGenerationUsage } from "@/schema/schema";
-import { isPremiumEmail, normalizeEmail } from "@/configs/premiumAccess";
+import { getPremiumCourseLimit, normalizeEmail } from "@/configs/premiumAccess";
 import { eq, sql } from "drizzle-orm";
 import {
   FREE_COURSE_GENERATION_LIMIT,
-  PREMIUM_COURSE_GENERATION_LIMIT,
   OUT_OF_CREDITS_ERROR,
   type CourseGenerationAccess,
 } from "@/configs/courseGenerationAccess";
@@ -87,12 +86,11 @@ export async function getCourseGenerationAccessAction(
     await getUsageCount(normalizedEmail),
     existingCount
   );
-  const limit = isPremiumEmail(normalizedEmail)
-    ? PREMIUM_COURSE_GENERATION_LIMIT
-    : FREE_COURSE_GENERATION_LIMIT;
+  const premiumLimit = getPremiumCourseLimit(normalizedEmail);
+  const limit = premiumLimit ?? FREE_COURSE_GENERATION_LIMIT;
 
   return {
-    isPremium: isPremiumEmail(normalizedEmail),
+    isPremium: premiumLimit !== undefined,
     used,
     limit,
     canGenerate: used < limit,

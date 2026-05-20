@@ -4,6 +4,7 @@ import { ChapterContentType, ChapterType, CourseType } from "@/types/types";
 import React, { useEffect, useState } from "react";
 import ChapterListCard from "./_components/ChapterListCard";
 import ChapterContent from "./_components/ChapterContent";
+import CourseLearningChatbot from "./_components/CourseLearningChatbot";
 import ChapterQuiz from "./_components/ChapterQuiz";
 import CertificateModal from "./_components/CertificateModal";
 import ScrollProgress from "@/components/ui/scroll-progress";
@@ -1037,6 +1038,16 @@ const CourseStart = ({ params }: CourseStartProps) => {
           courseLevel={course.level}
           issuedDate={certificateData?.certificateData?.issuedDate}
           certificateId={certificateData?.certificateData?.certificateId}
+        />
+      )}
+
+      {selectedChapter && chapterContent && !showPremiumCTA && !activeSpecialTab && (
+        <CourseLearningChatbot
+          course={course}
+          chapter={selectedChapter}
+          chapterContent={chapterContent}
+          selectedChapterIndex={selectedChapterIndex}
+          selectedSubtopicIndex={selectedSubtopicIndex}
         />
       )}
     </div>

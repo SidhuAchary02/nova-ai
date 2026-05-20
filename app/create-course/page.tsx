@@ -14,10 +14,10 @@ import { UserCourseListContext } from "../_context/UserCourseList.context";
 import { getUsersCoursesAction } from "../actions/getUsersCourses";
 import { supabase } from "@/configs/supabase";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
-import { generateCourseStructureAction } from "@/app/actions/generateCourseStructureAction";
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
+import { buildCourseOutputFromRoadmap } from "@/lib/learning/roadmapToCourseOutput";
 import {
   getCourseGenerationAccessAction,
 } from "@/app/actions/courseGenerationAccess";
@@ -72,9 +72,12 @@ const CreateCoursePage = () => {
       return;
     }
 
+    const legacyBrief = input?.detailedPrompt || input?.description || input?.intent || input?.topic || "";
     const BASIC_PROMPT = `Generate a course tutorial on following details with field name, description, along with the chapter name about and duration:
 Category '${input?.category}'
-Topic '${input?.topic}'
+Display title '${input?.topic}'
+Original selected topic '${input?.intent ?? input?.topic}'
+Detailed prompt '${legacyBrief}'
 Description '${input?.description}'
 Level '${input?.difficulty}'
 Duration '${input?.duration ?? "AI-optimized"}'
@@ -159,37 +162,33 @@ in JSON format.`;
       // Fallback topic and category dynamically
       const activeTopic = userInput.topic || userInput.intent || "General Course";
       const activeCategory = userInput.category || "General";
+      const activeDetailedPrompt =
+        userInput.detailedPrompt ||
+        userInput.description ||
+        userInput.intent ||
+        activeTopic;
 
       // Ensure defaults before calling backend
       const courseInput = {
         ...userInput,
         topic: activeTopic,
         category: activeCategory,
-        totalChapters: userInput.totalChapters || 10, // Use user requested chapters or default to a richer experience
+        detailedPrompt: activeDetailedPrompt,
+        description: userInput.description || activeDetailedPrompt,
       };
 
       console.log("==> Creating course with:", {
         topic: courseInput.topic,
         category: courseInput.category,
-        totalChapters: courseInput.totalChapters,
       });
 
-      console.log("==> Calling generateCourseStructureAction");
-      const struct = await generateCourseStructureAction(
-        courseInput,
-        learningStrategy
-      );
-      
-      console.log("==> Response from generateCourseStructureAction:", struct.success ? "Success" : struct.error);
-      if (!struct.success || !struct.courseOutput) {
-        alert(!struct.success ? struct.error : "Could not build course structure");
-        return;
-      }
+      console.log("==> Building course structure from approved roadmap");
+      const courseOutput = buildCourseOutputFromRoadmap(courseInput, learningStrategy);
 
       console.log("==> Validating course details before DB save");
-      const cOut = struct.courseOutput as any;
+      const cOut = courseOutput as any;
       if (!cOut.course?.chapters || !Array.isArray(cOut.course.chapters) || cOut.course.chapters.length === 0) {
-        throw new Error("Validation Failed: AI returned 0 chapters.");
+        throw new Error("Validation Failed: approved roadmap has 0 chapters.");
       }
       if (!courseInput.topic || !courseInput.category) {
         throw new Error("Validation Failed: Missing topic or category.");
@@ -199,7 +198,7 @@ in JSON format.`;
       await saveLearningPipelineDataInDb(
         id,
         courseInput,
-        struct.courseOutput,
+        courseOutput,
         learningStrategy
       );
       
@@ -231,6 +230,7 @@ in JSON format.`;
           <div className="section-shell mt-8 max-w-4xl">
             <PersonalizedRoadmapReview
               strategy={learningStrategy}
+              userInput={userInput}
               dailyHours={userInput.learningProfile?.timePerDayHours}
               onBack={() => {
                 setPhase("wizard");

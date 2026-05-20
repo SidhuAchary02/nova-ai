@@ -30,8 +30,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { FaCheck, FaChevronDown } from "react-icons/fa6";
-import { AnimatePresence, motion } from "framer-motion";
+import { FaCheck } from "react-icons/fa6";
 import ProfileMenu from "@/components/common/ProfileMenu";
 
 type CourseParams = {
@@ -57,9 +56,12 @@ function ChapterRoadmapCard({
   chapter: ChapterType;
   index: number;
 }) {
-  const [expanded, setExpanded] = useState(true);
-  const subtopics = Array.isArray(chapter.subtopics) ? chapter.subtopics : [];
-  const hasSubtopics = subtopics.length > 0;
+  const subchapters = Array.isArray(chapter.subchapters) ? chapter.subchapters : [];
+  const subtopics = Array.isArray(chapter.subtopics) && chapter.subtopics.length > 0
+    ? chapter.subtopics
+    : subchapters.flatMap((subchapter) => subchapter.subtopics ?? []);
+  const lessons = subtopics.slice(0, 4);
+  const durationLabel = chapter.duration ? formatDuration(chapter.duration) : "—";
 
   return (
     <section className="relative pl-10 sm:pl-12">
@@ -67,66 +69,31 @@ function ChapterRoadmapCard({
         <span className="text-xs font-bold text-primary">{index + 1}</span>
       </div>
 
-      <div className="rounded-2xl border border-black/5 bg-white/50 p-5 sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h3 className="text-xl font-semibold text-nova-heading">
-              {chapter.chapterName}
-            </h3>
-            <p className="mt-1 text-sm text-gray-400">
-              {chapter.duration ? formatDuration(chapter.duration) : "—"}
-              {hasSubtopics ? ` · ${subtopics.length} lessons` : " · 0 lessons"}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => hasSubtopics && setExpanded((prev) => !prev)}
-            className={`inline-flex w-fit items-center gap-2 rounded-full border border-black/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body ${hasSubtopics ? "hover:border-primary/30 hover:text-nova-heading" : "opacity-70"
-              }`}
-          >
-            {hasSubtopics ? (
-              <>
-                <FaChevronDown className={`h-3 w-3 transition-transform ${expanded ? "rotate-180" : ""}`} />
-                {expanded ? "Hide lessons" : "Show lessons"}
-              </>
-            ) : (
-              "No lessons yet"
-            )}
-          </button>
+      <div className="space-y-3 rounded-2xl border border-black/5 bg-white/50 p-5 sm:p-6">
+        <div>
+          <h3 className="text-lg font-semibold text-nova-heading sm:text-xl">
+            {chapter.chapterName}
+          </h3>
+          <p className="mt-1 text-sm text-gray-400">
+            {durationLabel} · {lessons.length} lesson{lessons.length === 1 ? "" : "s"}
+          </p>
         </div>
 
-        <AnimatePresence initial={false}>
-          {expanded && hasSubtopics && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
+        <div className="space-y-3">
+          {lessons.map((lesson, lessonIndex) => (
+            <div
+              key={`${lesson}-${lessonIndex}`}
+              className="flex items-center gap-3 rounded-xl border border-black/5 bg-nova-bg/70 px-4 py-3 shadow-sm"
             >
-              <div className="mt-5 space-y-3">
-                {subtopics.map((subtopic, subIndex) => (
-                  <div
-                    key={`${subtopic}-${subIndex}`}
-                    className="flex items-center justify-between rounded-xl border border-black/5 bg-nova-bg/60 px-4 py-3"
-                  >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="flex h-6 w-6 items-center justify-center rounded-full border border-black/5 text-[10px] font-semibold text-nova-body">
-                        {subIndex + 1}
-                      </div>
-                      <span className="truncate text-sm text-nova-heading">
-                        {subtopic}
-                      </span>
-                    </div>
-                    <span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
-                      lesson
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white text-xs font-semibold text-nova-body shadow-sm">
+                {lessonIndex + 1}
+              </span>
+              <span className="min-w-0 text-sm font-medium text-nova-heading">
+                {lesson}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -213,7 +180,12 @@ export default function CoursePage({ params }: CourseParams) {
   const isOwner = Boolean(course && userEmail && course.createdBy === userEmail);
   const canStartCourse = hasGeneratedContent && (isOwner || isPublished);
   const chapterCount = courseOutput?.chapters?.length || 0;
-  const durationLabel = courseOutput?.duration ? formatDuration(courseOutput.duration) : "Self-paced";
+  const durationLabel =
+    typeof courseOutput?.durationDays === "number"
+      ? `${courseOutput.durationDays} day${courseOutput.durationDays === 1 ? "" : "s"}`
+      : courseOutput?.duration
+        ? formatDuration(courseOutput.duration)
+        : "Self-paced";
 
   const handleGenerateCourseContent = async () => {
     if (!course) return;

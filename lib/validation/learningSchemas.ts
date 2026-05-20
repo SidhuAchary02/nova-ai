@@ -78,6 +78,21 @@ export const learningPhaseSchema = z.object({
         z.object({
           chapterName: z.string(),
           durationDays: z.number().optional().nullable().transform(v => v ?? undefined),
+          subchapters: z
+            .preprocess(
+              (v) => (v == null ? [] : v),
+              z.array(
+                z.object({
+                  title: z.string().min(1),
+                  durationDays: z.number().optional().nullable().transform(v => v ?? undefined),
+                  subtopics: z.preprocess(
+                    (v) => (v == null ? [] : v),
+                    z.array(z.string())
+                  ),
+                })
+              )
+            )
+            .optional(),
           subtopics: z.preprocess((v) => (v == null ? [] : v), z.array(z.string())),
         })
       )
@@ -218,4 +233,3 @@ export function normalizeCourseStructureForStorage(
     },
   };
 }
-

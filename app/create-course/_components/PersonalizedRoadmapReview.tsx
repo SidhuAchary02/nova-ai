@@ -2,23 +2,20 @@
 
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { Button } from "@/components/ui/button";
-import { FaCheck, FaChevronDown } from "react-icons/fa6";
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { FaCheck } from "react-icons/fa6";
+import { buildCourseOutputFromRoadmap } from "@/lib/learning/roadmapToCourseOutput";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
+import type { UserInputType, ChapterType } from "@/types/types";
 
 type Props = {
   strategy: LearningStrategyOutput;
+  userInput: UserInputType;
   /** From onboarding — daily study budget */
   dailyHours?: number;
   onBack: () => void;
   onConfirm: () => void;
   loading: boolean;
 };
-
-function estimateChapterCount(strategy: LearningStrategyOutput): number {
-  const d = strategy.estimatedTimelineDays;
-  return Math.min(20, Math.max(6, Math.round(d / 2.5)));
-}
 
 function splitReasoning(text: string): string[] {
   return text
@@ -27,91 +24,68 @@ function splitReasoning(text: string): string[] {
     .filter(Boolean);
 }
 
-/** Day ranges for each objective inside a phase (inclusive). */
-function objectiveDayRanges(
-  phaseStartDay: number,
-  phaseDays: number,
-  count: number
-): { start: number; end: number }[] {
-  if (count === 0) return [];
-  const out: { start: number; end: number }[] = [];
-  const seg = phaseDays / count;
-  for (let i = 0; i < count; i++) {
-    const rawStart = phaseStartDay + i * seg;
-    const rawEnd = phaseStartDay + (i + 1) * seg - 0.01;
-    const start = Math.max(phaseStartDay, Math.round(rawStart));
-    const end = Math.min(
-      phaseStartDay + phaseDays - 1,
-      Math.max(start, Math.round(rawEnd))
-    );
-    out.push({ start, end });
-  }
-  return out;
-}
-
-function ChapterCard({ title, subtopics, timeLabel, index }: { title: string; subtopics?: string[] | null; timeLabel: string; index: number }) {
-  const [expanded, setExpanded] = useState(false);
-  const hasSubtopics = Array.isArray(subtopics) && subtopics.length > 0;
+function ChapterCard({ chapter, index }: { chapter: ChapterType; index: number }) {
+  const subchapters = Array.isArray(chapter.subchapters) ? chapter.subchapters : [];
+  const subtopics = Array.isArray(chapter.subtopics) && chapter.subtopics.length > 0
+    ? chapter.subtopics
+    : subchapters.flatMap((subchapter) => subchapter.subtopics ?? []);
+  const lessons = subtopics.slice(0, 4);
+  const durationLabel =
+    typeof chapter.durationDays === "number"
+      ? durationText(chapter.durationDays)
+      : typeof chapter.duration === "string" && chapter.duration
+        ? chapter.duration
+        : "—";
 
   return (
-    <div className="group rounded-xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/60 transition hover:border-primary/25 hover:bg-nova-bg/90 overflow-hidden">
-      <button
-        type="button"
-        onClick={() => hasSubtopics && setExpanded(!expanded)}
-        className={`flex w-full flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between text-left ${hasSubtopics ? "cursor-pointer focus:outline-none" : "cursor-default"}`}
-      >
-        <div className="flex items-start gap-3 min-w-0 flex-1">
-          {hasSubtopics && (
-            <div className={`mt-0.5 shrink-0 transition-transform duration-300 ${expanded ? "rotate-180 text-primary" : "text-gray-400"}`}>
-              <FaChevronDown className="h-4 w-4" />
-            </div>
-          )}
-          <p className="text-sm leading-relaxed text-nova-heading">
-            {title}
-          </p>
-        </div>
-        <span className="shrink-0 rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary ml-7 sm:ml-0">
-          {timeLabel}
-        </span>
-      </button>
+    <div className="space-y-3">
+      <div>
+        <h3 className="text-lg font-semibold text-nova-heading sm:text-xl">
+          {chapter.chapterName}
+        </h3>
+        <p className="mt-1 text-sm text-gray-400">
+          {durationLabel} · {lessons.length} lesson{lessons.length === 1 ? "" : "s"}
+        </p>
+      </div>
 
-      {hasSubtopics && (
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pl-11 pr-4 pb-4 sm:pl-[3.25rem]">
-                <ul className="space-y-2 text-sm text-nova-body list-disc list-outside ml-4">
-                  {subtopics.map((topic, i) => (
-                    <li key={i} className="pl-1 marker:text-gray-400">
-                      {topic}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+      <div className="space-y-3">
+        {lessons.map((lesson, lessonIndex) => (
+          <div
+            key={`${lesson}-${lessonIndex}`}
+            className="flex items-center gap-3 rounded-xl border border-black/5 bg-nova-bg/70 px-4 py-3 shadow-sm dark:border-white/10"
+          >
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-black/5 bg-white text-xs font-semibold text-nova-body shadow-sm dark:border-white/10 dark:bg-nova-card">
+              {lessonIndex + 1}
+            </span>
+            <span className="min-w-0 text-sm font-medium text-nova-heading">
+              {lesson}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
+function durationText(days?: number): string {
+  if (typeof days !== "number" || Number.isNaN(days) || days <= 0) return "—";
+  const rounded = Math.round(days * 2) / 2;
+  return `${rounded} day${rounded === 1 ? "" : "s"}`;
+}
+
 const PersonalizedRoadmapReview = ({
   strategy,
+  userInput,
   dailyHours,
   onBack,
   onConfirm,
   loading,
 }: Props) => {
-  const phases = strategy.phases.slice().sort((a, b) => a.order - b.order);
-  const totalDays = strategy.estimatedTimelineDays;
-  const estChapters = estimateChapterCount(strategy);
+  const courseOutput = parseCourseOutput(
+    buildCourseOutputFromRoadmap(userInput, strategy)
+  );
+  const totalDays = courseOutput.durationDays ?? strategy.estimatedTimelineDays;
+  const estChapters = courseOutput.chapters.length;
   const hasDaily =
     typeof dailyHours === "number" && dailyHours > 0 && !Number.isNaN(dailyHours);
   const dailyNumber =
@@ -120,31 +94,6 @@ const PersonalizedRoadmapReview = ({
       : hasDaily
         ? String(dailyHours)
         : null;
-
-  let dayCursor = 1;
-  const phaseBlocks = phases.map((p) => {
-    const daysEntry = strategy.estimatedDaysPerPhase.find(
-      (d) => d.phaseOrder === p.order
-    );
-    const phaseDaysRaw =
-      daysEntry?.days ??
-      Math.max(1, totalDays / Math.max(1, phases.length));
-    const phaseDaysInt = Math.max(1, Math.round(phaseDaysRaw));
-    const startDay = dayCursor;
-    const endDay = dayCursor + phaseDaysInt - 1;
-    dayCursor = endDay + 1;
-
-    const objectiveCount = p.objectives?.length ?? 0;
-    const ranges = objectiveDayRanges(startDay, phaseDaysInt, objectiveCount);
-
-    return {
-      phase: p,
-      phaseDaysInt,
-      startDay,
-      endDay,
-      ranges,
-    };
-  });
 
   const reasoningParts = splitReasoning(strategy.reasoning);
 
@@ -196,9 +145,6 @@ const PersonalizedRoadmapReview = ({
             {estChapters}
             <span className="ml-1 text-lg font-semibold text-primary">chapters</span>
           </p>
-          <p className="mt-1 text-[11px] text-gray-400">
-            AI may adjust slightly when generating your course outline.
-          </p>
         </div>
       </div>
 
@@ -206,59 +152,19 @@ const PersonalizedRoadmapReview = ({
         <span className="font-medium text-primary">Note:</span> This plan is optimized based on your goals and time availability.
       </p>
 
-      {/* Timeline + phases */}
+      {/* Timeline + chapters */}
       <div className="relative">
         <div className="absolute bottom-0 left-[11px] top-8 w-px bg-gradient-to-b from-primary/50 via-white/15 to-transparent sm:left-[15px]" />
 
         <div className="space-y-12">
-          {phaseBlocks.map(({ phase, phaseDaysInt, startDay, endDay, ranges }, pi) => (
-            <section key={phase.order} className="relative pl-10 sm:pl-12">
+          {courseOutput.chapters.map((chapter, index) => (
+            <section key={`${chapter.chapterName}-${index}`} className="relative pl-10 sm:pl-12">
               <div className="absolute left-0 top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-primary bg-nova-bg sm:h-8 sm:w-8">
-                <span className="text-xs font-bold text-primary">{pi + 1}</span>
+                <span className="text-xs font-bold text-primary">{index + 1}</span>
               </div>
 
-              <div className="rounded-2xl border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-card/50 p-5 sm:p-6">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-nova-heading">
-                      {phase.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-400">
-                      Days {startDay}–{endDay} · ~{phaseDaysInt} calendar day
-                      {phaseDaysInt === 1 ? "" : "s"} in this phase
-                    </p>
-                  </div>
-                  <span className="inline-flex w-fit rounded-full border border-black/5 dark:border-white/10 dark:border-white/5 bg-nova-bg/80 px-3 py-1 text-xs font-medium text-nova-body">
-                    Phase {pi + 1} of {phases.length}
-                  </span>
-                </div>
-
-                <div className="mt-5 space-y-3">
-                  {(phase.chapters || phase.objectives)?.map((item: any, oi: number) => {
-                    const r = ranges[oi];
-                    const timeLabel = item.durationDays
-                      ? `${item.durationDays} day${item.durationDays === 1 ? "" : "s"}`
-                      : r && r.start === r.end
-                        ? `Day ${r.start}`
-                        : r
-                          ? `Days ${r.start}–${r.end}`
-                          : "—";
-
-                    const isChapter = typeof item === 'object' && item !== null;
-                    const title = isChapter ? item.chapterName : item;
-                    const subtopics = isChapter ? item.subtopics : null;
-
-                    return (
-                      <ChapterCard
-                        key={oi}
-                        title={title}
-                        subtopics={subtopics}
-                        timeLabel={timeLabel}
-                        index={oi}
-                      />
-                    );
-                  })}
-                </div>
+              <div className="rounded-2xl border border-black/5 bg-nova-card/50 p-5 dark:border-white/10 sm:p-6">
+                <ChapterCard chapter={chapter} index={index} />
               </div>
             </section>
           ))}

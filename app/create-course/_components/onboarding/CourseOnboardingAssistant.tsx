@@ -12,11 +12,13 @@ import type {
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FaWandMagicSparkles } from "react-icons/fa6";
+import { generateCourseTitleAction } from "@/app/actions/generateCourseTitleAction";
 import { OnboardingSummary } from "./OnboardingSummary";
 import {
   buildFullUserInputFromOnboarding,
   type FeatureKey,
 } from "./onboarding-utils";
+import { generateCourseTitle } from "./course-prompt-utils";
 import { stepperOptions } from "../../_constants/stepperOptions";
 import { StepAdvanced } from "./StepAdvanced";
 import { StepGoal } from "./StepGoal";
@@ -51,6 +53,9 @@ export function CourseOnboardingAssistant({
   const [isClient, setIsClient] = useState(false);
   const [step, setStep] = useState(initialStep);
   const [intent, setIntent] = useState(userInput.intent || "");
+  const [detailedPrompt, setDetailedPrompt] = useState(
+    userInput.detailedPrompt || userInput.description || ""
+  );
   const [category, setCategory] = useState(userInput.category || "");
   const [goal, setGoal] = useState<LearningGoal>(userInput.goal || "hobby");
   const [goalCustomNote, setGoalCustomNote] = useState(userInput.goalCustomNote || "");
@@ -88,6 +93,7 @@ export function CourseOnboardingAssistant({
     return buildFullUserInputFromOnboarding(userInput, {
       category: category || "General",
       intent: intent.trim(),
+      detailedPrompt: detailedPrompt.trim(),
       goal,
       goalCustomNote,
       level: resolvedLevel,
@@ -101,6 +107,7 @@ export function CourseOnboardingAssistant({
     userInput,
     category,
     intent,
+    detailedPrompt,
     goal,
     goalCustomNote,
     level,
@@ -132,9 +139,9 @@ export function CourseOnboardingAssistant({
     if (step > 0) {
       onProgressChange?.(true);
     } else {
-      onProgressChange?.(intent.trim().length > 0);
+      onProgressChange?.(intent.trim().length > 0 || detailedPrompt.trim().length > 0);
     }
-  }, [step, intent, onProgressChange]);
+  }, [step, intent, detailedPrompt, onProgressChange]);
 
   useEffect(() => {
     setIsClient(true);
@@ -142,6 +149,9 @@ export function CourseOnboardingAssistant({
     // Always sync with userInput context on mount if we are returning from roadmap
     if (initialStep === 6) {
       if (userInput.intent) setIntent(userInput.intent);
+      if (userInput.detailedPrompt || userInput.description) {
+        setDetailedPrompt(userInput.detailedPrompt || userInput.description || "");
+      }
       if (userInput.category) setCategory(userInput.category);
       if (userInput.goal) setGoal(userInput.goal);
       if (userInput.goalCustomNote) setGoalCustomNote(userInput.goalCustomNote);
@@ -166,6 +176,11 @@ export function CourseOnboardingAssistant({
             // intent may be stored directly or aliased as "topic" (from Modify plan)
             const restoredIntent = parsed.data.intent || parsed.data.topic || "";
             if (restoredIntent) setIntent(restoredIntent);
+            const restoredDetailedPrompt =
+              parsed.data.detailedPrompt ||
+              parsed.data.description ||
+              "";
+            if (restoredDetailedPrompt) setDetailedPrompt(restoredDetailedPrompt);
             if (parsed.data.category) setCategory(parsed.data.category);
             if (parsed.data.goal) setGoal(parsed.data.goal);
             if (parsed.data.goalCustomNote) setGoalCustomNote(parsed.data.goalCustomNote);
@@ -254,8 +269,25 @@ export function CourseOnboardingAssistant({
 
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
-  const handleGenerate = () => {
-    const merged = getMergedInput();
+  const handleGenerate = async () => {
+    const baseMerged = getMergedInput();
+    let merged = baseMerged;
+
+    const generatedTitle = await generateCourseTitleAction({
+      selectedTopic: baseMerged.intent,
+      detailedPrompt: baseMerged.detailedPrompt,
+      fallbackTitle: baseMerged.topic,
+    });
+
+    if (generatedTitle.success) {
+      merged = { ...baseMerged, topic: generatedTitle.title };
+    } else {
+      merged = {
+        ...baseMerged,
+        topic: baseMerged.topic || generateCourseTitle(baseMerged.intent || baseMerged.detailedPrompt || ""),
+      };
+    }
+
     setUserInput((prev) => ({ ...prev, ...merged }));
     onGenerateRoadmap(merged);
   };
@@ -342,8 +374,10 @@ export function CourseOnboardingAssistant({
               key="intent"
               intent={intent}
               category={category}
+              detailedPrompt={detailedPrompt}
               onIntentChange={setIntent}
               onCategoryChange={setCategory}
+              onDetailedPromptChange={setDetailedPrompt}
             />
           )}
           {step === 1 && (

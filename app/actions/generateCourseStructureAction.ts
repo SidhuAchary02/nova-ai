@@ -43,11 +43,14 @@ export async function generateCourseStructureAction(
         ? `You MUST output exactly ${targetChapters} chapters (no more, no less).`
         : "Choose an appropriate number of chapters (6–14) based on the roadmap depth.";
 
+    const courseBrief = userInput.detailedPrompt || userInput.description || userInput.intent || userInput.topic || "";
     const userPrompt = `Build the course STRUCTURE only (titles + short descriptions + duration labels + subtopics). Do not write lesson prose.
 Make sure to include a 'subtopics' array (strings) for each chapter with 3-5 specific subtopics to cover.
 Do NOT use generic subtopics like 'Key concepts' or 'Practical examples'. Use actual, specific technical concepts related to the chapter (e.g. 'useState Hook', 'Component Lifecycle').
 
-Topic: ${userInput.topic ?? ""}
+Display course title: ${userInput.topic ?? ""}
+Original topic selected by user: ${userInput.intent ?? ""}
+Detailed course prompt / real generation brief: ${courseBrief}
 Category: ${userInput.category ?? ""}
 Description: ${userInput.description ?? ""}
 Video preference: ${userInput.video ?? "Yes"}
@@ -58,6 +61,7 @@ ${JSON.stringify(strategy, null, 2)}
 
 ${chapterHint}
 
+Use the detailed course prompt as the source of truth for topic scope and terminology. Use the display course title only as a short UI label.
 Respond with JSON matching your system schema.`;
 
     console.log("==> Calling Groq API...");

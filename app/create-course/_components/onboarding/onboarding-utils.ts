@@ -3,6 +3,7 @@ import type {
   UserInputType,
   UserLearningProfileInput,
 } from "@/types/types";
+import { buildDetailedPrompt, generateCourseTitle } from "./course-prompt-utils";
 
 export const ONBOARDING_STEP_LABELS = [
   "Intent",
@@ -90,6 +91,7 @@ export function buildFullUserInputFromOnboarding(
   draft: {
     category: string;
     intent: string;
+    detailedPrompt: string;
     goal: LearningGoal;
     goalCustomNote: string;
     level: UserLearningProfileInput["currentLevel"];
@@ -102,7 +104,9 @@ export function buildFullUserInputFromOnboarding(
 ): UserInputType {
   const intent = draft.intent.trim();
   const custom = draft.goalCustomNote.trim();
-  const description = custom ? `${intent}\n\n— ${custom}` : intent;
+  const detailedPrompt = draft.detailedPrompt.trim() || buildDetailedPrompt(intent) || intent;
+  const description = custom ? `${detailedPrompt}\n\nGoal note: ${custom}` : detailedPrompt;
+  const courseTitle = generateCourseTitle(intent);
 
   const features = deriveFeaturesFromCards(draft.featureCards);
   const style = derivePreferredLearningStyle(draft.featureCards);
@@ -129,9 +133,11 @@ export function buildFullUserInputFromOnboarding(
 
   return {
     ...restBase,
+    intent,
     category: draft.category || "General",
-    topic: intent.slice(0, 200) || "My course",
+    topic: courseTitle.slice(0, 200) || "My course",
     description: description.slice(0, 2000),
+    detailedPrompt: detailedPrompt.slice(0, 2000),
     difficulty: pacingToDifficulty(draft.pacingStyle),
     video: draft.featureCards.has("videos") ? "Yes" : "No",
     learningProfile,

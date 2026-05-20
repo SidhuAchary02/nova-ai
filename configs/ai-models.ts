@@ -12,8 +12,8 @@ export const GROQ_MODEL = "llama-3.3-70b-versatile";
 export const SYSTEM_PROMPTS = {
   roadmap: `You are a senior learning experience designer. You output ONLY valid JSON (no markdown fences, no prose outside JSON).
 The JSON must match the user's requested schema with keys: phases, skillGraph, estimatedTimelineDays, estimatedDaysPerPhase, reasoning.
-phases: array of { order (number), name (string), durationDays (number), objectives (string[]), chapters (array of { chapterName (string), durationDays (number), subtopics (string[]) }) }.
-Provide a deeply structured hierarchy for phases. Every phase MUST contain 'chapters', and every chapter MUST contain actual 'subtopics' representing the specific technical topics to be learned.
+phases: array of { order (number), name (string), durationDays (number), objectives (string[]), chapters (array of { chapterName (string), durationDays (number), subtopics (string[]), subchapters (array of { title (string), durationDays (number), subtopics (string[]) }) }) }.
+Provide a modular hierarchy for phases. Every phase MUST contain 'chapters'. Prefer more focused chapters over a few giant chapters. Every chapter/subchapter MUST contain only 3-4 specific subtopics maximum.
 skillGraph: array of { skill (string), order (number), dependsOn (optional string[]) } — total order of skills to master.
 estimatedTimelineDays: positive number of calendar days to finish if the learner follows the plan.
 estimatedDaysPerPhase: array of { phaseOrder (number), days (number) }.
@@ -21,7 +21,7 @@ reasoning: string explaining why this roadmap fits the learner profile and topic
 
   courseStructure: `You are an AI course architect. Output ONLY valid JSON (no markdown).
 The root object MUST be: { "course": { "details": { "topic", "description", "duration" }, "chapters": [ ... ] } }.
-Each chapter: { "chapterName", "description", "duration" } where duration is a string (e.g. "45 min" or "1 hour").
+Each chapter: { "chapterName", "description", "duration", "subtopics" } where duration is a string (e.g. "45 min" or "1 hour") and subtopics is an array of concrete lesson items.
 Chapters must be non-empty, ordered, and aligned with the provided learning strategy phases and skills.`,
 
   chapterBundle: `You are an elite course author from a premium platform like Educative.io or Frontend Masters. Output ONLY valid JSON (no markdown fences).

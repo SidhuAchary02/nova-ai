@@ -178,6 +178,27 @@ function extractDuration(data: any): string {
   return normalizeDuration(rawDuration);
 }
 
+function extractDurationDays(data: any): number | undefined {
+  if (!data) return undefined;
+
+  const normalized = convertKeysToCamelCase(data);
+  const possibleValues = [
+    normalized.course?.details?.durationDays,
+    normalized.course?.durationDays,
+    normalized.courseDetails?.durationDays,
+    normalized.course?.courseDetails?.durationDays,
+    normalized.durationDays,
+  ];
+
+  for (const value of possibleValues) {
+    if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * Converts a duration value (string or object) to a string format
  */
@@ -230,6 +251,11 @@ function normalizeChapter(chapter: any): any {
       "",
     duration: normalizeDuration(rawDuration),
     subtopics: Array.isArray(chapter.subtopics) ? chapter.subtopics : [],
+    subchapters: Array.isArray(chapter.subchapters) ? chapter.subchapters : [],
+    durationDays:
+      typeof chapter.durationDays === "number" && Number.isFinite(chapter.durationDays)
+        ? chapter.durationDays
+        : undefined,
   };
 }
 
@@ -254,6 +280,7 @@ export const parseCourseOutput = (courseOutput: any) => {
     const topic = extractTopic(parsed);
     const description = extractDescription(parsed);
     const duration = extractDuration(parsed);
+    const durationDays = extractDurationDays(parsed);
     const rawChapters = extractChapters(parsed);
 
     // Normalize all chapters to camelCase
@@ -265,6 +292,7 @@ export const parseCourseOutput = (courseOutput: any) => {
       topic: topic || "Untitled Course",
       description: description || "",
       duration: duration || "",
+      durationDays,
       chapters: chapters,
     };
   } catch (error) {

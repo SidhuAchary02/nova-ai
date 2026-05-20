@@ -30,6 +30,7 @@ export type UserInputType = {
   totalChapters?: number;
   topic?: string;
   description?: string;
+  detailedPrompt?: string;
   /** Personalized learning pipeline (Step 1) */
   learningProfile?: UserLearningProfileInput;
   /** UI-only: topics learner wants to de-emphasize (shown in summary; optional for future prompts) */
@@ -45,6 +46,12 @@ export type ChapterType = {
   description: string;
   duration: string | { value: number; unit: string };
   subtopics?: string[];
+  subchapters?: Array<{
+    title: string;
+    durationDays?: number;
+    subtopics: string[];
+  }>;
+  durationDays?: number;
 };
 
 export type LessonBlockType =
@@ -176,6 +183,7 @@ export type courseOutputType = {
   topic: string;
   description?: string;
   duration?: string;
+  durationDays?: number;
   chapters: ChapterType[];
   category?: string;
   level?: string;
