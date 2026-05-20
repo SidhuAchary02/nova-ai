@@ -39,7 +39,8 @@ Fallback title: ${input.fallbackTitle ?? ""}`;
     const raw = await generateGroqJsonObject(
       "You generate concise professional course titles and output only valid JSON.",
       prompt,
-      0.25
+      0.25,
+      "light"
     );
     const parsed = JSON.parse(raw) as { title?: unknown };
     const title = sanitizeCourseTitle(String(parsed.title ?? ""));

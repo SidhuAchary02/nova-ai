@@ -94,7 +94,8 @@ Category hint: ${input.category ?? ""}`;
     const raw = await generateGroqJsonObject(
       "You are an expert learning-product assistant for topic disambiguation and course prompt refinement. Output only valid JSON.",
       prompt,
-      0.35
+      0.35,
+      "light"
     );
 
     const parsed = JSON.parse(raw) as {

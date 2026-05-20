@@ -65,6 +65,16 @@ function projectLearningContext(raw: unknown): LearningContextProjection {
   };
 }
 
+function countCourseChapters(courseOutput: Record<string, unknown>): number {
+  const course = (courseOutput as { course?: { chapters?: unknown[] } }).course;
+  const direct = (courseOutput as { chapters?: unknown[] }).chapters;
+  return Array.isArray(course?.chapters)
+    ? course.chapters.length
+    : Array.isArray(direct)
+      ? direct.length
+      : 0;
+}
+
 /**
  * Persists learning strategy row + course row + user profile snapshot (transaction).
  */
@@ -77,6 +87,8 @@ export async function storeCourseWithLearningPipelineAction(
     const normalizedEmail = normalizeEmail(payload.createdBy);
 
     await db.transaction(async (tx) => {
+      const chaptersTotal = countCourseChapters(payload.courseOutput);
+
       const [ls] = await tx
         .insert(learningStrategies)
         .values({
@@ -96,6 +108,9 @@ export async function storeCourseWithLearningPipelineAction(
         createdBy: payload.createdBy,
         username: payload.username,
         userprofileimage: payload.userprofileimage,
+        generationStatus: "partial",
+        chaptersGenerated: 0,
+        chaptersTotal,
         learningContext: payload.learningContext as object,
         learningStrategyId: ls.id,
         learningGoal: lc.goal,

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import QueueStatusPanel from "@/components/common/QueueStatusPanel";
+import type { QueueStatusResult } from "@/app/actions/generationQueue";
 
 // ─── Message sequences ────────────────────────────────────────────────────────
 
@@ -27,13 +29,14 @@ const COURSE_MESSAGES = [
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type LoadingDialogProps =
-  | { loading: boolean; variant?: "roadmap"; progress?: never; progressTotal?: never; progressLesson?: never }
+  | { loading: boolean; variant?: "roadmap"; progress?: never; progressTotal?: never; progressLesson?: never; queueStatus?: QueueStatusResult | null }
   | {
     loading: boolean;
     variant: "course";
     progress?: number;
     progressTotal?: number;
     progressLesson?: string;
+    queueStatus?: QueueStatusResult | null;
   };
 
 // ─── Minimal animated line ────────────────────────────────────────────────────
@@ -288,13 +291,19 @@ const LoadingDialog = (props: LoadingDialogProps) => {
           <div className="absolute inset-x-0 top-0 h-[2px] rounded-t-2xl bg-nova-primary opacity-70" />
 
           {variant === "roadmap" ? (
-            <RoadmapLoader />
+            <div className="space-y-4">
+              <RoadmapLoader />
+              <QueueStatusPanel status={props.queueStatus} />
+            </div>
           ) : (
-            <CourseLoader
-              progress={"progress" in props ? props.progress : undefined}
-              progressTotal={"progressTotal" in props ? props.progressTotal : undefined}
-              progressLesson={"progressLesson" in props ? props.progressLesson : undefined}
-            />
+            <div className="space-y-4">
+              <CourseLoader
+                progress={"progress" in props ? props.progress : undefined}
+                progressTotal={"progressTotal" in props ? props.progressTotal : undefined}
+                progressLesson={"progressLesson" in props ? props.progressLesson : undefined}
+              />
+              <QueueStatusPanel status={props.queueStatus} />
+            </div>
           )}
         </div>
       </div>

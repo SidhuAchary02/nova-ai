@@ -8,6 +8,9 @@ export const PREMIUM_USER_COURSE_LIMITS: Record<string, number> = {
   "siddhuachary2005@gmail.com": 10,
   "vivpakate@gmail.com": 5,
   "akatevivek@gmail.com": 5,
+  "daroro9215@okcpress.com": 5,
+  "recafo5430@gzeos.com": 5,
+
 };
 
 export function normalizeEmail(email?: string | null) {

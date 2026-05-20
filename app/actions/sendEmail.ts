@@ -13,18 +13,25 @@ export async function sendEmail(formData: FormData) {
   }
 
   try {
+    const smtpUser = process.env.SMTP_USER || "upskillai.in@gmail.com";
+    const smtpPass = process.env.SMTP_PASS;
+
+    if (!smtpPass) {
+      throw new Error("SMTP_PASS is not configured");
+    }
+
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      service: process.env.SMTP_SERVICE || "gmail",
       auth: {
-        user: "upskillai.in@gmail.com",
-        pass: "kofe qfbs itlv xzyt",
+        user: smtpUser,
+        pass: smtpPass,
       },
     });
 
     // 1. Send inquiry to admin
     const adminMailOptions = {
-      from: "upskillai.in@gmail.com",
-      to: "upskillai.in@gmail.com",
+      from: smtpUser,
+      to: process.env.ADMIN_ALERT_EMAIL || smtpUser,
       subject: `New Inquiry from ${name} (Landing Page)`,
       text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\n\nQuery:\n${query}`,
       html: `<p><strong>Name:</strong> ${name}</p>
@@ -38,7 +45,7 @@ export async function sendEmail(formData: FormData) {
 
     // 2. Send confirmation to user
     const userMailOptions = {
-      from: '"UpSkillAi Team" <upskillai.in@gmail.com>',
+      from: `"UpSkillAi Team" <${smtpUser}>`,
       to: email,
       subject: "Query Received!",
       text: `Hi ${name},\n\nWe have received your query and you will hear from us within 24hrs.\n\nYour query:\n${query}\n\nBest regards,\nUpSkillAi Team`,

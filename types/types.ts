@@ -202,6 +202,10 @@ export type CourseType = {
   createdBy: string | null;
   courseBanner: string | null;
   isPublished: boolean;
+  generationStatus?: "queued" | "generating" | "partial" | "published" | "failed";
+  queueJobId?: string | null;
+  chaptersGenerated?: number;
+  chaptersTotal?: number;
   isCompleted?: boolean;
   completedChapters?: number[]; // Array of completed chapter indices
   quizPassedChapters?: number[]; // Array of chapter indices where quiz was passed
@@ -258,6 +262,7 @@ export type ChapterContentType = {
   videoId: string;
   sources?: SourceType[];
   annotations?: ChapterAnnotationType[];
+  generationStatus?: "pending" | "generated" | "failed";
 };
 
 export type QuizQuestionType = {

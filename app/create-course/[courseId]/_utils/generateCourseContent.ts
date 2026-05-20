@@ -1,17 +1,33 @@
 import { CourseType } from "@/types/types";
-import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
-import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
-import { parseCourseOutput } from "@/utils/parseCourseOutput";
-
-// limit how many AI calls run at once
-const CONCURRENT_REQUESTS = 3;
+import {
+  enqueueCourseGenerationAction,
+  getCourseGenerationQueueStatusAction,
+  type QueueStatusResult,
+} from "@/app/actions/generationQueue";
 
 type GenerateCourseContentOptions = {
   initialCount?: number;
   chapterIndex?: number;
-  /** Called on each lesson start/finish: (completedCount, totalLessons, lessonName) */
-  onProgress?: (completed: number, total: number, lessonName?: string) => void;
+  onProgress?: (completed: number, totalLessons: number, lessonName?: string) => void;
+  onQueueStatus?: (status: QueueStatusResult) => void;
 };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function readProgress(progress: unknown) {
+  if (!progress || typeof progress !== "object") return null;
+  const value = progress as {
+    completed?: unknown;
+    total?: unknown;
+    lessonName?: unknown;
+  };
+
+  return {
+    completed: typeof value.completed === "number" ? value.completed : 0,
+    total: typeof value.total === "number" ? value.total : 0,
+    lessonName: typeof value.lessonName === "string" ? value.lessonName : undefined,
+  };
+}
 
 export const generateCourseContent = async (
   course: CourseType,
@@ -21,148 +37,67 @@ export const generateCourseContent = async (
   setLoading(true);
 
   try {
-    const courseOutput = parseCourseOutput(course.courseOutput);
-    const allChapters = courseOutput?.chapters || [];
+    const { supabase } = await import("@/configs/supabase");
+    const { data } = await supabase.auth.getUser();
+    const userEmail = data.user?.email || course.createdBy;
 
-    if (allChapters.length === 0) {
-      return { success: false, error: "No chapters found" };
+    if (!userEmail) {
+      return { success: false, error: "Course owner not found" };
     }
 
-    const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
-    const generatedChapterIds = generatedProgress.success ? generatedProgress.chapterIds : [];
-    const generatedChapterIdSet = new Set(generatedChapterIds);
-    const requestedChapterIndex =
-      typeof options.chapterIndex === "number" && options.chapterIndex >= 0
-        ? options.chapterIndex
-        : undefined;
-    const { onProgress } = options;
+    const enqueueResult = await enqueueCourseGenerationAction({
+      courseId: course.courseId,
+      userEmail,
+      initialCount: options.initialCount,
+      chapterIndex: options.chapterIndex,
+    });
 
-    let chapterJobs: { chapter: any; chapterIndex: number }[] = [];
+    if (!enqueueResult.success || !enqueueResult.jobId) {
+      return {
+        success: false,
+        error: enqueueResult.error || "Failed to queue course generation",
+      };
+    }
 
-    if (requestedChapterIndex !== undefined) {
-      const chapter = allChapters[requestedChapterIndex];
-      if (!chapter) {
-        return { success: false, error: "Chapter not found" };
+    for (;;) {
+      const status = await getCourseGenerationQueueStatusAction(course.courseId);
+      options.onQueueStatus?.(status);
+
+      const progress = readProgress(status.progress);
+      if (progress && progress.total > 0) {
+        options.onProgress?.(
+          progress.completed,
+          progress.total,
+          progress.lessonName
+        );
       }
 
-      if (generatedChapterIdSet.has(requestedChapterIndex)) {
+      if (!status.success) {
+        return { success: false, error: status.error || "Failed to read queue status" };
+      }
+
+      if (status.state === "completed" || !status.jobId) {
         return {
           success: true,
-          successCount: 0,
-          totalChapters: allChapters.length,
-          generatedChapters: 0,
-          generatedChapterIds: [] as number[],
-          skipped: true,
-          chapterIndex: requestedChapterIndex,
+          successCount: status.chaptersGenerated || 0,
+          totalChapters: status.chaptersTotal || 0,
+          generatedChapters: status.chaptersGenerated || 0,
         };
       }
 
-      chapterJobs = [{ chapter, chapterIndex: requestedChapterIndex }];
-    } else {
-      const initialCount =
-        typeof options.initialCount === "number" && options.initialCount > 0
-          ? options.initialCount
-          : allChapters.length;
-
-      chapterJobs = allChapters
-        .slice(0, initialCount)
-        .map((chapter: any, chapterIndex: number) => ({ chapter, chapterIndex }))
-        .filter(({ chapterIndex }: { chapterIndex: number }) => !generatedChapterIdSet.has(chapterIndex));
-    }
-
-    if (chapterJobs.length === 0) {
-      return { success: true, successCount: 0, totalChapters: allChapters.length };
-    }
-
-    // Flatten the selected chapter batch into subtopic jobs
-    const flattenedSubtopics: { chapterIndex: number; chapterName: string; subtopicName: string }[] = [];
-    chapterJobs.forEach(({ chapter, chapterIndex }) => {
-      const subtopics = chapter.subtopics || [];
-      subtopics.forEach((subtopicName: string) => {
-        flattenedSubtopics.push({ chapterIndex, chapterName: chapter.chapterName, subtopicName });
-      });
-    });
-
-    if (flattenedSubtopics.length === 0) {
-      return { success: false, error: "No subtopics found to generate" };
-    }
-
-    const subtopicsToGenerate = flattenedSubtopics;
-    const total = subtopicsToGenerate.length;
-
-    console.log(`Generating ${total} deep subtopic lessons across ${chapterJobs.length} chapters...`);
-
-    const generatedLessons: any[] = [];
-
-    // Process subtopics in batches
-    for (let i = 0; i < total; i += CONCURRENT_REQUESTS) {
-      const batch = subtopicsToGenerate.slice(i, i + CONCURRENT_REQUESTS);
-
-      const promises = batch.map((item, idx) => {
-        const index = i + idx;
-        console.log(`📝 Generating lesson ${index + 1}/${total}: ${item.subtopicName}`);
-        // Signal lesson starting
-        onProgress?.(index, total, item.subtopicName);
-
-        return generateSingleSubtopicLesson(
-          course.courseName,
-          item.chapterName,
-          item.subtopicName
-        ).then((res) => {
-          if (res.success) {
-            console.log(`✅ Lesson ${index + 1} generated successfully`);
-            onProgress?.(index + 1, total, item.subtopicName);
-            return { ...res, chapterIndex: item.chapterIndex, chapterName: item.chapterName };
-          } else {
-            console.error(`❌ Lesson ${index + 1} failed:`, res.error);
-            onProgress?.(index + 1, total, item.subtopicName);
-            return null;
-          }
-        }).catch((err) => {
-          console.error(`❌ Lesson ${index + 1} crashed:`, err);
-          onProgress?.(index + 1, total, item.subtopicName);
-          return null;
-        });
-      });
-
-      const batchResults = await Promise.all(promises);
-      batchResults.forEach((res) => {
-        if (res) generatedLessons.push(res);
-      });
-    }
-
-    // Group results by chapterIndex
-    const groupedByChapter = new Map<number, { chapterName: string; lessons: any[] }>();
-    generatedLessons.forEach((res) => {
-      if (!groupedByChapter.has(res.chapterIndex)) {
-        groupedByChapter.set(res.chapterIndex, { chapterName: res.chapterName, lessons: [] });
+      if (status.state === "failed") {
+        return {
+          success: false,
+          error:
+            status.failedReason ||
+            "We are experiencing high demand right now. Your progress has been saved. Please try again in 30 minutes.",
+        };
       }
-      const group = groupedByChapter.get(res.chapterIndex)!;
-      group.lessons.push(res.lesson);
-    });
 
-    // Save each chapter group to the database
-    for (const [chapterIndex, group] of Array.from(groupedByChapter.entries())) {
-      await saveGroupedChapterLessons(
-        course.courseId,
-        course.courseName,
-        group.chapterName,
-        chapterIndex,
-        group.lessons
-      );
+      await sleep(2500);
     }
-
-    const successCount = generatedLessons.length;
-
-    return {
-      success: true,
-      successCount,
-      totalChapters: allChapters.length,
-      generatedChapters: chapterJobs.length,
-      generatedChapterIds: chapterJobs.map(({ chapterIndex }) => chapterIndex),
-    };
   } catch (e: unknown) {
-    console.error("❌ generateCourseContent crashed:", e);
+    console.error("generateCourseContent queue wrapper crashed:", e);
     return { success: false, error: String(e) };
   } finally {
     setLoading(false);

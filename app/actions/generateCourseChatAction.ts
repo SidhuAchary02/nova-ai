@@ -94,7 +94,7 @@ ${recentMessages
 Student question:
 ${question}`;
 
-    const answer = await generateGroqPlainText(systemPrompt, userPrompt, 0.45);
+    const answer = await generateGroqPlainText(systemPrompt, userPrompt, 0.45, "light");
     return { success: true, answer };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

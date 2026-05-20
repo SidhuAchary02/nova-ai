@@ -13,8 +13,11 @@ import { CourseType, UserInputType } from "@/types/types";
 import { UserCourseListContext } from "../_context/UserCourseList.context";
 import { getUsersCoursesAction } from "../actions/getUsersCourses";
 import { supabase } from "@/configs/supabase";
-import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
+import {
+  enqueueRoadmapGenerationAction,
+  getRoadmapGenerationQueueStatusAction,
+} from "@/app/actions/generationQueue";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
 import { buildCourseOutputFromRoadmap } from "@/lib/learning/roadmapToCourseOutput";
@@ -22,6 +25,7 @@ import {
   getCourseGenerationAccessAction,
 } from "@/app/actions/courseGenerationAccess";
 import OutOfCreditsDialog from "@/components/common/OutOfCreditsDialog";
+import type { QueueStatusResult } from "@/app/actions/generationQueue";
 import {
   OUT_OF_CREDITS_ERROR,
 } from "@/configs/courseGenerationAccess";
@@ -34,6 +38,7 @@ const CreateCoursePage = () => {
   const [learningStrategy, setLearningStrategy] =
     useState<LearningStrategyOutput | null>(null);
   const [outOfCreditsOpen, setOutOfCreditsOpen] = useState(false);
+  const [roadmapQueueStatus, setRoadmapQueueStatus] = useState<QueueStatusResult | null>(null);
 
   const { userInput, setUserInput } = useContext(UserInputContext);
   const { userCourseList, setUserCourseList } =
@@ -124,19 +129,58 @@ in JSON format.`;
     }
 
     setLoading(true);
-    const minWait = new Promise((resolve) => setTimeout(resolve, 4000));
+    setRoadmapQueueStatus(null);
     try {
-      const [res] = await Promise.all([
-        generateLearningStrategyAction(input),
-        minWait
-      ]);
-      if (!res.success) {
-        alert(res.error || "Failed to generate roadmap");
+      const { data } = await supabase.auth.getUser();
+      const userEmail = data.user?.email ?? null;
+      if (!userEmail) {
+        alert("Please sign in again.");
         return;
       }
-      setLearningStrategy(res.strategy);
-      setPhase("roadmap");
-      setReturningFromRoadmap(false);
+
+      const queueResult = await enqueueRoadmapGenerationAction({
+        userEmail,
+        userInput: input,
+      });
+
+      if (!queueResult.success || !queueResult.jobId) {
+        alert(queueResult.error || "Failed to queue roadmap generation");
+        return;
+      }
+
+      for (;;) {
+        const status = await getRoadmapGenerationQueueStatusAction(queueResult.jobId);
+        setRoadmapQueueStatus(status);
+
+        if (!status.success) {
+          alert(status.error || "Failed to read roadmap status");
+          return;
+        }
+
+        if (status.state === "completed") {
+          const result = status.result as
+            | { success: true; strategy: LearningStrategyOutput }
+            | { success: false; error: string }
+            | undefined;
+
+          if (!result?.success) {
+            alert(result?.error || "Failed to generate roadmap");
+            return;
+          }
+
+          setLearningStrategy(result.strategy);
+          setPhase("roadmap");
+          setReturningFromRoadmap(false);
+          break;
+        }
+
+        if (status.state === "failed") {
+          alert(status.failedReason || "Failed to generate roadmap");
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
     } catch (e) {
       console.error(e);
       alert("Failed to generate roadmap");
@@ -242,7 +286,11 @@ in JSON format.`;
           </div>
         </div>
 
-        <LoadingDialog loading={loading} variant="roadmap" />
+        <LoadingDialog
+          loading={loading}
+          variant="roadmap"
+          queueStatus={roadmapQueueStatus}
+        />
         <OutOfCreditsDialog
           open={outOfCreditsOpen}
           onOpenChange={setOutOfCreditsOpen}
@@ -277,7 +325,7 @@ in JSON format.`;
         </div>
       </div>
 
-      <LoadingDialog loading={loading} variant="roadmap" />
+      <LoadingDialog loading={loading} variant="roadmap" queueStatus={roadmapQueueStatus} />
       <OutOfCreditsDialog
         open={outOfCreditsOpen}
         onOpenChange={setOutOfCreditsOpen}

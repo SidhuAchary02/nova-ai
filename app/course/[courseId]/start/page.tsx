@@ -30,6 +30,8 @@ import {
   toggleMarketplaceLessonCompletionAction,
 } from "@/app/actions/marketplaceCourse";
 import ProfileMenu from "@/components/common/ProfileMenu";
+import QueueStatusPanel from "@/components/common/QueueStatusPanel";
+import type { QueueStatusResult } from "@/app/actions/generationQueue";
 
 type CourseStartProps = {
   params: {
@@ -66,6 +68,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
   const [showPremiumCTA, setShowPremiumCTA] = useState(false);
   const [generatedChapterIds, setGeneratedChapterIds] = useState<number[]>([]);
   const [generatingChapter, setGeneratingChapter] = useState(false);
+  const [queueStatus, setQueueStatus] = useState<QueueStatusResult | null>(null);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [loadingText, setLoadingText] = useState("Generating chapter...");
   const [activeSpecialTab, setActiveSpecialTab] = useState<'assessment' | 'certificate' | null>(null);
@@ -364,9 +367,11 @@ const CourseStart = ({ params }: CourseStartProps) => {
     if (!course || !selectedChapter || course.createdBy !== userEmail) return;
 
     setGeneratingChapter(true);
+    setQueueStatus(null);
     try {
       const result = await generateCourseContent(course, setGeneratingChapter, {
         chapterIndex: selectedChapterIndex,
+        onQueueStatus: setQueueStatus,
       });
 
       if (!result.success) {
@@ -844,6 +849,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
               </p>
               {generatingChapter ? (
                 <div className="mx-auto max-w-md mt-8">
+                  <QueueStatusPanel status={queueStatus} />
                   <div className="flex justify-between text-sm font-medium text-amber-700 mb-2">
                     <span className="animate-pulse">{loadingText}</span>
                     <span>{Math.round(loadingProgress)}%</span>

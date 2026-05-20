@@ -1,12 +1,11 @@
 "use server";
 
-import { generateChapterContentMDX, generateMermaidDiagram } from "@/configs/ai-models";
+import { generateChapterContentMDX } from "@/configs/ai-models";
+import type { LeasedGroqKey } from "@/lib/ai/groqKeyManager";
 import { getYoutubeVideos } from "@/configs/service";
 import { db } from "@/configs/db";
 import { CourseChapters, CourseList } from "@/schema/schema";
-import { chapterContentBundleSchema } from "@/lib/validation/learningSchemas";
-import { eq } from "drizzle-orm";
-import { generateQuizAction } from "@/app/actions/generateQuiz";
+import { and, eq } from "drizzle-orm";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -38,26 +37,19 @@ async function retryWithBackoff<T>(
   throw lastError;
 }
 
-function cleanMermaidOutput(raw: string): string {
-  let cleaned = raw.trim();
-
-  if (cleaned.startsWith("```mermaid")) {
-    cleaned = cleaned.replace(/^```mermaid\n?/, "").replace(/\n?```$/, "");
-  } else if (cleaned.startsWith("```")) {
-    cleaned = cleaned.replace(/^```\n?/, "").replace(/\n?```$/, "");
-  }
-
-  return cleaned.trim();
-}
-
 function hasPlaceholderOnlyCodeBlock(content: string): boolean {
   return /(^|\n)[ \t]*```(?:code|example)?[ \t]*\n[ \t]*(code|example)[ \t]*\n[ \t]*```(?=\n|$)/i.test(content);
+}
+
+function hasMermaidBlock(content: string): boolean {
+  return /```mermaid\s+[\s\S]*?\b(flowchart|graph)\b[\s\S]*?```/i.test(content);
 }
 
 export async function generateSingleSubtopicLesson(
   courseName: string,
   chapterName: string,
-  subtopicName: string
+  subtopicName: string,
+  leasedKey?: LeasedGroqKey
 ) {
   try {
     const PROMPT = `You are teaching a course. Generate lesson content as pure markdown.
@@ -85,10 +77,16 @@ Never output placeholder-only code blocks such as \`\`\`code\`\`\`, \`\`\`exampl
 
 Write a complete, detailed, professional course lesson. Include overview, concepts, examples, and summary.
 
+Also include one Mermaid diagram inside this same markdown response:
+- Put it immediately after the main # heading under ## Visual Overview
+- Use a fenced code block with language mermaid
+- The Mermaid code must start with flowchart TD
+- Keep the diagram focused with 6-12 nodes
+
 CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do not wrap the full answer in a code block.`;
 
     let lessonResult = await retryWithBackoff(async () => {
-      return await generateChapterContentMDX(PROMPT);
+      return await generateChapterContentMDX(PROMPT, { leasedKey });
     });
 
     if (hasPlaceholderOnlyCodeBlock(lessonResult)) {
@@ -98,41 +96,10 @@ CRITICAL: Output ONLY markdown text. Do NOT output JSON. Do not wrap the full an
 
 Your previous response used placeholder code. Regenerate the lesson.
 Every code block must contain complete, real ${courseName} example code for "${subtopicName}".
-Do not include a code block unless it has useful code inside it.`
+Do not include a code block unless it has useful code inside it.`,
+          { leasedKey }
         );
       });
-    }
-
-    const MERMAID_PROMPT = `Generate a flowchart diagram for this lesson topic:
-
-Course: "${courseName}"
-Chapter: "${chapterName}"  
-Subtopic: "${subtopicName}"
-
-The flowchart should visually explain the core concept or process of this subtopic.
-For example: if it's about authentication, show the auth flow. If it's a sorting algorithm, show the steps. If it's a concept, show how the parts relate.
-
-Output ONLY raw mermaid syntax starting with: flowchart TD`;
-
-    let mermaidBlock = "";
-    try {
-      const mermaidRaw = await retryWithBackoff(async () => {
-        return await generateMermaidDiagram(MERMAID_PROMPT);
-      });
-
-      const mermaidCode = cleanMermaidOutput(mermaidRaw);
-
-      if (mermaidCode.startsWith("flowchart") || mermaidCode.startsWith("graph")) {
-        mermaidBlock = `\n\n## Visual Overview\n\n\`\`\`mermaid\n${mermaidCode}\n\`\`\`\n`;
-      }
-    } catch (mermaidError) {
-      console.warn("⚠️ Mermaid generation failed, continuing without diagram:", mermaidError);
-    }
-
-    if (!mermaidBlock) {
-      const safeLabel = subtopicName.replace(/[\[\]"]+/g, "").trim() || "Lesson topic";
-      const fallbackMermaid = `flowchart TD\n  A[${safeLabel}] --> B[Key idea]\n  B --> C[Next step]`;
-      mermaidBlock = `\n\n## Visual Overview\n\n\`\`\`mermaid\n${fallbackMermaid}\n\`\`\`\n`;
     }
 
     try {
@@ -162,12 +129,32 @@ Output ONLY raw mermaid syntax starting with: flowchart TD`;
         return { success: false, error: "Content generation failed" };
       }
 
+      const needsFallbackMermaid = !hasMermaidBlock(mdxContent);
       const firstHeadingMatch = mdxContent.match(/^#[^\n]*\n/);
-      if (firstHeadingMatch && mermaidBlock) {
+      if (firstHeadingMatch && needsFallbackMermaid) {
         const insertAt = firstHeadingMatch[0].length;
-        mdxContent = mdxContent.slice(0, insertAt) + mermaidBlock + mdxContent.slice(insertAt);
-      } else if (mermaidBlock) {
-        mdxContent = mdxContent + mermaidBlock;
+        mdxContent = `${mdxContent.slice(0, insertAt)}
+## Visual Overview
+
+\`\`\`mermaid
+flowchart TD
+  A[${subtopicName.replace(/[\[\]"]+/g, "").trim() || "Lesson topic"}] --> B[Key idea]
+  B --> C[Practical application]
+  C --> D[Review and next step]
+\`\`\`
+${mdxContent.slice(insertAt)}`;
+      } else if (needsFallbackMermaid) {
+        mdxContent = `${mdxContent}
+
+## Visual Overview
+
+\`\`\`mermaid
+flowchart TD
+  A[${subtopicName.replace(/[\[\]"]+/g, "").trim() || "Lesson topic"}] --> B[Key idea]
+  B --> C[Practical application]
+  C --> D[Review and next step]
+\`\`\`
+`;
       }
 
       return {
@@ -214,37 +201,7 @@ export async function saveGroupedChapterLessons(
 
     // Normalize goal for checks
     const goalNorm = (learningGoal || "").toLowerCase();
-
-    // Optionally inject a quiz block for goals like 'get a job' or 'crack an exam'
-    const shouldAddQuiz = /job|interview|exam|cert/i.test(goalNorm);
     const shouldAddPractice = /build|project/i.test(goalNorm);
-
-    // Helper: combine lesson markdown into plain text for quiz generation
-    const lessonText = lessons
-      .map((l: any) => {
-        if (typeof l === "string") return l;
-        if (typeof l === "object") return (l.title || "") + "\n" + (l.content || "");
-        return String(l);
-      })
-      .join("\n\n");
-
-    if (shouldAddQuiz) {
-      try {
-        const questions = await generateQuizAction(chapterName, courseName, lessonText.slice(0, 3000));
-        if (questions && questions.length > 0) {
-          const quizBlock = {
-            type: "quiz",
-            title: `Chapter Quiz: ${chapterName}`,
-            questions,
-          };
-          // insert quiz after a random topic index
-          const insertAt = Math.min(lessons.length, Math.max(1, Math.floor(Math.random() * (lessons.length + 1))));
-          lessons.splice(insertAt, 0, { title: `Quiz — ${chapterName}`, blocks: [quizBlock] });
-        }
-      } catch (e) {
-        console.warn("Quiz generation failed, continuing without quiz:", e);
-      }
-    }
 
     if (shouldAddPractice) {
       try {
@@ -272,14 +229,46 @@ export async function saveGroupedChapterLessons(
         courseId: courseId,
         content: { content: lessons },
         videoId: videoId,
+        generationStatus: "generated",
       })
       .onConflictDoUpdate({
         target: [CourseChapters.courseId, CourseChapters.chapterId],
         set: {
           content: { content: lessons },
           videoId: videoId,
+          generationStatus: "generated",
         },
       });
+
+    const generatedRows = await db
+      .select({ chapterId: CourseChapters.chapterId })
+      .from(CourseChapters)
+      .where(
+        and(
+          eq(CourseChapters.courseId, courseId),
+          eq(CourseChapters.generationStatus, "generated")
+        )
+      );
+
+    const [courseRow] = await db
+      .select({ courseOutput: CourseList.courseOutput })
+      .from(CourseList)
+      .where(eq(CourseList.courseId, courseId));
+
+    const output = courseRow?.courseOutput as any;
+    const chaptersTotal = output?.course?.chapters?.length || output?.chapters?.length || 0;
+    const chaptersGenerated = generatedRows.length;
+    const generationStatus =
+      chaptersTotal > 0 && chaptersGenerated >= chaptersTotal ? "published" : "partial";
+
+    await db
+      .update(CourseList)
+      .set({
+        generationStatus,
+        chaptersGenerated,
+        chaptersTotal,
+      })
+      .where(eq(CourseList.courseId, courseId));
 
     return { success: true, videoId };
   } catch (error) {

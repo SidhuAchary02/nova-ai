@@ -49,6 +49,10 @@ export const CourseList = pgTable("courseList", {
   createdBy: varchar("createdBy"),
   courseBanner: varchar("courseBanner").default("/thumbnail.png"),
   isPublished: boolean("isPublished").notNull().default(false),
+  generationStatus: varchar("generation_status").notNull().default("partial"),
+  queueJobId: varchar("queue_job_id"),
+  chaptersGenerated: integer("chapters_generated").notNull().default(0),
+  chaptersTotal: integer("chapters_total").notNull().default(0),
   isCompleted: boolean("isCompleted").default(false),
   completedChapters: json("completedChapters").default([]), // Array of completed chapter indices
   quizPassedChapters: json("quizPassedChapters").default([]), // Array of chapter indices where quiz was passed
@@ -87,6 +91,7 @@ export const CourseChapters = pgTable(
     videoId: varchar("videoId").notNull(),
     sources: json("sources").default([]), // Array of {title, url, description}
     annotations: jsonb("annotations").default([]), // Array of chapter note objects
+    generationStatus: varchar("generation_status").notNull().default("generated"),
   },
   (table) => ({
     courseChapterUniq: uniqueIndex("course_chapters_course_chapter_uidx").on(
@@ -95,6 +100,22 @@ export const CourseChapters = pgTable(
     ),
   })
 );
+
+export const groqApiKeys = pgTable("groq_api_keys", {
+  id: serial("id").primaryKey(),
+  keyId: varchar("key_id").notNull().unique(),
+  pool: varchar("pool").notNull(),
+  status: varchar("status").notNull().default("active"),
+  cooldownUntil: timestamp("cooldown_until"),
+  dailyTokensUsed: integer("daily_tokens_used").notNull().default(0),
+  minuteRequestsUsed: integer("minute_requests_used").notNull().default(0),
+  minuteTokensUsed: integer("minute_tokens_used").notNull().default(0),
+  minuteResetAt: timestamp("minute_reset_at").defaultNow().notNull(),
+  leasedByJobId: varchar("leased_by_job_id"),
+  leasedUntil: timestamp("leased_until"),
+  lastReset: timestamp("last_reset").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
 
 /** Tracks non-owner users who have added a marketplace course to their dashboard */
 export const courseMarketplaceAdds = pgTable(

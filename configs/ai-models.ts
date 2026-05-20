@@ -1,13 +1,44 @@
 import Groq from "groq-sdk/index.mjs";
-import { BaseEnvironment } from "./BaseEnvironment";
+import {
+  markLeasedKeyLimited,
+  recordGroqKeyRequest,
+  recordGroqKeyUsage,
+  waitForGroqKeyBudget,
+  withGroqApiKey,
+  type LeasedGroqKey,
+} from "@/lib/ai/groqKeyManager";
 
-const env = new BaseEnvironment();
+export const GROQ_MODELS = {
+  heavy: "llama-3.3-70b-versatile",
+  lesson: "meta-llama/llama-4-scout-17b-16e-instruct",
+  light: "llama-3.1-8b-instant",
+} as const;
 
-const groq = new Groq({
-  apiKey: env.GROQ_API_KEY,
-});
+export const GROQ_MODEL = GROQ_MODELS.heavy;
 
-export const GROQ_MODEL = "llama-3.3-70b-versatile";
+export type GroqTaskClass = keyof typeof GROQ_MODELS;
+
+function poolForTask(taskClass: GroqTaskClass) {
+  return taskClass === "light" ? "light" : "heavy";
+}
+
+type GroqCallOptions = {
+  leasedKey?: LeasedGroqKey;
+  estimatedTokens?: number;
+};
+
+function classifyLimitedError(error: unknown) {
+  const err = error as { status?: number; message?: string; code?: string };
+  const message = `${err.message || ""} ${err.code || ""}`.toLowerCase();
+  if (err.status !== 429 && !message.includes("rate limit")) return null;
+  return message.includes("daily") ||
+    message.includes("tokens per day") ||
+    message.includes("requests per day") ||
+    message.includes("tpd") ||
+    message.includes("rpd")
+    ? "exhausted"
+    : "cooldown";
+}
 
 export const SYSTEM_PROMPTS = {
   roadmap: `You are a senior learning experience designer. You output ONLY valid JSON (no markdown fences, no prose outside JSON).
@@ -62,16 +93,61 @@ function stripJsonFences(text: string): string {
 export async function generateGroqJsonObject(
   systemPrompt: string,
   userPrompt: string,
-  temperature = 0.55
+  temperature = 0.55,
+  taskClass: GroqTaskClass = "heavy",
+  options: GroqCallOptions = {}
 ): Promise<string> {
-  const completion = await groq.chat.completions.create({
-    model: GROQ_MODEL,
-    temperature,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
+  if (options.leasedKey) {
+    const model = GROQ_MODELS[taskClass];
+    const estimatedTokens = options.estimatedTokens || 2000;
+    await waitForGroqKeyBudget(options.leasedKey, model, estimatedTokens);
+
+    try {
+      const client = new Groq({ apiKey: options.leasedKey.apiKey });
+      const completion = await client.chat.completions.create({
+        model,
+        temperature,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      });
+
+      await recordGroqKeyRequest(
+        options.leasedKey.keyId,
+        completion.usage?.total_tokens,
+        estimatedTokens
+      );
+
+      const raw = completion.choices[0]?.message?.content;
+      if (!raw || typeof raw !== "string") {
+        throw new Error("Empty or invalid response from Groq");
+      }
+      return stripJsonFences(raw);
+    } catch (error) {
+      const status = classifyLimitedError(error);
+      if (status) {
+        await markLeasedKeyLimited(options.leasedKey, status);
+      }
+      throw error;
+    }
+  }
+
+  const completion = await withGroqApiKey(poolForTask(taskClass), async (apiKey, keyId) => {
+    const client = new Groq({ apiKey });
+    const response = await client.chat.completions.create({
+      model: GROQ_MODELS[taskClass],
+      temperature,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
+
+    await recordGroqKeyUsage(keyId, response.usage?.total_tokens);
+    return response;
   });
 
   const raw = completion.choices[0]?.message?.content;
@@ -87,16 +163,60 @@ export async function generateGroqJsonObject(
 export async function generateGroqPlainText(
   systemPrompt: string,
   userPrompt: string,
-  temperature = 0.65
+  temperature = 0.65,
+  taskClass: GroqTaskClass = "heavy",
+  options: GroqCallOptions = {}
 ): Promise<string> {
-  const completion = await groq.chat.completions.create({
-    model: GROQ_MODEL,
-    temperature,
-    // No response_format requirement - allows plain text/MDX output
-    messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-    ],
+  if (options.leasedKey) {
+    const model = GROQ_MODELS[taskClass];
+    const estimatedTokens = options.estimatedTokens || 2000;
+    await waitForGroqKeyBudget(options.leasedKey, model, estimatedTokens);
+
+    try {
+      const client = new Groq({ apiKey: options.leasedKey.apiKey });
+      const completion = await client.chat.completions.create({
+        model,
+        temperature,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      });
+
+      await recordGroqKeyRequest(
+        options.leasedKey.keyId,
+        completion.usage?.total_tokens,
+        estimatedTokens
+      );
+
+      const raw = completion.choices[0]?.message?.content;
+      if (!raw || typeof raw !== "string") {
+        throw new Error("Empty or invalid response from Groq");
+      }
+      return raw.trim();
+    } catch (error) {
+      const status = classifyLimitedError(error);
+      if (status) {
+        await markLeasedKeyLimited(options.leasedKey, status);
+      }
+      throw error;
+    }
+  }
+
+  const completion = await withGroqApiKey(poolForTask(taskClass), async (apiKey, keyId) => {
+    const client = new Groq({ apiKey });
+    const response = await client.chat.completions.create({
+      model: GROQ_MODELS[taskClass],
+      temperature,
+      // No response_format requirement - allows plain text/MDX output
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    });
+
+    await recordGroqKeyUsage(keyId, response.usage?.total_tokens);
+    return response;
   });
 
   const raw = completion.choices[0]?.message?.content;
@@ -111,17 +231,18 @@ export async function generateCourseLayout(prompt: string) {
   return generateGroqJsonObject(
     "You are an AI course generator. Always respond ONLY in valid JSON format.",
     prompt,
-    0.7
+    0.7,
+    "heavy"
   );
 }
 
 /** Chapter body + sources in one structured call */
 export async function generateChapterContentBundle(prompt: string) {
-  return generateGroqJsonObject(SYSTEM_PROMPTS.chapterBundle, prompt, 0.65);
+  return generateGroqJsonObject(SYSTEM_PROMPTS.chapterBundle, prompt, 0.65, "lesson");
 }
 
 /** MDX chapter content — plain text markdown, no JSON */
-export async function generateChapterContentMDX(prompt: string) {
+export async function generateChapterContentMDX(prompt: string, options: GroqCallOptions = {}) {
   const systemPrompt = `You are a world-class course instructor. Your ONLY job is to output raw markdown text for course lessons.
 
 ABSOLUTELY NO JSON. Do not wrap the entire answer in a markdown code fence.
@@ -136,20 +257,26 @@ Just pure markdown:
 - Fenced code blocks with a language tag when an actual runnable example helps
 
 Never output placeholder-only code blocks such as \`\`\`code\`\`\`, \`\`\`example\`\`\`, or a block containing only the word "code". If you use a code block, include real code.`;
-  return generateGroqPlainText(systemPrompt, prompt, 0.65);
+  return generateGroqPlainText(systemPrompt, prompt, 0.65, "lesson", {
+    ...options,
+    estimatedTokens: options.estimatedTokens || 2200,
+  });
 }
 
 export async function generateQuizStructured(userPrompt: string) {
-  return generateGroqJsonObject(SYSTEM_PROMPTS.quiz, userPrompt, 0.4);
+  return generateGroqJsonObject(SYSTEM_PROMPTS.quiz, userPrompt, 0.4, "light");
 }
 
 /** Standalone sources list — JSON object root { sources } */
 export async function generateSourcesJsonObject(userPrompt: string) {
-  return generateGroqJsonObject(SYSTEM_PROMPTS.sourcesOnly, userPrompt, 0.55);
+  return generateGroqJsonObject(SYSTEM_PROMPTS.sourcesOnly, userPrompt, 0.55, "light");
 }
 
 /** Generates mermaid flowchart code for a given lesson topic */
-export async function generateMermaidDiagram(prompt: string): Promise<string> {
+export async function generateMermaidDiagram(
+  prompt: string,
+  options: GroqCallOptions = {}
+): Promise<string> {
   const systemPrompt = `You are a technical diagram generator. Your ONLY job is to output valid Mermaid flowchart code.
 
 RULES:
@@ -166,5 +293,8 @@ RULES:
 - Use --> for arrows
 - Use -->|label| for labeled arrows`;
 
-  return generateGroqPlainText(systemPrompt, prompt, 0.3);
+  return generateGroqPlainText(systemPrompt, prompt, 0.3, "lesson", {
+    ...options,
+    estimatedTokens: options.estimatedTokens || 700,
+  });
 }

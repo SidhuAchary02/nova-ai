@@ -32,6 +32,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FaCheck } from "react-icons/fa6";
 import ProfileMenu from "@/components/common/ProfileMenu";
+import {
+  getCourseGenerationQueueStatusAction,
+  type QueueStatusResult,
+} from "@/app/actions/generationQueue";
 
 type CourseParams = {
   params: {
@@ -105,6 +109,7 @@ export default function CoursePage({ params }: CourseParams) {
   const [genProgress, setGenProgress] = useState(0);
   const [genTotal, setGenTotal] = useState(0);
   const [genLesson, setGenLesson] = useState<string | undefined>();
+  const [queueStatus, setQueueStatus] = useState<QueueStatusResult | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
@@ -162,6 +167,60 @@ export default function CoursePage({ params }: CourseParams) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params?.courseId]);
 
+  useEffect(() => {
+    if (!course || !userEmail || course.createdBy !== userEmail) return;
+    if (!course.queueJobId) return;
+    if (!["queued", "generating"].includes(course.generationStatus || "")) return;
+
+    let cancelled = false;
+
+    const pollExistingJob = async () => {
+      setLoading(true);
+
+      while (!cancelled) {
+        const status = await getCourseGenerationQueueStatusAction(course.courseId);
+        if (cancelled) return;
+
+        setQueueStatus(status);
+
+        const progress =
+          status.progress && typeof status.progress === "object"
+            ? status.progress as {
+                completed?: unknown;
+                total?: unknown;
+                lessonName?: unknown;
+              }
+            : null;
+
+        if (progress) {
+          if (typeof progress.completed === "number") setGenProgress(progress.completed);
+          if (typeof progress.total === "number") setGenTotal(progress.total);
+          if (typeof progress.lessonName === "string") setGenLesson(progress.lessonName);
+        }
+
+        if (
+          !status.success ||
+          status.state === "completed" ||
+          status.state === "failed" ||
+          !status.jobId
+        ) {
+          await loadCourse(userEmail);
+          setLoading(false);
+          return;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+    };
+
+    pollExistingJob();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [course?.courseId, course?.queueJobId, course?.generationStatus, userEmail]);
+
   const courseOutput = useMemo(() => parseCourseOutput(course?.courseOutput), [course?.courseOutput]);
 
   const learningContext = course?.learningContext as
@@ -194,9 +253,11 @@ export default function CoursePage({ params }: CourseParams) {
     setGenProgress(0);
     setGenTotal(0);
     setGenLesson(undefined);
+    setQueueStatus(null);
     try {
       const result = await generateCourseContent(course, setLoading, {
         initialCount: 3,
+        onQueueStatus: setQueueStatus,
         onProgress: (completed, total, lessonName) => {
           setGenProgress(completed);
           setGenTotal(total);
@@ -343,6 +404,7 @@ export default function CoursePage({ params }: CourseParams) {
           progress={genProgress}
           progressTotal={genTotal}
           progressLesson={genLesson}
+          queueStatus={queueStatus}
         />
 
         <div className="space-y-10 rounded-[28px] border border-black/5 bg-white px-6 py-8 shadow-soft sm:px-10 sm:py-10">

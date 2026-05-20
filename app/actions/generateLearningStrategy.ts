@@ -1,6 +1,7 @@
 "use server";
 
 import { generateGroqJsonObject, SYSTEM_PROMPTS } from "@/configs/ai-models";
+import type { LeasedGroqKey } from "@/lib/ai/groqKeyManager";
 import {
   learningStrategyOutputSchema,
   userLearningContextSchema,
@@ -188,7 +189,8 @@ function normalizeStrategyTimeline(
  * Step 2 of the pipeline: personalized roadmap + skill graph + timeline (no DB write).
  */
 export async function generateLearningStrategyAction(
-  userInput: UserInputType
+  userInput: UserInputType,
+  leasedKey?: LeasedGroqKey
 ): Promise<GenerateLearningStrategyResult> {
   try {
     const ctx = userLearningContextSchema.parse(
@@ -224,7 +226,13 @@ Timeline rules:
 - Each chapter/subchapter must have 3-4 subtopics maximum.
 - If a topic needs more than 4 subtopics, split it into additional focused chapters instead of overloading one chapter.`;
 
-    const raw = await generateGroqJsonObject(SYSTEM_PROMPTS.roadmap, userPrompt, 0.55);
+    const raw = await generateGroqJsonObject(
+      SYSTEM_PROMPTS.roadmap,
+      userPrompt,
+      0.55,
+      "heavy",
+      { leasedKey, estimatedTokens: 5000 }
+    );
     const parsed = JSON.parse(raw);
     const strategy = normalizeStrategyTimeline(
       learningStrategyOutputSchema.parse(parsed),
