@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: ai-course-generator-worker
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: corepack pnpm install --frozen-lockfile
+    startCommand: corepack pnpm worker:heavy-generation
+    envVars:
+      - key: REDIS_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false

@@ -60,7 +60,11 @@ function createConnection() {
 export const heavyGenerationQueue = new Queue<HeavyGenerationJobData>(queueName, {
   connection: createConnection(),
   defaultJobOptions: {
-    attempts: 1,
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 1000,
+    },
     removeOnComplete: { count: 100 },
     removeOnFail: { count: 200 },
   },
@@ -68,7 +72,6 @@ export const heavyGenerationQueue = new Queue<HeavyGenerationJobData>(queueName,
 
 export async function enqueueHeavyGenerationJob(data: HeavyGenerationJobData) {
   const job = await heavyGenerationQueue.add(data.taskType, data);
-  startInlineHeavyGenerationWorkerIfEnabled();
 
   if (data.taskType !== "roadmap") {
     await db
@@ -320,7 +323,6 @@ async function runHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
 }
 
 let worker: Worker<HeavyGenerationJobData> | null = null;
-let inlineWorkerStarted = false;
 
 export function getHeavyGenerationWorker() {
   if (worker) return worker;
@@ -338,17 +340,6 @@ export function getHeavyGenerationWorker() {
   });
 
   return worker;
-}
-
-export function startInlineHeavyGenerationWorkerIfEnabled() {
-  const enabled =
-    process.env.NODE_ENV === "development" ||
-    process.env.HEAVY_GENERATION_INLINE_WORKER === "true";
-
-  if (!enabled || inlineWorkerStarted) return;
-
-  inlineWorkerStarted = true;
-  getHeavyGenerationWorker();
 }
 
 export async function getHeavyGenerationJobStatus(jobId?: string | null) {
