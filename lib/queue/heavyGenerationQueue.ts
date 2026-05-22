@@ -11,12 +11,17 @@ import {
   acquireHeavyGroqKeyLease,
   AllGroqKeysExhaustedError,
   getConfiguredHeavyKeyCount,
+  getGroqKeyFailureStats,
   releaseGroqKeyLease,
   type LeasedGroqKey,
 } from "@/lib/ai/groqKeyManager";
 import { sendApiKeysExhaustedAlert } from "@/lib/notifications/adminAlerts";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import type { CourseType, UserInputType } from "@/types/types";
+import {
+  DAILY_EXHAUSTED_RETRY_MESSAGE,
+  areAllHeavyGroqKeysDailyExhausted,
+} from "@/lib/ai/groqKeyManager";
 
 type CourseGenerationJobData = {
   courseId: string;
@@ -39,6 +44,7 @@ const SUBTOPIC_CONCURRENCY = 1;
 const KEY_WAIT_MS = 5000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const keyWaitDelay = () => KEY_WAIT_MS + Math.floor(Math.random() * 1500);
 
 function createConnection() {
   const redisUrl = process.env.REDIS_URL;
@@ -124,13 +130,27 @@ async function waitForHeavyGroqLease(
 
   let leasedKey = await acquireHeavyGroqKeyLease(job.id || `job-${Date.now()}`);
   while (!leasedKey) {
+    if (await areAllHeavyGroqKeysDailyExhausted()) {
+      await job.updateProgress({
+        status: "failed",
+        completed: 0,
+        total: 1,
+        lessonName: DAILY_EXHAUSTED_RETRY_MESSAGE,
+        message: DAILY_EXHAUSTED_RETRY_MESSAGE,
+      } as any);
+      throw new AllGroqKeysExhaustedError(
+        DAILY_EXHAUSTED_RETRY_MESSAGE,
+        await getGroqKeyFailureStats()
+      );
+    }
+
     await job.updateProgress({
       status: "queued",
       completed: 0,
       total: 1,
       lessonName: `Waiting for an available API key: ${lessonName}`,
     });
-    await sleep(KEY_WAIT_MS);
+    await sleep(keyWaitDelay());
     leasedKey = await acquireHeavyGroqKeyLease(job.id || `job-${Date.now()}`);
   }
 
@@ -149,6 +169,10 @@ async function runWithHeavyGroqLease<T>(
       return await operation(leasedKey);
     } catch (error) {
       if (error instanceof AllGroqKeysExhaustedError) {
+        if (await areAllHeavyGroqKeysDailyExhausted()) {
+          throw error;
+        }
+
         await job.updateProgress({
           status: "queued",
           completed: 0,

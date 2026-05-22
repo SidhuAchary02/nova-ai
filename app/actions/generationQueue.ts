@@ -25,7 +25,58 @@ export type QueueStatusResult = {
   result?: unknown;
   workerCount?: number;
   workerMissing?: boolean;
+  queueMessage?: string;
+  retryAfterMinutes?: number;
+  queueReason?: "busy" | "daily_exhausted" | "worker_missing" | "failed";
 };
+
+function readQueueMessage(progress: unknown) {
+  if (!progress || typeof progress !== "object") return {};
+  const value = progress as {
+    status?: unknown;
+    message?: unknown;
+    lessonName?: unknown;
+  };
+  const message =
+    typeof value.message === "string"
+      ? value.message
+      : typeof value.lessonName === "string" &&
+          value.lessonName.toLowerCase().includes("waiting for an available api key")
+        ? value.lessonName
+      : typeof value.lessonName === "string" &&
+          value.status === "failed" &&
+          value.lessonName.includes("retry after")
+        ? value.lessonName
+        : undefined;
+  const lowerMessage = message?.toLowerCase();
+
+  return {
+    queueMessage: message,
+    retryAfterMinutes: message?.includes("30 minutes") ? 30 : undefined,
+    queueReason: lowerMessage?.includes("retry after")
+      ? ("daily_exhausted" as const)
+      : lowerMessage?.includes("waiting for an available api key")
+        ? ("busy" as const)
+      : undefined,
+  };
+}
+
+function deriveQueueReason(input: {
+  queueMessage?: string;
+  failedReason?: string;
+  workerMissing?: boolean;
+}): QueueStatusResult["queueReason"] {
+  const text = `${input.queueMessage || ""} ${input.failedReason || ""}`
+    .trim()
+    .toLowerCase();
+  if (text.includes("retry after 30 minutes") || text.includes("heavy load")) {
+    return "daily_exhausted";
+  }
+  if (input.workerMissing) return "worker_missing";
+  if (text.includes("waiting for an available api key")) return "busy";
+  if (text) return "failed";
+  return undefined;
+}
 
 export async function enqueueRoadmapGenerationAction(input: {
   userEmail: string;
@@ -115,6 +166,7 @@ export async function getCourseGenerationQueueStatusAction(
     if (!course) return { success: false, error: "Course not found" };
 
     const status = await getHeavyGenerationJobStatus(course.queueJobId);
+    const queueMessage = readQueueMessage(status?.progress);
 
     return {
       success: true,
@@ -130,6 +182,13 @@ export async function getCourseGenerationQueueStatusAction(
       result: status?.returnvalue,
       workerCount: status?.workerCount,
       workerMissing: status?.workerMissing,
+      queueMessage: queueMessage.queueMessage,
+      retryAfterMinutes: queueMessage.retryAfterMinutes,
+      queueReason: deriveQueueReason({
+        queueMessage: queueMessage.queueMessage,
+        failedReason: status?.failedReason,
+        workerMissing: status?.workerMissing,
+      }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -148,6 +207,8 @@ export async function getRoadmapGenerationQueueStatusAction(
       return { success: false, error: "Job not found" };
     }
 
+    const queueMessage = readQueueMessage(status.progress);
+
     return {
       success: true,
       jobId: status.jobId,
@@ -159,6 +220,13 @@ export async function getRoadmapGenerationQueueStatusAction(
       result: status.returnvalue,
       workerCount: status.workerCount,
       workerMissing: status.workerMissing,
+      queueMessage: queueMessage.queueMessage,
+      retryAfterMinutes: queueMessage.retryAfterMinutes,
+      queueReason: deriveQueueReason({
+        queueMessage: queueMessage.queueMessage,
+        failedReason: status.failedReason,
+        workerMissing: status.workerMissing,
+      }),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

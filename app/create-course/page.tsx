@@ -30,6 +30,22 @@ import {
   OUT_OF_CREDITS_ERROR,
 } from "@/configs/courseGenerationAccess";
 
+function queueFailureMessage(status: QueueStatusResult) {
+  if (status.queueReason === "daily_exhausted") {
+    return (
+      status.queueMessage ||
+      "Our system is experiencing heavy load. Please retry after 30 minutes."
+    );
+  }
+  if (status.queueReason === "worker_missing") {
+    return "Generation worker is not running. Please start the worker and try again.";
+  }
+
+  return status.failedReason || "Failed to generate roadmap";
+}
+
+const roadmapPollDelay = () => 7000 + Math.floor(Math.random() * 2000);
+
 const CreateCoursePage = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [user, setUser] = useState<unknown>(null);
@@ -175,11 +191,11 @@ in JSON format.`;
         }
 
         if (status.state === "failed") {
-          alert(status.failedReason || "Failed to generate roadmap");
+          alert(queueFailureMessage(status));
           return;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, roadmapPollDelay()));
       }
     } catch (e) {
       console.error(e);

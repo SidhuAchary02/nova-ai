@@ -53,6 +53,8 @@ function normalizeLevel(level?: string | null): string {
   return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
+const queuePollDelay = () => 7000 + Math.floor(Math.random() * 2000);
+
 function ChapterRoadmapCard({
   chapter,
   index,
@@ -209,7 +211,7 @@ export default function CoursePage({ params }: CourseParams) {
           return;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        await new Promise((resolve) => setTimeout(resolve, queuePollDelay()));
       }
     };
 

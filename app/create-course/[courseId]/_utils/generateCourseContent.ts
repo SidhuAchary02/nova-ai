@@ -13,6 +13,7 @@ type GenerateCourseContentOptions = {
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const pollDelay = () => 7000 + Math.floor(Math.random() * 2000);
 
 function readProgress(progress: unknown) {
   if (!progress || typeof progress !== "object") return null;
@@ -27,6 +28,22 @@ function readProgress(progress: unknown) {
     total: typeof value.total === "number" ? value.total : 0,
     lessonName: typeof value.lessonName === "string" ? value.lessonName : undefined,
   };
+}
+
+function dailyExhaustedMessage(status: QueueStatusResult) {
+  if (status.queueReason !== "daily_exhausted") return null;
+  return (
+    status.queueMessage ||
+    "Our system is experiencing heavy load. Please retry after 30 minutes."
+  );
+}
+
+function queueErrorMessage(status: QueueStatusResult) {
+  if (status.queueReason === "daily_exhausted") return dailyExhaustedMessage(status);
+  if (status.queueReason === "worker_missing") {
+    return "Generation worker is not running. Please start the worker and try again.";
+  }
+  return status.failedReason || null;
 }
 
 export const generateCourseContent = async (
@@ -86,15 +103,16 @@ export const generateCourseContent = async (
       }
 
       if (status.state === "failed") {
+        const specificMessage = queueErrorMessage(status);
         return {
           success: false,
           error:
-            status.failedReason ||
+            specificMessage ||
             "We are experiencing high demand right now. Your progress has been saved. Please try again in 30 minutes.",
         };
       }
 
-      await sleep(5000);
+      await sleep(pollDelay());
     }
   } catch (e: unknown) {
     console.error("generateCourseContent queue wrapper crashed:", e);

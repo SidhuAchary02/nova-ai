@@ -22,6 +22,9 @@ export type KeyFailureStats = {
   nextRecoveryAt?: Date;
 };
 
+export const DAILY_EXHAUSTED_RETRY_MESSAGE =
+  "Our system is experiencing heavy load. Please retry after 30 minutes.";
+
 export class AllGroqKeysExhaustedError extends Error {
   stats: KeyFailureStats;
 
@@ -82,6 +85,22 @@ export function getGroqModelLimits(model: string) {
   return { requestsPerMinute: 30, tokensPerMinute: 12_000, tokensPerDay: 100_000 };
 }
 
+function candidateModel(candidate: KeyCandidate) {
+  return candidate.pool === "light"
+    ? "llama-3.1-8b-instant"
+    : "meta-llama/llama-4-scout-17b-16e-instruct";
+}
+
+function dailyBudgetRemaining(candidate: KeyCandidate, dailyTokensUsed: number) {
+  const limits = getGroqModelLimits(candidateModel(candidate));
+  return Math.max(0, limits.tokensPerDay - dailyTokensUsed);
+}
+
+function keyNumericSuffix(keyId: string) {
+  const match = keyId.match(/_(\d+)$/);
+  return match ? Number(match[1]) : 0;
+}
+
 async function ensureKeyRow(candidate: KeyCandidate) {
   await db
     .insert(groqApiKeys)
@@ -113,10 +132,17 @@ async function resetIfExpired(candidate: KeyCandidate) {
     row.leasedUntil && new Date(row.leasedUntil).getTime() <= now;
 
   if (resetDaily || cooldownExpired || minuteExpired || leaseExpired) {
+    const nextStatus =
+      row.status === "failed"
+        ? "failed"
+        : resetDaily || cooldownExpired
+          ? "active"
+          : row.status;
+
     await db
       .update(groqApiKeys)
       .set({
-        status: "active",
+        status: nextStatus,
         cooldownUntil: null,
         dailyTokensUsed: resetDaily ? 0 : row.dailyTokensUsed,
         minuteRequestsUsed: minuteExpired ? 0 : row.minuteRequestsUsed,
@@ -213,9 +239,52 @@ export async function acquireHeavyGroqKeyLease(
 
   await clearExpiredLeases(candidates);
 
-  for (const candidate of candidates) {
-    if (!(await isAvailable(candidate))) continue;
+  const scoredCandidates: Array<KeyCandidate & { remainingDailyTokens: number }> = [];
 
+  for (const candidate of candidates) {
+    await ensureKeyRow(candidate);
+    await resetIfExpired(candidate);
+
+    const [row] = await db
+      .select({
+        status: groqApiKeys.status,
+        leasedByJobId: groqApiKeys.leasedByJobId,
+        dailyTokensUsed: groqApiKeys.dailyTokensUsed,
+        minuteRequestsUsed: groqApiKeys.minuteRequestsUsed,
+        minuteTokensUsed: groqApiKeys.minuteTokensUsed,
+      })
+      .from(groqApiKeys)
+      .where(eq(groqApiKeys.keyId, candidate.keyId));
+
+    if (!row || row.status !== "active" || row.leasedByJobId) continue;
+
+    const remainingDailyTokens = dailyBudgetRemaining(
+      candidate,
+      row.dailyTokensUsed
+    );
+    if (remainingDailyTokens <= 0) {
+      await markKey(candidate, "exhausted");
+      continue;
+    }
+
+    scoredCandidates.push({ ...candidate, remainingDailyTokens });
+  }
+
+  const rotationSeed = Number.parseInt(jobId, 10);
+  const seed = Number.isFinite(rotationSeed) ? rotationSeed : Date.now();
+
+  scoredCandidates.sort((a, b) => {
+    if (b.remainingDailyTokens !== a.remainingDailyTokens) {
+      return b.remainingDailyTokens - a.remainingDailyTokens;
+    }
+
+    const aRank = (keyNumericSuffix(a.keyId) + seed) % scoredCandidates.length;
+    const bRank = (keyNumericSuffix(b.keyId) + seed) % scoredCandidates.length;
+    if (aRank !== bRank) return aRank - bRank;
+    return a.keyId.localeCompare(b.keyId);
+  });
+
+  for (const candidate of scoredCandidates) {
     const leaseUntil = new Date(Date.now() + 2 * 60 * 60 * 1000);
     const result = await db
       .update(groqApiKeys)
@@ -237,6 +306,47 @@ export async function acquireHeavyGroqKeyLease(
   }
 
   return null;
+}
+
+export async function areAllHeavyGroqKeysDailyExhausted() {
+  const candidates = [...configuredKeysForPool("heavy"), ...paidKey()];
+  if (candidates.length === 0) return false;
+
+  await clearExpiredLeases(candidates);
+
+  for (const candidate of candidates) {
+    await ensureKeyRow(candidate);
+    await resetIfExpired(candidate);
+
+    const [row] = await db
+      .select({
+        status: groqApiKeys.status,
+        dailyTokensUsed: groqApiKeys.dailyTokensUsed,
+      })
+      .from(groqApiKeys)
+      .where(eq(groqApiKeys.keyId, candidate.keyId));
+
+    if (!row) return false;
+    const remainingDailyTokens = dailyBudgetRemaining(
+      candidate,
+      row.dailyTokensUsed
+    );
+
+    if (remainingDailyTokens <= 0 && row.status !== "failed") {
+      await markKey(candidate, "exhausted");
+    }
+
+    if (row.status === "active" || row.status === "cooldown") {
+      if (remainingDailyTokens > 0) {
+        return false;
+      }
+    }
+    if (remainingDailyTokens > 0 && row.status !== "exhausted" && row.status !== "failed") {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export async function releaseGroqKeyLease(key?: LeasedGroqKey | null) {
@@ -281,8 +391,6 @@ export async function waitForGroqKeyBudget(
       row.minuteTokensUsed + estimatedTokens <= limits.tokensPerMinute;
     const hasDailyBudget = row.dailyTokensUsed + estimatedTokens <= limits.tokensPerDay;
 
-    if (hasMinuteBudget && hasDailyBudget) return;
-
     if (!hasDailyBudget) {
       await markKey(key, "exhausted");
       throw new AllGroqKeysExhaustedError(
@@ -290,6 +398,8 @@ export async function waitForGroqKeyBudget(
         await getGroqKeyFailureStats()
       );
     }
+
+    if (hasMinuteBudget) return;
 
     const waitMs = Math.max(
       1000,
