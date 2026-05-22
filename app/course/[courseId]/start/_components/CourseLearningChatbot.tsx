@@ -376,16 +376,16 @@ export default function CourseLearningChatbot({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-nova-primary text-white shadow-[0_12px_30px_rgba(249,115,22,0.32)] transition-all hover:-translate-y-0.5 hover:bg-nova-primary/90"
-        aria-label="Open Nova chat"
-      >
-        <span className="material-symbols-outlined text-[25px]">
-          {open ? "close" : "smart_toy"}
-        </span>
-      </button>
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-nova-primary text-white shadow-[0_12px_30px_rgba(249,115,22,0.32)] transition-all hover:-translate-y-0.5 hover:bg-nova-primary/90"
+          aria-label="Open Nova chat"
+        >
+          <span className="material-symbols-outlined text-[25px]">smart_toy</span>
+        </button>
+      )}
     </div>
   );
 }
