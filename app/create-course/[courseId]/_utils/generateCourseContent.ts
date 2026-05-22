@@ -94,7 +94,7 @@ export const generateCourseContent = async (
         };
       }
 
-      await sleep(2500);
+      await sleep(5000);
     }
   } catch (e: unknown) {
     console.error("generateCourseContent queue wrapper crashed:", e);

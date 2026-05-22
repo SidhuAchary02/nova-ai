@@ -147,7 +147,7 @@ async function isAvailable(candidate: KeyCandidate) {
   return !row || (row.status === "active" && !row.leasedByJobId);
 }
 
-function classifyGroqError(error: unknown): GroqKeyStatus | null {
+export function classifyGroqError(error: unknown): GroqKeyStatus | null {
   const err = error as { status?: number; code?: string; message?: string };
   const message = `${err.message || ""} ${err.code || ""}`.toLowerCase();
 
@@ -165,6 +165,10 @@ function classifyGroqError(error: unknown): GroqKeyStatus | null {
   }
 
   return "cooldown";
+}
+
+export function isGroqCapacityError(error: unknown) {
+  return error instanceof AllGroqKeysExhaustedError || classifyGroqError(error) !== null;
 }
 
 async function markKey(candidate: KeyCandidate, status: GroqKeyStatus) {

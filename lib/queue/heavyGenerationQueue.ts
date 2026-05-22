@@ -12,6 +12,7 @@ import {
   AllGroqKeysExhaustedError,
   getConfiguredHeavyKeyCount,
   releaseGroqKeyLease,
+  type LeasedGroqKey,
 } from "@/lib/ai/groqKeyManager";
 import { sendApiKeysExhaustedAlert } from "@/lib/notifications/adminAlerts";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
@@ -35,6 +36,9 @@ export type HeavyGenerationJobData = CourseGenerationJobData | RoadmapGeneration
 
 const queueName = "heavy-generation";
 const SUBTOPIC_CONCURRENCY = 1;
+const KEY_WAIT_MS = 5000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function createConnection() {
   const redisUrl = process.env.REDIS_URL;
@@ -58,6 +62,7 @@ export const heavyGenerationQueue = new Queue<HeavyGenerationJobData>(queueName,
 
 export async function enqueueHeavyGenerationJob(data: HeavyGenerationJobData) {
   const job = await heavyGenerationQueue.add(data.taskType, data);
+  startInlineHeavyGenerationWorkerIfEnabled();
 
   if (data.taskType !== "roadmap") {
     await db
@@ -109,41 +114,83 @@ async function selectedChapterJobs(course: CourseType, data: CourseGenerationJob
     .filter(({ chapterIndex }: { chapterIndex: number }) => !generatedSet.has(chapterIndex));
 }
 
-async function runHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
+async function waitForHeavyGroqLease(
+  job: Job<HeavyGenerationJobData>,
+  lessonName: string
+) {
+  if (getConfiguredHeavyKeyCount() === 0) {
+    throw new Error("No Groq API keys are configured for heavy generation");
+  }
+
   let leasedKey = await acquireHeavyGroqKeyLease(job.id || `job-${Date.now()}`);
   while (!leasedKey) {
     await job.updateProgress({
       status: "queued",
       completed: 0,
       total: 1,
-      lessonName: "Waiting for an available API key",
+      lessonName: `Waiting for an available API key: ${lessonName}`,
     });
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await sleep(KEY_WAIT_MS);
     leasedKey = await acquireHeavyGroqKeyLease(job.id || `job-${Date.now()}`);
   }
 
-  if (job.data.taskType === "roadmap") {
+  return leasedKey;
+}
+
+async function runWithHeavyGroqLease<T>(
+  job: Job<HeavyGenerationJobData>,
+  lessonName: string,
+  operation: (leasedKey: LeasedGroqKey) => Promise<T>
+) {
+  for (;;) {
+    const leasedKey = await waitForHeavyGroqLease(job, lessonName);
+
     try {
-      await job.updateProgress({
-        status: "generating",
-        completed: 0,
-        total: 1,
-        lessonName: "Personalized roadmap",
-      });
+      return await operation(leasedKey);
+    } catch (error) {
+      if (error instanceof AllGroqKeysExhaustedError) {
+        await job.updateProgress({
+          status: "queued",
+          completed: 0,
+          total: 1,
+          lessonName: `Switching API key: ${lessonName}`,
+        });
+        await sleep(1000);
+        continue;
+      }
 
-      const result = await generateLearningStrategyAction(job.data.userInput, leasedKey);
-
-      await job.updateProgress({
-        status: "complete",
-        completed: 1,
-        total: 1,
-        lessonName: "Personalized roadmap",
-      });
-
-      return result;
+      throw error;
     } finally {
       await releaseGroqKeyLease(leasedKey);
     }
+  }
+}
+
+async function runHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
+  if (job.data.taskType === "roadmap") {
+    const { userInput } = job.data;
+
+    await job.updateProgress({
+      status: "generating",
+      completed: 0,
+      total: 1,
+      lessonName: "Personalized roadmap",
+    });
+
+    const result = await runWithHeavyGroqLease(
+      job,
+      "Personalized roadmap",
+      (leasedKey) => generateLearningStrategyAction(userInput, leasedKey)
+    );
+
+    await job.updateProgress({
+      status: "complete",
+      completed: 1,
+      total: 1,
+      lessonName: "Personalized roadmap",
+    });
+
+    return result;
   }
 
   const { courseId, userEmail, taskType } = job.data;
@@ -176,11 +223,16 @@ async function runHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
               lessonName: subtopicName,
             });
 
-            return generateSingleSubtopicLesson(
-              course.courseName,
-              chapter.chapterName,
+            return runWithHeavyGroqLease(
+              job,
               subtopicName,
-              leasedKey
+              (leasedKey) =>
+                generateSingleSubtopicLesson(
+                  course.courseName,
+                  chapter.chapterName,
+                  subtopicName,
+                  leasedKey
+                )
             );
           })
         );
@@ -240,12 +292,11 @@ async function runHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
     }
 
     throw error;
-  } finally {
-    await releaseGroqKeyLease(leasedKey);
   }
 }
 
 let worker: Worker<HeavyGenerationJobData> | null = null;
+let inlineWorkerStarted = false;
 
 export function getHeavyGenerationWorker() {
   if (worker) return worker;
@@ -265,20 +316,36 @@ export function getHeavyGenerationWorker() {
   return worker;
 }
 
+export function startInlineHeavyGenerationWorkerIfEnabled() {
+  const enabled =
+    process.env.NODE_ENV === "development" ||
+    process.env.HEAVY_GENERATION_INLINE_WORKER === "true";
+
+  if (!enabled || inlineWorkerStarted) return;
+
+  inlineWorkerStarted = true;
+  getHeavyGenerationWorker();
+}
+
 export async function getHeavyGenerationJobStatus(jobId?: string | null) {
   if (!jobId) return null;
 
   const job = await heavyGenerationQueue.getJob(jobId);
   if (!job) return null;
 
-  const [waiting, delayed] = await Promise.all([
-    heavyGenerationQueue.getWaiting(),
-    heavyGenerationQueue.getDelayed(),
-  ]);
-  const queuedJobs = [...waiting, ...delayed];
-  const position = queuedJobs.findIndex((queuedJob) => queuedJob.id === job.id);
   const state = await job.getState();
   const progress = job.progress;
+  const workerCount = await heavyGenerationQueue.getWorkersCount();
+  let position = -1;
+
+  if (state === "waiting" || state === "delayed") {
+    const [waiting, delayed] = await Promise.all([
+      heavyGenerationQueue.getWaiting(),
+      heavyGenerationQueue.getDelayed(),
+    ]);
+    const queuedJobs = [...waiting, ...delayed];
+    position = queuedJobs.findIndex((queuedJob) => queuedJob.id === job.id);
+  }
 
   return {
     jobId: job.id,
@@ -288,5 +355,8 @@ export async function getHeavyGenerationJobStatus(jobId?: string | null) {
     progress,
     failedReason: job.failedReason,
     returnvalue: job.returnvalue,
+    workerCount,
+    workerMissing:
+      workerCount === 0 && ["waiting", "delayed", "active"].includes(state),
   };
 }

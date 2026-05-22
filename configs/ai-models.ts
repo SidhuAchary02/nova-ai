@@ -1,5 +1,8 @@
 import Groq from "groq-sdk/index.mjs";
 import {
+  AllGroqKeysExhaustedError,
+  classifyGroqError,
+  getGroqKeyFailureStats,
   markLeasedKeyLimited,
   recordGroqKeyRequest,
   recordGroqKeyUsage,
@@ -26,19 +29,6 @@ type GroqCallOptions = {
   leasedKey?: LeasedGroqKey;
   estimatedTokens?: number;
 };
-
-function classifyLimitedError(error: unknown) {
-  const err = error as { status?: number; message?: string; code?: string };
-  const message = `${err.message || ""} ${err.code || ""}`.toLowerCase();
-  if (err.status !== 429 && !message.includes("rate limit")) return null;
-  return message.includes("daily") ||
-    message.includes("tokens per day") ||
-    message.includes("requests per day") ||
-    message.includes("tpd") ||
-    message.includes("rpd")
-    ? "exhausted"
-    : "cooldown";
-}
 
 export const SYSTEM_PROMPTS = {
   roadmap: `You are a senior learning experience designer. You output ONLY valid JSON (no markdown fences, no prose outside JSON).
@@ -126,9 +116,15 @@ export async function generateGroqJsonObject(
       }
       return stripJsonFences(raw);
     } catch (error) {
-      const status = classifyLimitedError(error);
+      if (error instanceof AllGroqKeysExhaustedError) throw error;
+
+      const status = classifyGroqError(error);
       if (status) {
         await markLeasedKeyLimited(options.leasedKey, status);
+        throw new AllGroqKeysExhaustedError(
+          `Groq key ${options.leasedKey.keyId} hit ${status}`,
+          await getGroqKeyFailureStats()
+        );
       }
       throw error;
     }
@@ -195,9 +191,15 @@ export async function generateGroqPlainText(
       }
       return raw.trim();
     } catch (error) {
-      const status = classifyLimitedError(error);
+      if (error instanceof AllGroqKeysExhaustedError) throw error;
+
+      const status = classifyGroqError(error);
       if (status) {
         await markLeasedKeyLimited(options.leasedKey, status);
+        throw new AllGroqKeysExhaustedError(
+          `Groq key ${options.leasedKey.keyId} hit ${status}`,
+          await getGroqKeyFailureStats()
+        );
       }
       throw error;
     }

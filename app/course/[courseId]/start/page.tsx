@@ -86,7 +86,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
     activeCourse?: CourseType | null
   ) => {
     const resolvedCourse = activeCourse ?? course;
-    if (!resolvedCourse) return;
+    if (!resolvedCourse) return null;
 
     setShowPremiumCTA(false);
     setShowQuiz(false);
@@ -96,7 +96,14 @@ const CourseStart = ({ params }: CourseStartProps) => {
     setQuizPassed(quizAlreadyPassed);
 
     const res = await getChapterContentAction(chapterId, resolvedCourse.courseId);
-    setChapterContent(res as ChapterContentType);
+    const nextContent = res as ChapterContentType | null;
+    setChapterContent(nextContent);
+    return nextContent;
+  };
+
+  const hasUsableChapterContent = (content: ChapterContentType | null) => {
+    const lessons = content?.content;
+    return Array.isArray(lessons) && lessons.length > 0;
   };
 
   const getCourse = async (email?: string | null) => {
@@ -163,7 +170,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
           setSelectedSubtopicIndex(safeInitialSubtopicIdx);
           setQuizPassed(passedChapters.includes(initialChapterIdx));
           if (currentGeneratedChapterIds.includes(initialChapterIdx)) {
-            await getChapterContent(initialChapterIdx, currentCourse);
+            const content = await getChapterContent(initialChapterIdx, currentCourse);
+            setShowPremiumCTA(!hasUsableChapterContent(content));
           } else {
             setChapterContent(null);
             setShowPremiumCTA(true);
@@ -380,8 +388,8 @@ const CourseStart = ({ params }: CourseStartProps) => {
       }
 
       await refreshGeneratedChapterIds();
-      await getChapterContent(selectedChapterIndex, course);
-      setShowPremiumCTA(false);
+      const content = await getChapterContent(selectedChapterIndex, course);
+      setShowPremiumCTA(!hasUsableChapterContent(content));
     } catch (error) {
       console.error("Failed to generate selected chapter:", error);
       alert("Failed to generate this chapter");
@@ -411,7 +419,9 @@ const CourseStart = ({ params }: CourseStartProps) => {
     
     // Only fetch content if changing chapters
     if (isGenerated && cIdx !== selectedChapterIndex) {
-      getChapterContent(cIdx);
+      getChapterContent(cIdx).then((content) => {
+        setShowPremiumCTA(!hasUsableChapterContent(content));
+      });
     }
   };
 

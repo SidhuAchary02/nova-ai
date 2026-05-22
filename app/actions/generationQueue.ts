@@ -23,6 +23,8 @@ export type QueueStatusResult = {
   chaptersGenerated?: number;
   chaptersTotal?: number;
   result?: unknown;
+  workerCount?: number;
+  workerMissing?: boolean;
 };
 
 export async function enqueueRoadmapGenerationAction(input: {
@@ -126,6 +128,8 @@ export async function getCourseGenerationQueueStatusAction(
       chaptersGenerated: course.chaptersGenerated,
       chaptersTotal: course.chaptersTotal,
       result: status?.returnvalue,
+      workerCount: status?.workerCount,
+      workerMissing: status?.workerMissing,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -153,6 +157,8 @@ export async function getRoadmapGenerationQueueStatusAction(
       progress: status.progress,
       failedReason: status.failedReason,
       result: status.returnvalue,
+      workerCount: status.workerCount,
+      workerMissing: status.workerMissing,
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

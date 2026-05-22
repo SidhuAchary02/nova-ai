@@ -1,7 +1,10 @@
 "use server";
 
 import { generateChapterContentMDX } from "@/configs/ai-models";
-import type { LeasedGroqKey } from "@/lib/ai/groqKeyManager";
+import {
+  AllGroqKeysExhaustedError,
+  type LeasedGroqKey,
+} from "@/lib/ai/groqKeyManager";
 import { getYoutubeVideos } from "@/configs/service";
 import { db } from "@/configs/db";
 import { CourseChapters, CourseList } from "@/schema/schema";
@@ -169,6 +172,8 @@ flowchart TD
       return { success: false, error: "Processing failed" };
     }
   } catch (error: unknown) {
+    if (error instanceof AllGroqKeysExhaustedError) throw error;
+
     const err = error as { message?: string };
     console.error(`❌ Error generating lesson for ${subtopicName}:`, err.message || error);
     return { success: false, error: String(err.message || error) };

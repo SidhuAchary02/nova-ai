@@ -209,7 +209,7 @@ export default function CoursePage({ params }: CourseParams) {
           return;
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 2500));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       }
     };
 

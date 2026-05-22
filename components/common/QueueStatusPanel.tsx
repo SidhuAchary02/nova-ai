@@ -25,10 +25,17 @@ export default function QueueStatusPanel({ status }: QueueStatusPanelProps) {
   return (
     <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-nova-body">
       <p className="font-semibold text-nova-heading">
-        {inProgress
+        {status.workerMissing
+          ? "Generation worker is not running."
+          : inProgress
           ? "Generation in progress..."
           : "High traffic detected. Your course is queued for generation."}
       </p>
+      {status.workerMissing && (
+        <p className="mt-1">
+          Start the heavy generation worker to process this queue item.
+        </p>
+      )}
       {position && (
         <p className="mt-1">
           Position {position} in queue. Estimated wait: {formatWait(status.estimatedWaitSeconds)}.

@@ -1,7 +1,10 @@
 "use server";
 
 import { generateGroqJsonObject, SYSTEM_PROMPTS } from "@/configs/ai-models";
-import type { LeasedGroqKey } from "@/lib/ai/groqKeyManager";
+import {
+  AllGroqKeysExhaustedError,
+  type LeasedGroqKey,
+} from "@/lib/ai/groqKeyManager";
 import {
   learningStrategyOutputSchema,
   userLearningContextSchema,
@@ -241,6 +244,8 @@ Timeline rules:
 
     return { success: true, strategy };
   } catch (e) {
+    if (e instanceof AllGroqKeysExhaustedError) throw e;
+
     const msg = e instanceof Error ? e.message : String(e);
     console.error("generateLearningStrategyAction:", msg);
     return { success: false, error: msg };
