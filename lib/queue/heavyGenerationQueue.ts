@@ -68,8 +68,8 @@ export const heavyGenerationQueue = new Queue<HeavyGenerationJobData>(queueName,
       type: "exponential",
       delay: 1000,
     },
-    removeOnComplete: { count: 100 },
-    removeOnFail: { count: 200 },
+    removeOnComplete: { count: 20 },
+    removeOnFail: { count: 50 },
   },
 });
 
