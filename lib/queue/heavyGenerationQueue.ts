@@ -47,7 +47,10 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 const keyWaitDelay = () => KEY_WAIT_MS + Math.floor(Math.random() * 1500);
 
 function createConnection() {
-  const redisUrl = process.env.REDIS_URL;
+  const redisUrl = process.env.REDIS_URL
+    ?.trim()
+    .replace(/^redis-cli\s+-u\s+/i, "")
+    .replace(/^["']|["']$/g, "");
   if (!redisUrl) {
     throw new Error("REDIS_URL is required for heavy generation queue");
   }
