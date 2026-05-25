@@ -19,13 +19,19 @@ export default function QueueStatusPanel({ status }: QueueStatusPanelProps) {
     status.progress && typeof status.progress === "object"
       ? status.progress as { completed?: number; total?: number; lessonName?: string }
       : null;
-  const inProgress = status.state === "active" || status.courseStatus === "generating";
+  const hasProgress =
+    typeof progress?.completed === "number" && typeof progress?.total === "number";
+  const inProgress =
+    status.state === "active" ||
+    status.courseStatus === "generating" ||
+    (hasProgress && (progress.completed || 0) > 0);
+  const showWorkerMissing = Boolean(status.workerMissing && !inProgress && !hasProgress);
   const position = status.position && status.position > 0 ? status.position : undefined;
   const isDailyExhausted = status.queueReason === "daily_exhausted";
   const isBusy = status.queueReason === "busy";
   const title = isDailyExhausted
     ? "Our system is experiencing heavy load."
-    : status.workerMissing
+    : showWorkerMissing
       ? "Generation worker is not running."
       : isBusy
         ? "Waiting for an available API key."
@@ -48,7 +54,7 @@ export default function QueueStatusPanel({ status }: QueueStatusPanelProps) {
             "All generation keys are at their daily limit. Please retry after 30 minutes."}
         </p>
       )}
-      {status.workerMissing && (
+      {showWorkerMissing && (
         <p className="mt-1">
           Start the heavy generation worker to process this queue item.
         </p>

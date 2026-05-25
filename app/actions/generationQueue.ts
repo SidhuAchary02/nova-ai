@@ -65,6 +65,8 @@ function deriveQueueReason(input: {
   queueMessage?: string;
   failedReason?: string;
   workerMissing?: boolean;
+  state?: string;
+  hasProgress?: boolean;
 }): QueueStatusResult["queueReason"] {
   const text = `${input.queueMessage || ""} ${input.failedReason || ""}`
     .trim()
@@ -72,10 +74,24 @@ function deriveQueueReason(input: {
   if (text.includes("retry after 30 minutes") || text.includes("heavy load")) {
     return "daily_exhausted";
   }
-  if (input.workerMissing) return "worker_missing";
+  if (
+    input.workerMissing &&
+    input.state !== "active" &&
+    !input.hasProgress
+  ) return "worker_missing";
   if (text.includes("waiting for an available api key")) return "busy";
   if (text) return "failed";
   return undefined;
+}
+
+function hasStartedProgress(progress: unknown) {
+  if (!progress || typeof progress !== "object") return false;
+  const value = progress as { completed?: unknown; total?: unknown; status?: unknown };
+  return (
+    value.status === "generating" ||
+    (typeof value.completed === "number" && value.completed > 0) ||
+    (typeof value.total === "number" && value.total > 0)
+  );
 }
 
 export async function enqueueRoadmapGenerationAction(input: {
@@ -188,6 +204,8 @@ export async function getCourseGenerationQueueStatusAction(
         queueMessage: queueMessage.queueMessage,
         failedReason: status?.failedReason,
         workerMissing: status?.workerMissing,
+        state: status?.state,
+        hasProgress: hasStartedProgress(status?.progress),
       }),
     };
   } catch (error) {
@@ -226,6 +244,8 @@ export async function getRoadmapGenerationQueueStatusAction(
         queueMessage: queueMessage.queueMessage,
         failedReason: status.failedReason,
         workerMissing: status.workerMissing,
+        state: status.state,
+        hasProgress: hasStartedProgress(status.progress),
       }),
     };
   } catch (error) {
