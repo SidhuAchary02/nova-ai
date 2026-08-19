@@ -84,6 +84,90 @@ function limitSubtopics(subtopics?: string[]): string[] {
     .slice(0, 4);
 }
 
+function stringList(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => (typeof item === "string" ? item.trim() : "")).filter(Boolean)
+    : [];
+}
+
+function repairLearningStrategyShape(parsed: unknown): Record<string, unknown> {
+  const source = parsed && typeof parsed === "object" && !Array.isArray(parsed)
+    ? (parsed as Record<string, any>)
+    : {};
+
+  const phases = Array.isArray(source.phases) ? source.phases : [];
+
+  const repairedPhases = phases.map((phase: Record<string, any>, index: number) => ({
+    order: typeof phase.order === "number" ? phase.order : index + 1,
+    name: typeof phase.name === "string" && phase.name.trim() ? phase.name : `Phase ${index + 1}`,
+    durationDays: typeof phase.durationDays === "number" ? phase.durationDays : undefined,
+    objectives: stringList(phase.objectives),
+    chapters: Array.isArray(phase.chapters)
+      ? phase.chapters.map((chapter: Record<string, any>, chapterIndex: number) => ({
+          chapterName:
+            typeof chapter.chapterName === "string" && chapter.chapterName.trim()
+              ? chapter.chapterName
+              : `Chapter ${chapterIndex + 1}`,
+          durationDays:
+            typeof chapter.durationDays === "number" ? chapter.durationDays : undefined,
+          subtopics: limitSubtopics(stringList(chapter.subtopics)),
+          subchapters: Array.isArray(chapter.subchapters)
+            ? chapter.subchapters.map((subchapter: Record<string, any>, subchapterIndex: number) => ({
+                title:
+                  typeof subchapter.title === "string" && subchapter.title.trim()
+                    ? subchapter.title
+                    : `Subchapter ${subchapterIndex + 1}`,
+                durationDays:
+                  typeof subchapter.durationDays === "number"
+                    ? subchapter.durationDays
+                    : undefined,
+                subtopics: limitSubtopics(stringList(subchapter.subtopics)),
+              }))
+            : [],
+        }))
+      : [],
+  }));
+
+  const skillGraph = Array.isArray(source.skillGraph)
+    ? source.skillGraph
+    : repairedPhases.flatMap((phase: Record<string, any>) =>
+        (phase.chapters ?? []).flatMap((chapter: Record<string, any>) => {
+          const chapterSkills = stringList(chapter.subtopics);
+          const subchapterSkills = (chapter.subchapters ?? []).flatMap((subchapter: Record<string, any>) =>
+            stringList(subchapter.subtopics)
+          );
+          return [...chapterSkills, ...subchapterSkills];
+        })
+      ).filter((skill: string, index: number, skills: string[]) => skills.indexOf(skill) === index)
+        .map((skill: string, index: number) => ({ skill, order: index + 1 }));
+
+  const estimatedDaysPerPhase = Array.isArray(source.estimatedDaysPerPhase)
+    ? source.estimatedDaysPerPhase
+    : repairedPhases.map((phase: Record<string, any>) => ({
+        phaseOrder: typeof phase.order === "number" ? phase.order : 1,
+        days: typeof phase.durationDays === "number" ? phase.durationDays : 1,
+      }));
+
+  const estimatedTimelineDays =
+    typeof source.estimatedTimelineDays === "number"
+      ? source.estimatedTimelineDays
+      : estimatedDaysPerPhase.reduce(
+          (sum: number, phase: Record<string, any>) => sum + (typeof phase.days === "number" ? phase.days : 0),
+          0
+        ) || Math.max(1, repairedPhases.length);
+
+  return {
+    phases: repairedPhases,
+    skillGraph,
+    estimatedTimelineDays,
+    estimatedDaysPerPhase,
+    reasoning:
+      typeof source.reasoning === "string" && source.reasoning.trim()
+        ? source.reasoning
+        : "Generated roadmap based on the learner profile and topic scope.",
+  };
+}
+
 function normalizeStrategyTimeline(
   strategy: LearningStrategyOutput,
   timePerDayHours: number
@@ -238,7 +322,7 @@ Timeline rules:
     );
     const parsed = JSON.parse(raw);
     const strategy = normalizeStrategyTimeline(
-      learningStrategyOutputSchema.parse(parsed),
+      learningStrategyOutputSchema.parse(repairLearningStrategyShape(parsed)),
       ctx.timePerDayHours
     );
 

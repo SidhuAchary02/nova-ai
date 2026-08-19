@@ -1,19 +1,12 @@
 import { CourseType } from "@/types/types";
-import {
-  enqueueCourseGenerationAction,
-  getCourseGenerationQueueStatusAction,
-  type QueueStatusResult,
-} from "@/app/actions/generationQueue";
+import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
+import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type GenerateCourseContentOptions = {
   initialCount?: number;
   chapterIndex?: number;
   onProgress?: (completed: number, totalLessons: number, lessonName?: string) => void;
-  onQueueStatus?: (status: QueueStatusResult) => void;
 };
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const pollDelay = () => 7000 + Math.floor(Math.random() * 2000);
 
 function readProgress(progress: unknown) {
   if (!progress || typeof progress !== "object") return null;
@@ -30,20 +23,17 @@ function readProgress(progress: unknown) {
   };
 }
 
-function dailyExhaustedMessage(status: QueueStatusResult) {
-  if (status.queueReason !== "daily_exhausted") return null;
-  return (
-    status.queueMessage ||
-    "Our system is experiencing heavy load. Please retry after 30 minutes."
-  );
-}
+function selectedChapterJobs(course: CourseType, initialCount?: number, chapterIndex?: number) {
+  const courseOutput = parseCourseOutput(course.courseOutput);
+  const allChapters = courseOutput?.chapters || [];
 
-function queueErrorMessage(status: QueueStatusResult) {
-  if (status.queueReason === "daily_exhausted") return dailyExhaustedMessage(status);
-  if (status.queueReason === "worker_missing") {
-    return "Generation worker is not running. Please start the worker and try again.";
+  if (typeof chapterIndex === "number") {
+    const chapter = allChapters[chapterIndex];
+    return chapter ? [{ chapter, chapterIndex }] : [];
   }
-  return status.failedReason || null;
+
+  const count = initialCount && initialCount > 0 ? initialCount : allChapters.length;
+  return allChapters.slice(0, count).map((chapter, index) => ({ chapter, chapterIndex: index }));
 }
 
 export const generateCourseContent = async (
@@ -62,58 +52,48 @@ export const generateCourseContent = async (
       return { success: false, error: "Course owner not found" };
     }
 
-    const enqueueResult = await enqueueCourseGenerationAction({
-      courseId: course.courseId,
-      userEmail,
-      initialCount: options.initialCount,
-      chapterIndex: options.chapterIndex,
-    });
+    const jobs = selectedChapterJobs(course, options.initialCount, options.chapterIndex);
+    const totalLessons = jobs.reduce((sum, { chapter }) => sum + (chapter.subtopics?.length || 0), 0);
+    let completed = 0;
 
-    if (!enqueueResult.success || !enqueueResult.jobId) {
-      return {
-        success: false,
-        error: enqueueResult.error || "Failed to queue course generation",
-      };
-    }
+    for (const { chapter, chapterIndex } of jobs) {
+      const lessons: any[] = [];
+      const subtopics = chapter.subtopics || [];
 
-    for (;;) {
-      const status = await getCourseGenerationQueueStatusAction(course.courseId);
-      options.onQueueStatus?.(status);
+      for (const subtopicName of subtopics) {
+        options.onProgress?.(completed, totalLessons, subtopicName);
 
-      const progress = readProgress(status.progress);
-      if (progress && progress.total > 0) {
-        options.onProgress?.(
-          progress.completed,
-          progress.total,
-          progress.lessonName
+        const result = await generateSingleSubtopicLesson(
+          course.courseName,
+          chapter.chapterName,
+          subtopicName
+        );
+
+        completed += 1;
+        if (result.success) {
+          lessons.push(result.lesson);
+        } else {
+          console.warn("Subtopic generation failed:", subtopicName, result.error);
+        }
+      }
+
+      if (lessons.length > 0) {
+        await saveGroupedChapterLessons(
+          course.courseId,
+          course.courseName,
+          chapter.chapterName,
+          chapterIndex,
+          lessons
         );
       }
-
-      if (!status.success) {
-        return { success: false, error: status.error || "Failed to read queue status" };
-      }
-
-      if (status.state === "completed" || !status.jobId) {
-        return {
-          success: true,
-          successCount: status.chaptersGenerated || 0,
-          totalChapters: status.chaptersTotal || 0,
-          generatedChapters: status.chaptersGenerated || 0,
-        };
-      }
-
-      if (status.state === "failed") {
-        const specificMessage = queueErrorMessage(status);
-        return {
-          success: false,
-          error:
-            specificMessage ||
-            "We are experiencing high demand right now. Your progress has been saved. Please try again in 30 minutes.",
-        };
-      }
-
-      await sleep(pollDelay());
     }
+
+    return {
+      success: true,
+      successCount: completed,
+      totalChapters: jobs.length,
+      generatedChapters: jobs.length,
+    };
   } catch (e: unknown) {
     console.error("generateCourseContent queue wrapper crashed:", e);
     return { success: false, error: String(e) };

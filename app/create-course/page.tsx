@@ -13,11 +13,8 @@ import { CourseType, UserInputType } from "@/types/types";
 import { UserCourseListContext } from "../_context/UserCourseList.context";
 import { getUsersCoursesAction } from "../actions/getUsersCourses";
 import { supabase } from "@/configs/supabase";
+import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import { generateCourseLayoutAction } from "@/app/actions/generateCourseLayoutAction";
-import {
-  enqueueRoadmapGenerationAction,
-  getRoadmapGenerationQueueStatusAction,
-} from "@/app/actions/generationQueue";
 import type { LearningStrategyOutput } from "@/lib/validation/learningSchemas";
 import { hasCompleteLearningProfile } from "@/lib/learning/buildLearningContext";
 import { buildCourseOutputFromRoadmap } from "@/lib/learning/roadmapToCourseOutput";
@@ -25,26 +22,9 @@ import {
   getCourseGenerationAccessAction,
 } from "@/app/actions/courseGenerationAccess";
 import OutOfCreditsDialog from "@/components/common/OutOfCreditsDialog";
-import type { QueueStatusResult } from "@/app/actions/generationQueue";
 import {
   OUT_OF_CREDITS_ERROR,
 } from "@/configs/courseGenerationAccess";
-
-function queueFailureMessage(status: QueueStatusResult) {
-  if (status.queueReason === "daily_exhausted") {
-    return (
-      status.queueMessage ||
-      "Our system is experiencing heavy load. Please retry after 30 minutes."
-    );
-  }
-  if (status.queueReason === "worker_missing") {
-    return "Generation worker is not running. Please start the worker and try again.";
-  }
-
-  return status.failedReason || "Failed to generate roadmap";
-}
-
-const roadmapPollDelay = () => 7000 + Math.floor(Math.random() * 2000);
 
 const CreateCoursePage = () => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +34,6 @@ const CreateCoursePage = () => {
   const [learningStrategy, setLearningStrategy] =
     useState<LearningStrategyOutput | null>(null);
   const [outOfCreditsOpen, setOutOfCreditsOpen] = useState(false);
-  const [roadmapQueueStatus, setRoadmapQueueStatus] = useState<QueueStatusResult | null>(null);
 
   const { userInput, setUserInput } = useContext(UserInputContext);
   const { userCourseList, setUserCourseList } =
@@ -145,7 +124,6 @@ in JSON format.`;
     }
 
     setLoading(true);
-    setRoadmapQueueStatus(null);
     try {
       const { data } = await supabase.auth.getUser();
       const userEmail = data.user?.email ?? null;
@@ -154,49 +132,16 @@ in JSON format.`;
         return;
       }
 
-      const queueResult = await enqueueRoadmapGenerationAction({
-        userEmail,
-        userInput: input,
-      });
+      const result = await generateLearningStrategyAction(input);
 
-      if (!queueResult.success || !queueResult.jobId) {
-        alert(queueResult.error || "Failed to queue roadmap generation");
+      if (!result.success) {
+        alert(result.error || "Failed to generate roadmap");
         return;
       }
 
-      for (;;) {
-        const status = await getRoadmapGenerationQueueStatusAction(queueResult.jobId);
-        setRoadmapQueueStatus(status);
-
-        if (!status.success) {
-          alert(status.error || "Failed to read roadmap status");
-          return;
-        }
-
-        if (status.state === "completed") {
-          const result = status.result as
-            | { success: true; strategy: LearningStrategyOutput }
-            | { success: false; error: string }
-            | undefined;
-
-          if (!result?.success) {
-            alert(result?.error || "Failed to generate roadmap");
-            return;
-          }
-
-          setLearningStrategy(result.strategy);
-          setPhase("roadmap");
-          setReturningFromRoadmap(false);
-          break;
-        }
-
-        if (status.state === "failed") {
-          alert(queueFailureMessage(status));
-          return;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, roadmapPollDelay()));
-      }
+      setLearningStrategy(result.strategy);
+      setPhase("roadmap");
+      setReturningFromRoadmap(false);
     } catch (e) {
       console.error(e);
       alert("Failed to generate roadmap");
@@ -305,7 +250,6 @@ in JSON format.`;
         <LoadingDialog
           loading={loading}
           variant="roadmap"
-          queueStatus={roadmapQueueStatus}
         />
         <OutOfCreditsDialog
           open={outOfCreditsOpen}
@@ -343,7 +287,7 @@ in JSON format.`;
         </div>
       </div>
 
-      <LoadingDialog loading={loading} variant="roadmap" queueStatus={roadmapQueueStatus} />
+      <LoadingDialog loading={loading} variant="roadmap" />
       <OutOfCreditsDialog
         open={outOfCreditsOpen}
         onOpenChange={setOutOfCreditsOpen}
