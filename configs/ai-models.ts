@@ -12,9 +12,9 @@ import {
 } from "@/lib/ai/groqKeyManager";
 
 export const GROQ_MODELS = {
-  heavy: "llama-3.3-70b-versatile",
-  lesson: "meta-llama/llama-4-scout-17b-16e-instruct",
-  light: "llama-3.1-8b-instant",
+  heavy: "openai/gpt-oss-120b",
+  lesson: "qwen/qwen3.6-27b",
+  light: "openai/gpt-oss-20b",
 } as const;
 
 export const GROQ_MODEL = GROQ_MODELS.heavy;

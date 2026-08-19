@@ -74,12 +74,16 @@ export function getConfiguredHeavyKeyCount() {
 }
 
 export function getGroqModelLimits(model: string) {
-  if (model === "meta-llama/llama-4-scout-17b-16e-instruct") {
+  if (model === "qwen/qwen3.6-27b") {
     return { requestsPerMinute: 30, tokensPerMinute: 30_000, tokensPerDay: 500_000 };
   }
 
-  if (model === "llama-3.1-8b-instant") {
+  if (model === "openai/gpt-oss-20b") {
     return { requestsPerMinute: 30, tokensPerMinute: 6_000, tokensPerDay: 500_000 };
+  }
+
+  if (model === "openai/gpt-oss-120b") {
+    return { requestsPerMinute: 30, tokensPerMinute: 12_000, tokensPerDay: 100_000 };
   }
 
   return { requestsPerMinute: 30, tokensPerMinute: 12_000, tokensPerDay: 100_000 };
@@ -87,8 +91,8 @@ export function getGroqModelLimits(model: string) {
 
 function candidateModel(candidate: KeyCandidate) {
   return candidate.pool === "light"
-    ? "llama-3.1-8b-instant"
-    : "meta-llama/llama-4-scout-17b-16e-instruct";
+    ? "openai/gpt-oss-20b"
+    : "openai/gpt-oss-120b";
 }
 
 function dailyBudgetRemaining(candidate: KeyCandidate, dailyTokensUsed: number) {
