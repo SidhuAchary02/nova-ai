@@ -51,7 +51,7 @@ export function buildHeavyGenerationJobId(data: HeavyGenerationJobData) {
       userInput: data.userInput,
     });
 
-    return `roadmap:${createHash("sha1").update(signature).digest("hex")}`;
+    return `roadmap-${createHash("sha1").update(signature).digest("hex")}`;
   }
 
   return [
@@ -60,7 +60,7 @@ export function buildHeavyGenerationJobId(data: HeavyGenerationJobData) {
     data.taskType,
     data.chapterIndex ?? "all",
     data.initialCount ?? "all",
-  ].join(":");
+  ].join("-");
 }
 
 // Queue producer: this is the only place the web app should touch BullMQ enqueue logic.
@@ -76,6 +76,6 @@ export async function enqueueHeavyGenerationJob(data: HeavyGenerationJobData) {
     }
   }
 
-  const jobId = existingJob ? `${baseJobId}:${Date.now().toString(36)}` : baseJobId;
+  const jobId = existingJob ? `${baseJobId}-${Date.now().toString(36)}` : baseJobId;
   return queue.add(data.taskType, data, { jobId });
 }
