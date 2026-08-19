@@ -1,7 +1,7 @@
 import { db } from "@/configs/db";
 import { CourseList } from "@/schema/schema";
 import { eq } from "drizzle-orm";
-import { getHeavyGenerationQueue } from "@/lib/queue/heavyGenerationQueue";
+import { getHeavyGenerationJobRecord } from "@/lib/queue/heavyGenerationQueue";
 
 export type HeavyGenerationJobStatus = {
   jobId?: string;
@@ -28,31 +28,22 @@ export async function getHeavyGenerationJobStatus(
 ): Promise<HeavyGenerationJobStatus | null> {
   if (!jobId) return null;
 
-  const queue = getHeavyGenerationQueue();
-  const job = await queue.getJob(jobId);
+  const job = getHeavyGenerationJobRecord(jobId);
   if (!job) return null;
 
-  const state = await job.getState();
+  const state = job.state;
   const progress = job.progress;
-  const workerCount = await queue.getWorkersCount();
-
-  let position = -1;
-  if (state === "waiting" || state === "delayed") {
-    const [waiting, delayed] = await Promise.all([queue.getWaiting(), queue.getDelayed()]);
-    const queuedJobs = [...waiting, ...delayed];
-    position = queuedJobs.findIndex((queuedJob) => queuedJob.id === job.id);
-  }
 
   return {
     jobId: job.id,
     state,
-    position: position >= 0 ? position + 1 : 0,
-    estimatedWaitSeconds: Math.max(0, position + 1) * 120,
+    position: state === "waiting" ? 1 : 0,
+    estimatedWaitSeconds: 0,
     progress,
     failedReason: job.failedReason,
     returnvalue: job.returnvalue,
-    workerCount,
-    workerMissing: workerCount === 0 && ["waiting", "delayed", "active"].includes(state),
+    workerCount: 1,
+    workerMissing: false,
   };
 }
 

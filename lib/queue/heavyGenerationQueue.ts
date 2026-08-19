@@ -1,11 +1,22 @@
-import { Queue } from "bullmq";
 import { createHash } from "node:crypto";
-import { getRedisConnection } from "@/lib/redis";
 import type { HeavyGenerationJobData } from "@/lib/jobs/heavy-generation";
+import type { HeavyGenerationJobLike } from "@/lib/jobs/heavy-generation";
 
 export const HEAVY_GENERATION_QUEUE_NAME = "heavy-generation";
 
-let heavyGenerationQueue: Queue<HeavyGenerationJobData> | null = null;
+type LocalJobState = "waiting" | "active" | "completed" | "failed";
+
+type LocalJobRecord = {
+  id: string;
+  data: HeavyGenerationJobData;
+  state: LocalJobState;
+  progress?: unknown;
+  failedReason?: string;
+  returnvalue?: unknown;
+  createdAt: number;
+};
+
+const localJobs = new Map<string, LocalJobRecord>();
 
 function stableStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -25,23 +36,44 @@ function stableStringify(value: unknown): string {
   return JSON.stringify(value);
 }
 
-export function getHeavyGenerationQueue() {
-  if (heavyGenerationQueue) return heavyGenerationQueue;
-
-  heavyGenerationQueue = new Queue<HeavyGenerationJobData>(HEAVY_GENERATION_QUEUE_NAME, {
-    connection: getRedisConnection(),
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: "exponential",
-        delay: 1000,
-      },
-      removeOnComplete: { count: 100 },
-      removeOnFail: { count: 200 },
+function createLocalJobHandle(record: LocalJobRecord): HeavyGenerationJobLike {
+  return {
+    id: record.id,
+    data: record.data,
+    get progress() {
+      return record.progress;
     },
-  });
+    get failedReason() {
+      return record.failedReason;
+    },
+    get returnvalue() {
+      return record.returnvalue;
+    },
+    async updateProgress(progress: unknown) {
+      record.progress = progress;
+    },
+  };
+}
 
-  return heavyGenerationQueue;
+export function getHeavyGenerationJobRecord(jobId: string) {
+  return localJobs.get(jobId) || null;
+}
+
+async function runLocalJob(jobId: string) {
+  const record = localJobs.get(jobId);
+  if (!record || record.state !== "waiting") return;
+
+  record.state = "active";
+  const job = createLocalJobHandle(record);
+
+  try {
+    const { processHeavyGenerationJob } = await import("@/lib/jobs/heavy-generation");
+    record.returnvalue = await processHeavyGenerationJob(job);
+    record.state = "completed";
+  } catch (error) {
+    record.state = "failed";
+    record.failedReason = error instanceof Error ? error.message : String(error);
+  }
 }
 
 export function buildHeavyGenerationJobId(data: HeavyGenerationJobData) {
@@ -63,19 +95,25 @@ export function buildHeavyGenerationJobId(data: HeavyGenerationJobData) {
   ].join("-");
 }
 
-// Queue producer: this is the only place the web app should touch BullMQ enqueue logic.
 export async function enqueueHeavyGenerationJob(data: HeavyGenerationJobData) {
-  const queue = getHeavyGenerationQueue();
   const baseJobId = buildHeavyGenerationJobId(data);
-  const existingJob = await queue.getJob(baseJobId);
+  const existingJob = localJobs.get(baseJobId);
 
   if (existingJob) {
-    const state = await existingJob.getState();
-    if (["waiting", "delayed", "active"].includes(state)) {
-      return existingJob;
+    if (["waiting", "active"].includes(existingJob.state)) {
+      return createLocalJobHandle(existingJob);
     }
   }
 
   const jobId = existingJob ? `${baseJobId}-${Date.now().toString(36)}` : baseJobId;
-  return queue.add(data.taskType, data, { jobId });
+  localJobs.set(jobId, {
+    id: jobId,
+    data,
+    state: "waiting",
+    createdAt: Date.now(),
+  });
+
+  void runLocalJob(jobId);
+
+  return createLocalJobHandle(localJobs.get(jobId)!);
 }

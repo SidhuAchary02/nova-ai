@@ -1,4 +1,3 @@
-import { type Job } from "bullmq";
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
@@ -14,6 +13,15 @@ import { sendApiKeysExhaustedAlert } from "@/lib/notifications/adminAlerts";
 import { generateLearningStrategyAction } from "@/app/actions/generateLearningStrategy";
 import type { CourseType, UserInputType } from "@/types/types";
 import { updateCourseGenerationState } from "@/lib/services/generation-status";
+
+export type HeavyGenerationJobLike<TData = HeavyGenerationJobData> = {
+  id: string;
+  data: TData;
+  progress?: unknown;
+  failedReason?: string;
+  returnvalue?: unknown;
+  updateProgress(progress: unknown): Promise<void>;
+};
 
 export type CourseGenerationJobData = {
   courseId: string;
@@ -57,7 +65,7 @@ async function selectedChapterJobs(course: CourseType, data: CourseGenerationJob
     .filter(({ chapterIndex }: { chapterIndex: number }) => !generatedSet.has(chapterIndex));
 }
 
-async function waitForHeavyGroqLease(job: Job<HeavyGenerationJobData>, lessonName: string) {
+async function waitForHeavyGroqLease(job: HeavyGenerationJobLike<HeavyGenerationJobData>, lessonName: string) {
   if (getConfiguredHeavyKeyCount() === 0) {
     throw new Error("No Groq API keys are configured for heavy generation");
   }
@@ -78,7 +86,7 @@ async function waitForHeavyGroqLease(job: Job<HeavyGenerationJobData>, lessonNam
 }
 
 async function runWithHeavyGroqLease<T>(
-  job: Job<HeavyGenerationJobData>,
+  job: HeavyGenerationJobLike<HeavyGenerationJobData>,
   lessonName: string,
   operation: (leasedKey: LeasedGroqKey) => Promise<T>
 ) {
@@ -106,7 +114,7 @@ async function runWithHeavyGroqLease<T>(
   }
 }
 
-async function runRoadmapJob(job: Job<RoadmapGenerationJobData>) {
+async function runRoadmapJob(job: HeavyGenerationJobLike<RoadmapGenerationJobData>) {
   const { userInput } = job.data;
 
   await job.updateProgress({
@@ -130,7 +138,7 @@ async function runRoadmapJob(job: Job<RoadmapGenerationJobData>) {
   return result;
 }
 
-async function runCourseJob(job: Job<CourseGenerationJobData>) {
+async function runCourseJob(job: HeavyGenerationJobLike<CourseGenerationJobData>) {
   const { courseId, userEmail, taskType } = job.data;
 
   await updateCourseGenerationState(courseId, {
@@ -221,10 +229,10 @@ async function runCourseJob(job: Job<CourseGenerationJobData>) {
   }
 }
 
-export async function processHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
+export async function processHeavyGenerationJob(job: HeavyGenerationJobLike<HeavyGenerationJobData>) {
   if (job.data.taskType === "roadmap") {
-    return runRoadmapJob(job as Job<RoadmapGenerationJobData>);
+    return runRoadmapJob(job as HeavyGenerationJobLike<RoadmapGenerationJobData>);
   }
 
-  return runCourseJob(job as Job<CourseGenerationJobData>);
+  return runCourseJob(job as HeavyGenerationJobLike<CourseGenerationJobData>);
 }
