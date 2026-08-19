@@ -134,7 +134,8 @@ export async function enqueueCourseGenerationAction(input: {
 
     if (course.queueJobId) {
       const existing = await getHeavyGenerationJobStatus(course.queueJobId);
-      if (existing && ["waiting", "delayed", "active"].includes(existing.state)) {
+      const existingState = existing?.state;
+      if (existing && existingState && ["waiting", "delayed", "active"].includes(existingState)) {
         return { success: true, jobId: course.queueJobId };
       }
     }
