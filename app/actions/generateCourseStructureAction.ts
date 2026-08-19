@@ -23,6 +23,13 @@ export async function generateCourseStructureAction(
   strategy: LearningStrategyOutput
 ): Promise<GenerateCourseStructureResult> {
   try {
+    if (process.env.VERCEL === "1") {
+      return {
+        success: false,
+        error: "Legacy course structure generation is disabled in Vercel. Use the queue-backed workflow.",
+      };
+    }
+
     console.log("==> generateCourseStructureAction initiated");
     
     // Safely fallback fields

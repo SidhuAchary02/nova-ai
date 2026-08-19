@@ -315,7 +315,9 @@ in JSON format.`;
     );
   }
 
-  const showLegacy = process.env.NEXT_PUBLIC_USE_LEGACY_COURSE_LAYOUT === "true";
+  const showLegacy =
+    process.env.NODE_ENV === "development" &&
+    process.env.NEXT_PUBLIC_USE_LEGACY_COURSE_LAYOUT === "true";
 
   return (
     <div className="min-h-screen pb-16">

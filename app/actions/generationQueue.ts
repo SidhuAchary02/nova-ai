@@ -3,10 +3,12 @@
 import { db } from "@/configs/db";
 import { CourseList } from "@/schema/schema";
 import { eq } from "drizzle-orm";
+import { enqueueHeavyGenerationJob } from "@/lib/queue/heavyGenerationQueue";
 import {
-  enqueueHeavyGenerationJob,
+  getCourseGenerationState,
   getHeavyGenerationJobStatus,
-} from "@/lib/queue/heavyGenerationQueue";
+  updateCourseGenerationState,
+} from "@/lib/services/generation-status";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 import type { UserInputType } from "@/types/types";
 
@@ -140,13 +142,10 @@ export async function enqueueCourseGenerationAction(input: {
     const output = parseCourseOutput(course.courseOutput as any);
     const chaptersTotal = output?.chapters?.length || 0;
 
-    await db
-      .update(CourseList)
-      .set({
-        chaptersTotal,
-        generationStatus: "queued",
-      })
-      .where(eq(CourseList.courseId, input.courseId));
+    await updateCourseGenerationState(input.courseId, {
+      chaptersTotal,
+      generationStatus: "queued",
+    });
 
     const job = await enqueueHeavyGenerationJob({
       courseId: input.courseId,
@@ -169,15 +168,7 @@ export async function getCourseGenerationQueueStatusAction(
   courseId: string
 ): Promise<QueueStatusResult> {
   try {
-    const [course] = await db
-      .select({
-        queueJobId: CourseList.queueJobId,
-        generationStatus: CourseList.generationStatus,
-        chaptersGenerated: CourseList.chaptersGenerated,
-        chaptersTotal: CourseList.chaptersTotal,
-      })
-      .from(CourseList)
-      .where(eq(CourseList.courseId, courseId));
+    const course = await getCourseGenerationState(courseId);
 
     if (!course) return { success: false, error: "Course not found" };
 
