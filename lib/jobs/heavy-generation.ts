@@ -223,8 +223,8 @@ async function runCourseJob(job: Job<CourseGenerationJobData>) {
 
 export async function processHeavyGenerationJob(job: Job<HeavyGenerationJobData>) {
   if (job.data.taskType === "roadmap") {
-    return runRoadmapJob(job);
+    return runRoadmapJob(job as Job<RoadmapGenerationJobData>);
   }
 
-  return runCourseJob(job);
+  return runCourseJob(job as Job<CourseGenerationJobData>);
 }
