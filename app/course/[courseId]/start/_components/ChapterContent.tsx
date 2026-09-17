@@ -246,8 +246,20 @@ const ChapterContent = ({
     return Array.isArray(contentData) ? contentData : [];
   }, [content?.content]);
 
+  const requestedSubtopic = chapter?.subtopics?.[subtopicIndex]?.trim().toLowerCase();
+  const titledLessonIndex = requestedSubtopic
+    ? lessons.findIndex((lesson) => {
+        if (!lesson || typeof lesson !== "object") return false;
+        const title = (lesson as { title?: unknown }).title;
+        return typeof title === "string" && title.trim().toLowerCase() === requestedSubtopic;
+      })
+    : -1;
   const selectedLessonIndex =
-    lessons.length > 0 && lessons[subtopicIndex] ? subtopicIndex : 0;
+    titledLessonIndex >= 0
+      ? titledLessonIndex
+      : lessons.length > 0 && lessons[subtopicIndex]
+        ? subtopicIndex
+        : 0;
   const visibleLessons =
     lessons.length > 0
       ? [{ lesson: lessons[selectedLessonIndex], lessonIndex: selectedLessonIndex }]

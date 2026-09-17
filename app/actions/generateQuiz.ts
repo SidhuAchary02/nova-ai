@@ -16,23 +16,30 @@ export const generateQuizAction = async (
   chapterContent: string
 ): Promise<QuizQuestion[]> => {
   try {
-    const userPrompt = `You are an expert educator creating a quiz to test understanding of course content.
+    if (!chapterContent.trim()) {
+      throw new Error("Chapter content is empty; cannot generate a quiz");
+    }
+
+    const compactChapterContent = chapterContent
+      .replace(/```mermaid[\s\S]*?```/gi, "")
+      .replace(/```[\s\S]*?```/g, "")
+      .slice(0, 14000);
+
+    const userPrompt = `Create a concise quiz from the chapter content below.
 
 Course: "${courseName}"
 Chapter: "${chapterName}"
 
 Chapter Content:
-${chapterContent}
+${compactChapterContent}
 
 Create exactly 5 multiple-choice questions to assess the student's understanding of this chapter content.
 
-IMPORTANT:
-1. Questions should be directly based on the chapter content
-2. Make questions clear and specific
-3. Create 4 options (A, B, C, D) for each question
-4. Only one option should be correct
-5. Include explanations for why the correct answer is right
-6. Difficulty should be moderate (not too easy, not too hard)
+Rules:
+- Questions must be directly based on the chapter content.
+- Create 4 options and only one correct answer.
+- Keep each explanation to one concise sentence.
+- Use moderate difficulty.
 
 Return JSON with a "questions" array of 5 objects with keys: question, options (4 strings), correctAnswer (0-3), explanation.`;
 

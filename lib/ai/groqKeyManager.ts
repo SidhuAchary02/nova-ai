@@ -74,16 +74,16 @@ export function getConfiguredHeavyKeyCount() {
 }
 
 export function getGroqModelLimits(model: string) {
-  if (model === "qwen/qwen3.6-27b") {
-    return { requestsPerMinute: 30, tokensPerMinute: 30_000, tokensPerDay: 500_000 };
+  if (model === "groq/compound") {
+    return { requestsPerMinute: 30, tokensPerMinute: 8_000, tokensPerDay: 200_000 };
   }
 
   if (model === "openai/gpt-oss-20b") {
-    return { requestsPerMinute: 30, tokensPerMinute: 6_000, tokensPerDay: 500_000 };
+    return { requestsPerMinute: 30, tokensPerMinute: 8_000, tokensPerDay: 200_000 };
   }
 
   if (model === "openai/gpt-oss-120b") {
-    return { requestsPerMinute: 30, tokensPerMinute: 12_000, tokensPerDay: 100_000 };
+    return { requestsPerMinute: 30, tokensPerMinute: 8_000, tokensPerDay: 200_000 };
   }
 
   return { requestsPerMinute: 30, tokensPerMinute: 12_000, tokensPerDay: 100_000 };
@@ -131,15 +131,16 @@ async function resetIfExpired(candidate: KeyCandidate) {
   const resetDaily = now - new Date(row.lastReset).getTime() >= 24 * 60 * 60 * 1000;
   const cooldownExpired =
     row.cooldownUntil && new Date(row.cooldownUntil).getTime() <= now;
+  const invalidCooldown = row.status === "cooldown" && !row.cooldownUntil;
   const minuteExpired = now - new Date(row.minuteResetAt).getTime() >= 60 * 1000;
   const leaseExpired =
     row.leasedUntil && new Date(row.leasedUntil).getTime() <= now;
 
-  if (resetDaily || cooldownExpired || minuteExpired || leaseExpired) {
+  if (resetDaily || cooldownExpired || invalidCooldown || minuteExpired || leaseExpired) {
     const nextStatus =
       row.status === "failed"
         ? "failed"
-        : resetDaily || cooldownExpired
+        : resetDaily || cooldownExpired || invalidCooldown
           ? "active"
           : row.status;
 
@@ -205,7 +206,7 @@ async function markKey(candidate: KeyCandidate, status: GroqKeyStatus) {
   const now = new Date();
   const cooldownUntil =
     status === "cooldown"
-      ? new Date(Date.now() + 60 * 60 * 1000)
+      ? new Date(Date.now() + 60 * 1000)
       : status === "exhausted"
         ? new Date(Date.now() + 24 * 60 * 60 * 1000)
         : null;

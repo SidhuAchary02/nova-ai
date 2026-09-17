@@ -13,7 +13,7 @@ import {
 
 export const GROQ_MODELS = {
   heavy: "openai/gpt-oss-120b",
-  lesson: "qwen/qwen3.6-27b",
+  lesson: "groq/compound",
   light: "openai/gpt-oss-20b",
 } as const;
 

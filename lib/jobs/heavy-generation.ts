@@ -1,6 +1,7 @@
 import { getCourseByIdPublicAction } from "@/app/actions/getCourseByIdPublic";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
-import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
+import { saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
+import { generateChapterLessonsBatch } from "@/lib/jobs/chapterLessons";
 import { getGeneratedChapterIdsAction } from "@/app/actions/getCourseChapterProgress";
 import {
   acquireHeavyGroqKeyLease,
@@ -39,7 +40,6 @@ export type RoadmapGenerationJobData = {
 
 export type HeavyGenerationJobData = CourseGenerationJobData | RoadmapGenerationJobData;
 
-const SUBTOPIC_CONCURRENCY = 1;
 const KEY_WAIT_MS = 5000;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -150,56 +150,68 @@ async function runCourseJob(job: HeavyGenerationJobLike<CourseGenerationJobData>
     const course = (await getCourseByIdPublicAction(courseId, userEmail)) as CourseType | null;
     if (!course) throw new Error("Course not found");
 
+    const courseOutput = parseCourseOutput(course.courseOutput);
+    const allChapters = courseOutput?.chapters || [];
+    const generatedProgress = await getGeneratedChapterIdsAction(course.courseId);
+    const generatedSet = new Set(
+      generatedProgress.success ? generatedProgress.chapterIds : []
+    );
+    const targetChapterIndexes =
+      typeof job.data.chapterIndex === "number"
+        ? [job.data.chapterIndex]
+        : allChapters
+            .slice(0, job.data.initialCount && job.data.initialCount > 0
+              ? job.data.initialCount
+              : allChapters.length)
+            .map((_, index) => index);
     const jobs = await selectedChapterJobs(course, job.data);
-    let completed = 0;
-    const total = jobs.reduce((sum, { chapter }) => sum + (chapter.subtopics?.length || 0), 0);
+    let completed = targetChapterIndexes.filter((index) => generatedSet.has(index)).length;
+    const total = targetChapterIndexes.length;
 
     for (const { chapter, chapterIndex } of jobs) {
-      const lessons: any[] = [];
       const subtopics = chapter.subtopics || [];
 
-      for (let i = 0; i < subtopics.length; i += SUBTOPIC_CONCURRENCY) {
-        const batch = subtopics.slice(i, i + SUBTOPIC_CONCURRENCY);
+      await job.updateProgress({
+        status: "generating",
+        completed,
+        total,
+        lessonName: `Chapter ${chapterIndex + 1}: ${chapter.chapterName}`,
+      });
 
-        const results = await Promise.all(
-          batch.map(async (subtopicName: string) => {
-            await job.updateProgress({
-              status: "generating",
-              completed,
-              total,
-              lessonName: subtopicName,
-            });
+      const result = await runWithHeavyGroqLease(
+        job,
+        chapter.chapterName,
+        (leasedKey) => generateChapterLessonsBatch(
+          course.courseName,
+          chapter.chapterName,
+          subtopics,
+          leasedKey
+        )
+      );
 
-            return runWithHeavyGroqLease(job, subtopicName, (leasedKey) =>
-              generateSingleSubtopicLesson(course.courseName, chapter.chapterName, subtopicName, leasedKey)
-            );
-          })
-        );
-
-        results.forEach((result, index) => {
-          completed += 1;
-          if (result.success) {
-            lessons.push(result.lesson);
-          } else {
-            console.warn("Subtopic generation failed:", batch[index], result.error);
-          }
-        });
-      }
-
-      if (lessons.length > 0) {
+      if (result.success && result.lessons.length > 0) {
         await saveGroupedChapterLessons(
           course.courseId,
           course.courseName,
           chapter.chapterName,
           chapterIndex,
-          lessons
+          result.lessons
         );
+        completed += 1;
+        await job.updateProgress({
+          status: "generating",
+          completed,
+          total,
+          lessonName: `Chapter ${chapterIndex + 1} complete`,
+        });
+      } else {
+        throw new Error(result.error || `No lessons generated for chapter ${chapterIndex + 1}`);
       }
     }
 
     const progress = await getGeneratedChapterIdsAction(courseId);
-    const courseOutput = parseCourseOutput(course.courseOutput);
-    const totalChapters = courseOutput?.chapters?.length || 0;
+    const finalCourseOutput = parseCourseOutput(course.courseOutput);
+    const totalChapters = finalCourseOutput?.chapters?.length || 0;
     const generatedCount = progress.success ? progress.chapterIds.length : 0;
 
     await updateCourseGenerationState(courseId, {

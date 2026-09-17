@@ -107,7 +107,15 @@ export default function CourseLearningChatbot({
   const latestUserRef = useRef<HTMLDivElement | null>(null);
 
   const lessons = useMemo(() => getContentArray(chapterContent), [chapterContent]);
-  const lesson = lessons[selectedSubtopicIndex] ?? lessons[0];
+  const requestedSubtopic = chapter?.subtopics?.[selectedSubtopicIndex]?.trim().toLowerCase();
+  const titledLesson = requestedSubtopic
+    ? lessons.find((candidate) => {
+        if (!candidate || typeof candidate !== "object") return false;
+        const title = (candidate as Record<string, unknown>).title;
+        return typeof title === "string" && title.trim().toLowerCase() === requestedSubtopic;
+      })
+    : undefined;
+  const lesson = titledLesson ?? lessons[selectedSubtopicIndex] ?? lessons[0];
   const subtopicTitle = getLessonTitle(
     lesson,
     chapter?.subtopics?.[selectedSubtopicIndex]

@@ -277,10 +277,24 @@ const CourseStart = ({ params }: CourseStartProps) => {
 
     setLoadingQuiz(true);
     try {
-      // Extract content text for quiz generation
+      // Support current markdown lessons and older structured lesson records.
       const contentText = chapterContent.content
-        .map((section: any) => `${section.title}: ${section.explanation}`)
+        .map((section: any) => {
+          if (typeof section === "string") return section;
+          if (typeof section?.content === "string") {
+            return `${section.title || "Lesson"}: ${section.content}`;
+          }
+          return `${section?.title || "Lesson"}: ${
+            section?.explanation || section?.deep_explanation || section?.body || ""
+          }`;
+        })
+        .filter((section: string) => section.trim().length > 0)
         .join("\n\n");
+
+      if (!contentText.trim()) {
+        alert("Quiz content is not available for this chapter yet. Generate the chapter content first.");
+        return;
+      }
 
       const questions = await generateQuizAction(
         selectedChapter.chapterName,
@@ -379,7 +393,6 @@ const CourseStart = ({ params }: CourseStartProps) => {
     try {
       const result = await generateCourseContent(course, setGeneratingChapter, {
         chapterIndex: selectedChapterIndex,
-        onQueueStatus: setQueueStatus,
       });
 
       if (!result.success) {
@@ -825,7 +838,7 @@ const CourseStart = ({ params }: CourseStartProps) => {
                   </h2>
                   
                   <p className="text-lg text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto mb-12 relative z-10">
-                    has successfully completed the course <strong className="text-gray-900 dark:text-white">"{course?.courseName}"</strong> by securing <strong>92%</strong> in the final assessment, which took <strong>3 weeks</strong> and covered comprehensive topics around <span className="capitalize">{course?.category || courseOutput?.topic}</span>.
+                    has successfully completed the course <strong className="text-gray-900 dark:text-white">&quot;{course?.courseName}&quot;</strong> by securing <strong>92%</strong> in the final assessment, which took <strong>3 weeks</strong> and covered comprehensive topics around <span className="capitalize">{course?.category || courseOutput?.topic}</span>.
                   </p>
                   
                   <div className="flex flex-col sm:flex-row justify-between items-center sm:items-end mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 relative z-10 gap-6">

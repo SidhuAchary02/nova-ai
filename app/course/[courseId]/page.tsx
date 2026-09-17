@@ -259,7 +259,6 @@ export default function CoursePage({ params }: CourseParams) {
     try {
       const result = await generateCourseContent(course, setLoading, {
         initialCount: 3,
-        onQueueStatus: setQueueStatus,
         onProgress: (completed, total, lessonName) => {
           setGenProgress(completed);
           setGenTotal(total);

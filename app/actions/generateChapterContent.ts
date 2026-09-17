@@ -218,8 +218,8 @@ export async function saveGroupedChapterLessons(
           tasks: [taskText],
           note: "Small, hands-on exercise to reinforce the chapter concept.",
         };
-        const insertAt = Math.min(lessons.length, Math.max(1, Math.floor(Math.random() * (lessons.length + 1))));
-        lessons.splice(insertAt, 0, { title: `Practice — ${chapterName}`, blocks: [practiceBlock] });
+        // Keep generated lessons aligned with chapter.subtopics indexes.
+        lessons.push({ title: `Practice — ${chapterName}`, blocks: [practiceBlock] });
       } catch (e) {
         console.warn("Practice task generation failed:", e);
       }

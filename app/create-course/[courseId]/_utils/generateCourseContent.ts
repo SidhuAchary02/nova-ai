@@ -1,5 +1,5 @@
 import { CourseType } from "@/types/types";
-import { generateSingleSubtopicLesson, saveGroupedChapterLessons } from "@/app/actions/generateChapterContent";
+import { enqueueCourseGenerationAction } from "@/app/actions/generationQueue";
 import { parseCourseOutput } from "@/utils/parseCourseOutput";
 
 type GenerateCourseContentOptions = {
@@ -52,47 +52,23 @@ export const generateCourseContent = async (
       return { success: false, error: "Course owner not found" };
     }
 
-    const jobs = selectedChapterJobs(course, options.initialCount, options.chapterIndex);
-    const totalLessons = jobs.reduce((sum, { chapter }) => sum + (chapter.subtopics?.length || 0), 0);
-    let completed = 0;
+    const result = await enqueueCourseGenerationAction({
+      courseId: course.courseId,
+      userEmail,
+      initialCount: options.initialCount,
+      chapterIndex: options.chapterIndex,
+    });
 
-    for (const { chapter, chapterIndex } of jobs) {
-      const lessons: any[] = [];
-      const subtopics = chapter.subtopics || [];
-
-      for (const subtopicName of subtopics) {
-        options.onProgress?.(completed, totalLessons, subtopicName);
-
-        const result = await generateSingleSubtopicLesson(
-          course.courseName,
-          chapter.chapterName,
-          subtopicName
-        );
-
-        completed += 1;
-        if (result.success) {
-          lessons.push(result.lesson);
-        } else {
-          console.warn("Subtopic generation failed:", subtopicName, result.error);
-        }
-      }
-
-      if (lessons.length > 0) {
-        await saveGroupedChapterLessons(
-          course.courseId,
-          course.courseName,
-          chapter.chapterName,
-          chapterIndex,
-          lessons
-        );
-      }
+    if (!result.success) {
+      return { success: false as const, error: result.error || "Failed to enqueue course generation" };
     }
 
     return {
-      success: true,
-      successCount: completed,
-      totalChapters: jobs.length,
-      generatedChapters: jobs.length,
+      success: true as const,
+      successCount: 0,
+      totalChapters: options.chapterIndex === undefined ? options.initialCount || 0 : 1,
+      generatedChapters: 0,
+      jobId: result.jobId,
     };
   } catch (e: unknown) {
     console.error("generateCourseContent queue wrapper crashed:", e);

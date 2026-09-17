@@ -183,7 +183,7 @@ function CourseLoader({
     ? progressLesson
     : COURSE_MESSAGES[msgIdx];
   const subMsg = hasReal
-    ? `${progress} of ${progressTotal} lessons complete`
+    ? `${progress} of ${progressTotal} chapters complete`
     : "Building your course";
 
   return (
@@ -237,7 +237,7 @@ function CourseLoader({
       </div>
 
       <p className="text-center text-xs text-nova-body/50">
-        This may take a moment — we're crafting something great
+        This may take a moment — we&apos;re crafting something great
       </p>
     </div>
   );

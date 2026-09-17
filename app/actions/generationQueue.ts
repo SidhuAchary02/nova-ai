@@ -174,6 +174,21 @@ export async function getCourseGenerationQueueStatusAction(
     if (!course) return { success: false, error: "Course not found" };
 
     const status = await getHeavyGenerationJobStatus(course.queueJobId);
+    if (!status) {
+      await updateCourseGenerationState(courseId, {
+        generationStatus: "failed",
+        queueJobId: null,
+      });
+
+      return {
+        success: false,
+        error: "The course generation job is no longer available. Please retry generation.",
+        courseStatus: "failed",
+        queueReason: "worker_missing",
+        workerMissing: true,
+      };
+    }
+
     const queueMessage = readQueueMessage(status?.progress);
 
     return {
