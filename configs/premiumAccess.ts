@@ -3,11 +3,11 @@
  * Add more premium users here as: normalized email -> allowed total course count.
  */
 export const PREMIUM_USER_COURSE_LIMITS: Record<string, number> = {
-  "vivek.17332@sakec.ac.in": 15,
-  "anshulc4444@gmail.com": 20,
+  "vivek.17332@sakec.ac.in": 50,
+  "anshulc4444@gmail.com": 30,
   "siddhuachary2005@gmail.com": 10,
-  "vivpakate@gmail.com": 5,
-  "akatevivek@gmail.com": 5,
+  "vivpakate@gmail.com": 50,
+  "akatevivek@gmail.com": 50,
   "daroro9215@okcpress.com": 5,
   "recafo5430@gzeos.com": 5,
 
