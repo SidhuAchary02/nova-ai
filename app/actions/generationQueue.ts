@@ -166,14 +166,16 @@ export async function enqueueCourseGenerationAction(input: {
 }
 
 export async function getCourseGenerationQueueStatusAction(
-  courseId: string
+  courseId: string,
+  jobId?: string
 ): Promise<QueueStatusResult> {
   try {
     const course = await getCourseGenerationState(courseId);
 
     if (!course) return { success: false, error: "Course not found" };
 
-    const status = await getHeavyGenerationJobStatus(course.queueJobId);
+    const activeJobId = jobId || course.queueJobId;
+    const status = await getHeavyGenerationJobStatus(activeJobId);
     if (!status) {
       await updateCourseGenerationState(courseId, {
         generationStatus: "failed",
@@ -193,7 +195,7 @@ export async function getCourseGenerationQueueStatusAction(
 
     return {
       success: true,
-      jobId: course.queueJobId || undefined,
+      jobId: activeJobId || undefined,
       state: status?.state,
       position: status?.position,
       estimatedWaitSeconds: status?.estimatedWaitSeconds,

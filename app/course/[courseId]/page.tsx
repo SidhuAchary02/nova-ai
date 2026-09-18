@@ -112,6 +112,7 @@ export default function CoursePage({ params }: CourseParams) {
   const [genTotal, setGenTotal] = useState(0);
   const [genLesson, setGenLesson] = useState<string | undefined>();
   const [queueStatus, setQueueStatus] = useState<QueueStatusResult | null>(null);
+  const [activeQueueJobId, setActiveQueueJobId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [hasGeneratedContent, setHasGeneratedContent] = useState(false);
@@ -171,8 +172,12 @@ export default function CoursePage({ params }: CourseParams) {
 
   useEffect(() => {
     if (!course || !userEmail || course.createdBy !== userEmail) return;
-    if (!course.queueJobId) return;
-    if (!["queued", "generating"].includes(course.generationStatus || "")) return;
+    const jobId = activeQueueJobId || course.queueJobId;
+    if (!jobId) return;
+    if (
+      !activeQueueJobId &&
+      !["queued", "generating"].includes(course.generationStatus || "")
+    ) return;
 
     let cancelled = false;
 
@@ -180,7 +185,7 @@ export default function CoursePage({ params }: CourseParams) {
       setLoading(true);
 
       while (!cancelled) {
-        const status = await getCourseGenerationQueueStatusAction(course.courseId);
+        const status = await getCourseGenerationQueueStatusAction(course.courseId, jobId);
         if (cancelled) return;
 
         setQueueStatus(status);
@@ -207,6 +212,7 @@ export default function CoursePage({ params }: CourseParams) {
           !status.jobId
         ) {
           await loadCourse(userEmail);
+          setActiveQueueJobId(null);
           setLoading(false);
           return;
         }
@@ -221,7 +227,7 @@ export default function CoursePage({ params }: CourseParams) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [course?.courseId, course?.queueJobId, course?.generationStatus, userEmail]);
+  }, [activeQueueJobId, course?.courseId, course?.queueJobId, course?.generationStatus, userEmail]);
 
   const courseOutput = useMemo(() => parseCourseOutput(course?.courseOutput), [course?.courseOutput]);
 
@@ -270,6 +276,7 @@ export default function CoursePage({ params }: CourseParams) {
         return;
       }
 
+      setActiveQueueJobId(result.jobId || null);
       await loadCourse(userEmail);
     } catch (error) {
       console.error("Failed to generate course content:", error);
