@@ -455,10 +455,11 @@ export async function getGroqKeyFailureStats(): Promise<KeyFailureStats> {
 
 async function tryCandidates<T>(
   candidates: KeyCandidate[],
-  operation: (apiKey: string, keyId: string) => Promise<T>
+  operation: (apiKey: string, keyId: string) => Promise<T>,
+  bypassKeyState = false
 ) {
   for (const candidate of candidates) {
-    if (!(await isAvailable(candidate))) continue;
+    if (!bypassKeyState && !(await isAvailable(candidate))) continue;
 
     try {
       return await operation(candidate.apiKey, candidate.keyId);
@@ -478,7 +479,8 @@ async function tryCandidates<T>(
 
 export async function withGroqApiKey<T>(
   pool: GroqKeyPool,
-  operation: (apiKey: string, keyId: string) => Promise<T>
+  operation: (apiKey: string, keyId: string) => Promise<T>,
+  options: { bypassKeyState?: boolean } = {}
 ): Promise<T> {
   const primary = configuredKeysForPool(pool);
   const paid = paidKey();
@@ -495,7 +497,7 @@ export async function withGroqApiKey<T>(
   const nonEmptyCandidateGroups = candidateGroups.filter((group) => group.length > 0);
 
   for (const group of nonEmptyCandidateGroups) {
-    const result = await tryCandidates(group, operation);
+    const result = await tryCandidates(group, operation, options.bypassKeyState);
     if (result !== null) return result;
   }
 

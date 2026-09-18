@@ -28,6 +28,7 @@ function poolForTask(taskClass: GroqTaskClass) {
 type GroqCallOptions = {
   leasedKey?: LeasedGroqKey;
   estimatedTokens?: number;
+  bypassKeyState?: boolean;
 };
 
 export const SYSTEM_PROMPTS = {
@@ -130,7 +131,9 @@ export async function generateGroqJsonObject(
     }
   }
 
-  const completion = await withGroqApiKey(poolForTask(taskClass), async (apiKey, keyId) => {
+  const completion = await withGroqApiKey(
+    poolForTask(taskClass),
+    async (apiKey, keyId) => {
     const client = new Groq({ apiKey });
     const response = await client.chat.completions.create({
       model: GROQ_MODELS[taskClass],
@@ -144,7 +147,9 @@ export async function generateGroqJsonObject(
 
     await recordGroqKeyUsage(keyId, response.usage?.total_tokens);
     return response;
-  });
+    },
+    { bypassKeyState: options.bypassKeyState }
+  );
 
   const raw = completion.choices[0]?.message?.content;
   if (!raw || typeof raw !== "string") {

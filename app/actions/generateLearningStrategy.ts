@@ -318,7 +318,7 @@ Timeline rules:
       userPrompt,
       0.55,
       "heavy",
-      { leasedKey, estimatedTokens: 5000 }
+      { leasedKey, estimatedTokens: 5000, bypassKeyState: !leasedKey }
     );
     const parsed = JSON.parse(raw);
     const strategy = normalizeStrategyTimeline(
