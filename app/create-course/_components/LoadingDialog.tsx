@@ -137,12 +137,15 @@ function CourseLoader({
   progress = 0,
   progressTotal = 0,
   progressLesson,
+  queueStatus,
 }: {
   progress?: number;
   progressTotal?: number;
   progressLesson?: string;
+  queueStatus?: QueueStatusResult | null;
 }) {
-  const hasReal = progressTotal > 0;
+  const isWaitingForKey = queueStatus?.queueReason === "busy";
+  const hasReal = progressTotal > 0 && !isWaitingForKey;
   const realPct = hasReal ? Math.min(95, Math.round((progress / progressTotal) * 100)) : 0;
 
   const [simPct, setSimPct] = useState(0);
@@ -180,12 +183,16 @@ function CourseLoader({
   }, [rawPct]);
 
   const pct = maxDisplayPct;
-  const primaryMsg = hasReal && progressLesson
-    ? progressLesson
+  const primaryMsg = isWaitingForKey
+    ? queueStatus?.queueMessage || "Waiting for an available API key"
+    : hasReal && progressLesson
+      ? progressLesson
     : COURSE_MESSAGES[msgIdx];
-  const subMsg = hasReal
-    ? `${progress} of ${progressTotal} chapters complete`
-    : "Building your course";
+  const subMsg = isWaitingForKey
+    ? "Generation is queued and will resume automatically"
+    : hasReal
+      ? `${progress} of ${progressTotal} chapters complete`
+      : "Building your course";
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -303,6 +310,7 @@ const LoadingDialog = (props: LoadingDialogProps) => {
                 progress={"progress" in props ? props.progress : undefined}
                 progressTotal={"progressTotal" in props ? props.progressTotal : undefined}
                 progressLesson={"progressLesson" in props ? props.progressLesson : undefined}
+                queueStatus={props.queueStatus}
               />
               <QueueStatusPanel status={props.queueStatus} />
               <button

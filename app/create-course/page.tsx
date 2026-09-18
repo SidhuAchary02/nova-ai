@@ -144,7 +144,7 @@ in JSON format.`;
       setReturningFromRoadmap(false);
     } catch (e) {
       console.error(e);
-      alert("Failed to generate roadmap");
+      alert(e instanceof Error ? e.message : "Failed to generate roadmap");
     } finally {
       setLoading(false);
     }

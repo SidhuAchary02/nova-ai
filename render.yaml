@@ -13,3 +13,9 @@ services:
         sync: false
       - key: GROQ_API_KEY
         sync: false
+      - key: GROQ_HEAVY_API_KEYS
+        sync: false
+      - key: GROQ_LIGHT_API_KEYS
+        sync: false
+      - key: GROQ_PAID_API_KEY
+        sync: false

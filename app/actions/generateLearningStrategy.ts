@@ -328,7 +328,13 @@ Timeline rules:
 
     return { success: true, strategy };
   } catch (e) {
-    if (e instanceof AllGroqKeysExhaustedError) throw e;
+    if (e instanceof AllGroqKeysExhaustedError) {
+      console.error("generateLearningStrategyAction: all Groq keys unavailable", e.stats);
+      return {
+        success: false,
+        error: "AI generation is temporarily busy. Please try again in a minute.",
+      };
+    }
 
     const msg = e instanceof Error ? e.message : String(e);
     console.error("generateLearningStrategyAction:", msg);
