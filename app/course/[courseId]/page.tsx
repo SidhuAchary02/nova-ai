@@ -402,6 +402,7 @@ export default function CoursePage({ params }: CourseParams) {
         <LoadingDialog
           loading={loading}
           variant="course"
+          onBack={() => setLoading(false)}
           progress={genProgress}
           progressTotal={genTotal}
           progressLesson={genLesson}

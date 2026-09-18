@@ -33,6 +33,7 @@ export type LoadingDialogProps =
   | {
     loading: boolean;
     variant: "course";
+    onBack?: () => void;
     progress?: number;
     progressTotal?: number;
     progressLesson?: string;
@@ -247,6 +248,7 @@ function CourseLoader({
 
 const LoadingDialog = (props: LoadingDialogProps) => {
   const { loading, variant = "roadmap" } = props;
+  const keepOpenUntilBack = variant === "course";
   const [visible, setVisible] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -254,11 +256,11 @@ const LoadingDialog = (props: LoadingDialogProps) => {
     if (loading) {
       setVisible(true);
       if (timerRef.current) clearTimeout(timerRef.current);
-    } else {
+    } else if (!keepOpenUntilBack) {
       timerRef.current = setTimeout(() => setVisible(false), 400);
     }
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [loading]);
+  }, [keepOpenUntilBack, loading]);
 
   if (!visible) return null;
 
@@ -303,6 +305,16 @@ const LoadingDialog = (props: LoadingDialogProps) => {
                 progressLesson={"progressLesson" in props ? props.progressLesson : undefined}
               />
               <QueueStatusPanel status={props.queueStatus} />
+              <button
+                type="button"
+                onClick={() => {
+                  setVisible(false);
+                  if ("onBack" in props) props.onBack?.();
+                }}
+                className="w-full rounded-lg border border-black/10 px-4 py-2 text-sm font-medium text-nova-body transition-colors hover:bg-nova-bg"
+              >
+                Back
+              </button>
             </div>
           )}
         </div>
