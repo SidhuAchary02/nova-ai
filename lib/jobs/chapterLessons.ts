@@ -105,19 +105,21 @@ Rules:
 - Do not use markdown fences around the JSON response.
 - Do not include keys other than lessons, title, and content.`;
 
-    const raw = await generateGroqJsonObject(
-      "You are a course author producing structured lesson content.",
-      prompt,
-      0.65,
-      "lesson",
-      {
-        leasedKey,
-        estimatedTokens: Math.min(12000, Math.max(3500, subtopics.length * 1600)),
-      }
-    );
     try {
+      const raw = await generateGroqJsonObject(
+        "You are a course author producing structured lesson content.",
+        prompt,
+        0.65,
+        "lesson",
+        {
+          leasedKey,
+          estimatedTokens: Math.min(12000, Math.max(3500, subtopics.length * 1600)),
+        }
+      );
       return { success: true as const, lessons: parseLessons(raw, subtopics) };
-    } catch {
+    } catch (error: unknown) {
+      if (error instanceof AllGroqKeysExhaustedError) throw error;
+
       const lessons = [];
       for (const subtopic of subtopics) {
         lessons.push(await generateSingleLesson(courseName, chapterName, subtopic, leasedKey));
