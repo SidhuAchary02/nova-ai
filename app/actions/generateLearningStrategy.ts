@@ -90,7 +90,11 @@ function stringList(value: unknown): string[] {
     : [];
 }
 
-function repairLearningStrategyShape(parsed: unknown): Record<string, unknown> {
+function repairLearningStrategyShape(
+  parsed: unknown,
+  fallbackTopic: string,
+  fallbackSubtopics: string[]
+): Record<string, unknown> {
   const source = parsed && typeof parsed === "object" && !Array.isArray(parsed)
     ? (parsed as Record<string, any>)
     : {};
@@ -127,6 +131,21 @@ function repairLearningStrategyShape(parsed: unknown): Record<string, unknown> {
         }))
       : [],
   }));
+
+  if (repairedPhases.length === 0) {
+    repairedPhases.push({
+      order: 1,
+      name: fallbackTopic || "Foundations",
+      durationDays: undefined,
+      objectives: [`Build a practical foundation in ${fallbackTopic || "the selected topic"}.`],
+      chapters: [{
+        chapterName: fallbackTopic || "Getting started",
+        durationDays: undefined,
+        subtopics: fallbackSubtopics.slice(0, 4),
+        subchapters: [],
+      }],
+    });
+  }
 
   const skillGraph = Array.isArray(source.skillGraph)
     ? source.skillGraph
@@ -322,7 +341,9 @@ Timeline rules:
     );
     const parsed = JSON.parse(raw);
     const strategy = normalizeStrategyTimeline(
-      learningStrategyOutputSchema.parse(repairLearningStrategyShape(parsed)),
+      learningStrategyOutputSchema.parse(
+        repairLearningStrategyShape(parsed, userInput.topic || userInput.intent || "", ctx.topicsToFocus)
+      ),
       ctx.timePerDayHours
     );
 

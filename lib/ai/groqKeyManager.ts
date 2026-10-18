@@ -439,6 +439,11 @@ export async function recordGroqKeyUsage(keyId: string, tokensUsed?: number) {
 }
 
 export async function getGroqKeyFailureStats(): Promise<KeyFailureStats> {
+  await clearExpiredLeases([
+    ...configuredKeysForPool("heavy"),
+    ...configuredKeysForPool("light"),
+    ...paidKey(),
+  ]);
   const rows = await db.select().from(groqApiKeys);
   const recoveries = rows
     .map((row) => row.cooldownUntil)
