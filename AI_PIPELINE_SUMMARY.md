@@ -8,7 +8,7 @@ Your system uses **Groq** as the exclusive AI provider with three tier models:
 
 ```
 HEAVY:   openai/gpt-oss-120b
-LESSON:  qwen/qwen3.6-27b
+LESSON:  openai/gpt-oss-20b
 LIGHT:   openai/gpt-oss-20b
 ```
 
@@ -37,7 +37,7 @@ LIGHT:   openai/gpt-oss-20b
 
 ---
 
-### 3. **Chapter Content Bundle Pipeline** (LESSON - qwen/qwen3.6-27b)
+### 3. **Chapter Content Bundle Pipeline** (LESSON - openai/gpt-oss-20b)
 **Function:** `generateChapterContentBundle` in [configs/ai-models.ts](configs/ai-models.ts)
 
 - Generates complete chapter with sections
@@ -54,7 +54,7 @@ LIGHT:   openai/gpt-oss-20b
 
 ---
 
-### 4. **Chapter Content MDX Pipeline** (LESSON - qwen/qwen3.6-27b)
+### 4. **Chapter Content MDX Pipeline** (LESSON - openai/gpt-oss-20b)
 **Function:** `generateChapterContentMDX` in [configs/ai-models.ts](configs/ai-models.ts)
 
 - Raw markdown text for course lessons
@@ -84,7 +84,7 @@ LIGHT:   openai/gpt-oss-20b
 
 ---
 
-### 7. **Mermaid Diagram Pipeline** (LESSON - qwen/qwen3.6-27b)
+### 7. **Mermaid Diagram Pipeline** (LESSON - openai/gpt-oss-20b)
 **Function:** `generateMermaidDiagram` in [configs/ai-models.ts](configs/ai-models.ts)
 
 - Generates flowchart/diagram code for lessons
@@ -182,10 +182,10 @@ LIGHT:   openai/gpt-oss-20b
 |------|-------|------|---|
 | Learning roadmap | openai/gpt-oss-120b | Heavy | 0.55 |
 | Course structure | openai/gpt-oss-120b | Heavy | 0.55 |
-| Chapter content | qwen/qwen3.6-27b | Lesson | 0.65 |
+| Chapter content | openai/gpt-oss-20b | Lesson | 0.65 |
 | Quiz generation | openai/gpt-oss-20b | Light | 0.4 |
 | Sources | openai/gpt-oss-20b | Light | 0.55 |
-| Diagrams | qwen/qwen3.6-27b | Lesson | 0.3 |
+| Diagrams | openai/gpt-oss-20b | Lesson | 0.3 |
 | Course chat | openai/gpt-oss-20b | Light | 0.45 |
 | Course title | openai/gpt-oss-120b | Heavy | 0.55 |
 | Intent clarification | openai/gpt-oss-120b | Heavy | 0.55 |
