@@ -1,7 +1,10 @@
 import { db } from "@/configs/db";
 import { CourseList } from "@/schema/schema";
 import { eq } from "drizzle-orm";
-import { getHeavyGenerationJobRecord } from "@/lib/queue/heavyGenerationQueue";
+import {
+  getHeavyGenerationJob,
+  heavyGenerationQueue,
+} from "@/lib/queue/heavyGenerationQueue";
 
 export type HeavyGenerationJobStatus = {
   jobId?: string;
@@ -22,24 +25,24 @@ export type CourseGenerationStatePatch = {
   chaptersTotal?: number;
 };
 
-// The polling UI reads from this service; it never touches the worker directly.
 export async function getHeavyGenerationJobStatus(
   jobId?: string | null
 ): Promise<HeavyGenerationJobStatus | null> {
   if (!jobId) return null;
 
-  const job = getHeavyGenerationJobRecord(jobId);
+  const job = await getHeavyGenerationJob(jobId);
   if (!job) return null;
 
-  const state = job.state;
-  const progress = job.progress;
+  const state = await job.getState();
+  const counts = await heavyGenerationQueue.getJobCounts("waiting", "active");
+  const position = state === "waiting" ? counts.waiting : 0;
 
   return {
     jobId: job.id,
     state,
-    position: state === "waiting" ? 1 : 0,
-    estimatedWaitSeconds: 0,
-    progress,
+    position,
+    estimatedWaitSeconds: position * 30,
+    progress: job.progress,
     failedReason: job.failedReason,
     returnvalue: job.returnvalue,
     workerCount: 1,

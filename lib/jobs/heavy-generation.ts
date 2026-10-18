@@ -16,7 +16,7 @@ import type { CourseType, UserInputType } from "@/types/types";
 import { updateCourseGenerationState } from "@/lib/services/generation-status";
 
 export type HeavyGenerationJobLike<TData = HeavyGenerationJobData> = {
-  id: string;
+  id?: string;
   data: TData;
   progress?: unknown;
   failedReason?: string;

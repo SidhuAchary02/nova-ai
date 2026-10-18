@@ -1,119 +1,62 @@
-import { createHash } from "node:crypto";
+import { Queue, Worker, type Job } from "bullmq";
+import IORedis from "ioredis";
 import type { HeavyGenerationJobData } from "@/lib/jobs/heavy-generation";
-import type { HeavyGenerationJobLike } from "@/lib/jobs/heavy-generation";
 
 export const HEAVY_GENERATION_QUEUE_NAME = "heavy-generation";
 
-type LocalJobState = "waiting" | "active" | "completed" | "failed";
-
-type LocalJobRecord = {
-  id: string;
-  data: HeavyGenerationJobData;
-  state: LocalJobState;
-  progress?: unknown;
-  failedReason?: string;
-  returnvalue?: unknown;
-  createdAt: number;
-};
-
-const localJobs = new Map<string, LocalJobRecord>();
-
-function stableStringify(value: unknown): string {
-  if (Array.isArray(value)) {
-    return `[${value.map((entry) => stableStringify(entry)).join(",")}]`;
+function createConnection() {
+  const redisUrl = process.env.REDIS_URL?.trim();
+  if (!redisUrl) {
+    throw new Error("REDIS_URL is required for heavy generation queue");
   }
 
-  if (value && typeof value === "object") {
-    const entries = Object.entries(value as Record<string, unknown>).sort(([left], [right]) =>
-      left.localeCompare(right)
-    );
+  return new IORedis(redisUrl, {
+    maxRetriesPerRequest: null,
+  });
+}
 
-    return `{${entries
-      .map(([key, entry]) => `${JSON.stringify(key)}:${stableStringify(entry)}`)
-      .join(",")}}`;
+export const heavyGenerationQueue = new Queue<HeavyGenerationJobData>(
+  HEAVY_GENERATION_QUEUE_NAME,
+  {
+    connection: createConnection(),
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      removeOnComplete: { count: 100 },
+      removeOnFail: { count: 200 },
+    },
   }
-
-  return JSON.stringify(value);
-}
-
-function createLocalJobHandle(record: LocalJobRecord): HeavyGenerationJobLike {
-  return {
-    id: record.id,
-    data: record.data,
-    get progress() {
-      return record.progress;
-    },
-    get failedReason() {
-      return record.failedReason;
-    },
-    get returnvalue() {
-      return record.returnvalue;
-    },
-    async updateProgress(progress: unknown) {
-      record.progress = progress;
-    },
-  };
-}
-
-export function getHeavyGenerationJobRecord(jobId: string) {
-  return localJobs.get(jobId) || null;
-}
-
-async function runLocalJob(jobId: string) {
-  const record = localJobs.get(jobId);
-  if (!record || record.state !== "waiting") return;
-
-  record.state = "active";
-  const job = createLocalJobHandle(record);
-
-  try {
-    const { processHeavyGenerationJob } = await import("@/lib/jobs/heavy-generation");
-    record.returnvalue = await processHeavyGenerationJob(job);
-    record.state = "completed";
-  } catch (error) {
-    record.state = "failed";
-    record.failedReason = error instanceof Error ? error.message : String(error);
-  }
-}
-
-export function buildHeavyGenerationJobId(data: HeavyGenerationJobData) {
-  if (data.taskType === "roadmap") {
-    const signature = stableStringify({
-      userEmail: data.userEmail,
-      userInput: data.userInput,
-    });
-
-    return `roadmap-${createHash("sha1").update(signature).digest("hex")}`;
-  }
-
-  return [
-    "course",
-    data.courseId,
-    data.taskType,
-    data.chapterIndex ?? "all",
-    data.initialCount ?? "all",
-  ].join("-");
-}
+);
 
 export async function enqueueHeavyGenerationJob(data: HeavyGenerationJobData) {
-  const baseJobId = buildHeavyGenerationJobId(data);
-  const existingJob = localJobs.get(baseJobId);
-
-  if (existingJob) {
-    if (["waiting", "active"].includes(existingJob.state)) {
-      return createLocalJobHandle(existingJob);
-    }
-  }
-
-  const jobId = existingJob ? `${baseJobId}-${Date.now().toString(36)}` : baseJobId;
-  localJobs.set(jobId, {
-    id: jobId,
-    data,
-    state: "waiting",
-    createdAt: Date.now(),
-  });
-
-  void runLocalJob(jobId);
-
-  return createLocalJobHandle(localJobs.get(jobId)!);
+  return heavyGenerationQueue.add(data.taskType, data);
 }
+
+let worker: Worker<HeavyGenerationJobData> | null = null;
+
+export function getHeavyGenerationWorker() {
+  if (worker) return worker;
+
+  worker = new Worker<HeavyGenerationJobData>(
+    HEAVY_GENERATION_QUEUE_NAME,
+    async (job) => {
+      const { processHeavyGenerationJob } = await import("@/lib/jobs/heavy-generation");
+      return processHeavyGenerationJob(job);
+    },
+    {
+      connection: createConnection(),
+      concurrency: 1,
+    }
+  );
+
+  return worker;
+}
+
+export async function getHeavyGenerationJob(jobId: string) {
+  return heavyGenerationQueue.getJob(jobId);
+}
+
+export type HeavyGenerationQueueJob = Job<HeavyGenerationJobData>;
