@@ -11,7 +11,8 @@
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate:generation-queue": "node scripts/apply-generation-queue-migration.js",
-    "worker:heavy-generation": "tsx scripts/heavy-generation-worker.ts"
+    "worker:heavy-generation": "tsx scripts/heavy-generation-worker.ts",
+    "worker:supabase-keepalive": "tsx scripts/supabase-keepalive.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^5.3.5",

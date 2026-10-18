@@ -17,5 +17,20 @@ module.exports = {
         DATABASE_POOL_MAX: "2",
       },
     },
+    {
+      name: "nova-supabase-keepalive",
+      script: "npm",
+      args: "run worker:supabase-keepalive",
+      cwd: __dirname,
+      exec_mode: "fork",
+      instances: 1,
+      autorestart: true,
+      max_restarts: 20,
+      min_uptime: "10s",
+      time: true,
+      env: {
+        NODE_ENV: "production",
+      },
+    },
   ],
 };

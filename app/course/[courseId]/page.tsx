@@ -111,6 +111,7 @@ export default function CoursePage({ params }: CourseParams) {
   const [genProgress, setGenProgress] = useState(0);
   const [genTotal, setGenTotal] = useState(0);
   const [genLesson, setGenLesson] = useState<string | undefined>();
+  const [generationTarget, setGenerationTarget] = useState(0);
   const [queueStatus, setQueueStatus] = useState<QueueStatusResult | null>(null);
   const [activeQueueJobId, setActiveQueueJobId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -182,8 +183,6 @@ export default function CoursePage({ params }: CourseParams) {
     let cancelled = false;
 
     const pollExistingJob = async () => {
-      setLoading(true);
-
       while (!cancelled) {
         const status = await getCourseGenerationQueueStatusAction(course.courseId, jobId);
         if (cancelled) return;
@@ -205,6 +204,13 @@ export default function CoursePage({ params }: CourseParams) {
             setGenTotal((currentTotal) => Math.max(currentTotal, progress.total as number));
           }
           if (typeof progress.lessonName === "string") setGenLesson(progress.lessonName);
+          if (
+            generationTarget > 0 &&
+            typeof progress.completed === "number" &&
+            progress.completed >= generationTarget
+          ) {
+            setLoading(false);
+          }
         }
 
         if (
@@ -229,7 +235,14 @@ export default function CoursePage({ params }: CourseParams) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQueueJobId, course?.courseId, course?.queueJobId, course?.generationStatus, userEmail]);
+  }, [
+    activeQueueJobId,
+    course?.courseId,
+    course?.queueJobId,
+    course?.generationStatus,
+    generationTarget,
+    userEmail,
+  ]);
 
   const courseOutput = useMemo(() => parseCourseOutput(course?.courseOutput), [course?.courseOutput]);
 
@@ -262,6 +275,7 @@ export default function CoursePage({ params }: CourseParams) {
     setLoading(true);
     setGenProgress(0);
     setGenTotal(chapterCount);
+    setGenerationTarget(Math.min(3, chapterCount));
     setGenLesson(undefined);
     setQueueStatus(null);
     try {
