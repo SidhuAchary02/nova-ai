@@ -165,15 +165,16 @@ async function runCourseJob(job: HeavyGenerationJobLike<CourseGenerationJobData>
               : allChapters.length)
             .map((_, index) => index);
     const jobs = await selectedChapterJobs(course, job.data);
-    let completed = targetChapterIndexes.filter((index) => generatedSet.has(index)).length;
-    const total = targetChapterIndexes.length;
+    const previouslyGeneratedCount = generatedSet.size;
+    let completed = 0;
+    const total = allChapters.length;
 
     for (const { chapter, chapterIndex } of jobs) {
       const subtopics = chapter.subtopics || [];
 
       await job.updateProgress({
         status: "generating",
-        completed,
+        completed: previouslyGeneratedCount + completed,
         total,
         lessonName: `Chapter ${chapterIndex + 1}: ${chapter.chapterName}`,
       });
@@ -200,7 +201,7 @@ async function runCourseJob(job: HeavyGenerationJobLike<CourseGenerationJobData>
         completed += 1;
         await job.updateProgress({
           status: "generating",
-          completed,
+          completed: previouslyGeneratedCount + completed,
           total,
           lessonName: `Chapter ${chapterIndex + 1} complete`,
         });

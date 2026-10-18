@@ -201,7 +201,9 @@ export default function CoursePage({ params }: CourseParams) {
 
         if (progress) {
           if (typeof progress.completed === "number") setGenProgress(progress.completed);
-          if (typeof progress.total === "number") setGenTotal(progress.total);
+          if (typeof progress.total === "number") {
+            setGenTotal((currentTotal) => Math.max(currentTotal, progress.total as number));
+          }
           if (typeof progress.lessonName === "string") setGenLesson(progress.lessonName);
         }
 
@@ -259,7 +261,7 @@ export default function CoursePage({ params }: CourseParams) {
 
     setLoading(true);
     setGenProgress(0);
-    setGenTotal(0);
+    setGenTotal(chapterCount);
     setGenLesson(undefined);
     setQueueStatus(null);
     try {
