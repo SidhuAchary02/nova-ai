@@ -8,6 +8,77 @@ function hasMermaidBlock(content: string) {
   return /```mermaid\s+[\s\S]*?\b(flowchart|graph)\b[\s\S]*?```/i.test(content);
 }
 
+function parseLessons(raw: string, subtopics: string[]) {
+  const parsed = JSON.parse(raw) as {
+    lessons?: Array<{ title?: unknown; content?: unknown }>;
+  };
+  const byTitle = new Map<string, { title: string; content: string }>();
+
+  for (const lesson of parsed.lessons || []) {
+    const title = typeof lesson.title === "string" ? lesson.title.trim() : "";
+    let content = typeof lesson.content === "string" ? lesson.content.trim() : "";
+    if (!title || content.length < 20) continue;
+
+    if (!hasMermaidBlock(content)) {
+      const safeTitle = title.replace(/[\[\]"]+/g, "").trim() || "Lesson topic";
+      content += [
+        "",
+        "## Visual Overview",
+        "",
+        "```mermaid",
+        "flowchart TD",
+        `  A[${safeTitle}] --> B[Key idea]`,
+        "  B --> C[Practical application]",
+        "  C --> D[Review and next step]",
+        "```",
+        "",
+      ].join("\n");
+    }
+
+    byTitle.set(title.toLowerCase(), { title, content });
+  }
+
+  const lessons = subtopics.map((subtopic) => byTitle.get(subtopic.trim().toLowerCase()));
+  if (lessons.some((lesson) => !lesson)) {
+    throw new Error(
+      `Batch response contained ${lessons.filter(Boolean).length} of ${subtopics.length} requested lessons`
+    );
+  }
+
+  return lessons as { title: string; content: string }[];
+}
+
+async function generateSingleLesson(
+  courseName: string,
+  chapterName: string,
+  subtopic: string,
+  leasedKey: LeasedGroqKey
+) {
+  const raw = await generateGroqJsonObject(
+    "You are a course author producing structured lesson content.",
+    `Generate one lesson as a single JSON response.
+
+Course: "${courseName}"
+Chapter: "${chapterName}"
+Subtopic: "${subtopic}"
+
+Return exactly this shape:
+{"lessons":[{"title":"${subtopic.replace(/["\\]/g, "")}","content":"raw markdown lesson"}]}
+
+Rules:
+- The title must exactly match the subtopic.
+- The content must be complete markdown, beginning with a # heading.
+- Include explanations, examples, tables, a concise summary, and a Mermaid flowchart TD block.
+- Do not use markdown fences around the JSON response.
+- Do not include keys other than lessons, title, and content.`,
+    0.35,
+    "lesson",
+    { leasedKey, estimatedTokens: 3500 }
+  );
+
+  return parseLessons(raw, [subtopic])[0];
+}
+
 export async function generateChapterLessonsBatch(
   courseName: string,
   chapterName: string,
@@ -44,45 +115,15 @@ Rules:
         estimatedTokens: Math.min(12000, Math.max(3500, subtopics.length * 1600)),
       }
     );
-    const parsed = JSON.parse(raw) as {
-      lessons?: Array<{ title?: unknown; content?: unknown }>;
-    };
-
-    const byTitle = new Map<string, { title: string; content: string }>();
-    for (const lesson of parsed.lessons || []) {
-      const title = typeof lesson.title === "string" ? lesson.title.trim() : "";
-      let content = typeof lesson.content === "string" ? lesson.content.trim() : "";
-      if (!title || content.length < 20) continue;
-
-      if (!hasMermaidBlock(content)) {
-        const safeTitle = title.replace(/[\[\]"]+/g, "").trim() || "Lesson topic";
-        content += [
-          "",
-          "## Visual Overview",
-          "",
-          "```mermaid",
-          "flowchart TD",
-          `  A[${safeTitle}] --> B[Key idea]`,
-          "  B --> C[Practical application]",
-          "  C --> D[Review and next step]",
-          "```",
-          "",
-        ].join("\n");
+    try {
+      return { success: true as const, lessons: parseLessons(raw, subtopics) };
+    } catch {
+      const lessons = [];
+      for (const subtopic of subtopics) {
+        lessons.push(await generateSingleLesson(courseName, chapterName, subtopic, leasedKey));
       }
-
-      byTitle.set(title.toLowerCase(), { title, content });
+      return { success: true as const, lessons };
     }
-
-    const lessons = subtopics.map((subtopic) => byTitle.get(subtopic.trim().toLowerCase()));
-    if (lessons.some((lesson) => !lesson)) {
-      return {
-        success: false as const,
-        lessons: [],
-        error: `Batch response contained ${lessons.filter(Boolean).length} of ${subtopics.length} requested lessons`,
-      };
-    }
-
-    return { success: true as const, lessons: lessons as { title: string; content: string }[] };
   } catch (error: unknown) {
     if (error instanceof AllGroqKeysExhaustedError) throw error;
     return {
