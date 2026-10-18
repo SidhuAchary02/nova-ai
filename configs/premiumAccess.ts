@@ -4,7 +4,7 @@
  */
 export const PREMIUM_USER_COURSE_LIMITS: Record<string, number> = {
   "vivek.17332@sakec.ac.in": 50,
-  "anshulc4444@gmail.com": 30,
+  "anshulc4444@gmail.com": 50,
   "siddhuachary2005@gmail.com": 10,
   "vivpakate@gmail.com": 50,
   "akatevivek@gmail.com": 50,

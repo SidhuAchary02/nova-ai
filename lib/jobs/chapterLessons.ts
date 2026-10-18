@@ -1,4 +1,4 @@
-import { generateGroqJsonObject } from "@/configs/ai-models";
+import { generateGroqJsonObject, generateGroqPlainText } from "@/configs/ai-models";
 import {
   AllGroqKeysExhaustedError,
   type LeasedGroqKey,
@@ -54,29 +54,34 @@ async function generateSingleLesson(
   subtopic: string,
   leasedKey: LeasedGroqKey
 ) {
-  const raw = await generateGroqJsonObject(
-    "You are a course author producing structured lesson content.",
-    `Generate one lesson as a single JSON response.
+  const content = await generateGroqPlainText(
+    "You are a course author producing a complete markdown lesson.",
+    `Generate one complete markdown lesson.
 
 Course: "${courseName}"
 Chapter: "${chapterName}"
 Subtopic: "${subtopic}"
 
-Return exactly this shape:
-{"lessons":[{"title":"${subtopic.replace(/["\\]/g, "")}","content":"raw markdown lesson"}]}
-
 Rules:
-- The title must exactly match the subtopic.
-- The content must be complete markdown, beginning with a # heading.
+- Begin with a # heading for the subtopic.
 - Include explanations, examples, tables, a concise summary, and a Mermaid flowchart TD block.
-- Do not use markdown fences around the JSON response.
-- Do not include keys other than lessons, title, and content.`,
+- Return only the markdown lesson, with no JSON wrapper.`,
     0.35,
     "lesson",
     { leasedKey, estimatedTokens: 3500 }
   );
 
-  return parseLessons(raw, [subtopic])[0];
+  const normalizedContent = content.trim();
+  if (normalizedContent.length < 20) {
+    throw new Error(`Empty lesson generated for ${subtopic}`);
+  }
+
+  return {
+    title: subtopic,
+    content: hasMermaidBlock(normalizedContent)
+      ? normalizedContent
+      : `${normalizedContent}\n\n## Visual Overview\n\n\`\`\`mermaid\nflowchart TD\n  A[${subtopic.replace(/[\[\]"]+/g, "").trim()}] --> B[Key idea]\n\`\`\`\n`,
+  };
 }
 
 export async function generateChapterLessonsBatch(
